@@ -162,8 +162,8 @@ export default function App() {
                         observaciones={observaciones}
                         correlativos={correlativos}
                         notas={notas}
-                        filtrar={filtrarObservaciones}
-                        getEstadisticas={getGlobalStats}
+                        filtrar={filtrar}
+                        getEstadisticas={getEstadisticas}
                         onSelectObservacion={handleSelectObservacion}
                         catalogos={catalogos}
                     />
