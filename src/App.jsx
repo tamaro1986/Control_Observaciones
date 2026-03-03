@@ -181,7 +181,7 @@ export default function App() {
     };
 
     return (
-        <div className="min-h-screen bg-surface-alt bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-blend-soft-light flex text-text-primary">
+        <div className="min-h-screen bg-surface-alt flex text-text-primary">
             <Sidebar
                 activeView={activeView}
                 onNavigate={handleNavigate}
@@ -197,7 +197,7 @@ export default function App() {
                 }}
             >
                 {/* Top Navbar */}
-                <header className="h-14 glass-panel border-b border-border/30 sticky top-0 z-30 flex items-center justify-between px-6 shadow-md shadow-black/10">
+                <header className="h-14 bg-white/70 backdrop-blur-lg border-b border-border sticky top-0 z-30 flex items-center justify-between px-6">
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col">
                             <h1 className="text-sm font-black text-text-primary uppercase tracking-widest leading-none">

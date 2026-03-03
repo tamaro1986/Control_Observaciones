@@ -72,12 +72,12 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
 
             {/* ── Filter Bar Section ── */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div className="flex gap-2 p-1 bg-surface-hover/30 rounded-xl shadow-inner border border-white/5 overflow-x-auto no-scrollbar backdrop-blur-md">
-                    <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary text-white px-4 text-sm font-semibold shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                <div className="flex gap-2 p-1 bg-white rounded-xl shadow-sm border border-border overflow-x-auto no-scrollbar">
+                    <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary text-white px-4 text-sm font-semibold shadow-md shadow-primary/20">
                         <span>Todas</span>
                     </button>
                     {['Anual', 'Seguimiento', 'Especial'].map(tab => (
-                        <button key={tab} className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-transparent text-text-secondary px-4 text-sm font-medium hover:bg-white/5 transition-colors">
+                        <button key={tab} className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-transparent text-text-secondary px-4 text-sm font-medium hover:bg-surface-hover transition-colors">
                             <span>{tab}</span>
                             <span className="material-symbols-outlined text-base">keyboard_arrow_down</span>
                         </button>
@@ -85,9 +85,9 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-text-muted">Ordenar por:</span>
-                    <button className="flex h-9 items-center justify-center gap-2 rounded-lg bg-surface/50 border border-white/5 px-4 text-sm font-medium text-text-primary hover:bg-white/5 backdrop-blur-md transition-colors">
+                    <button className="flex h-9 items-center justify-center gap-2 rounded-lg bg-white border border-border px-4 text-sm font-medium text-text-primary hover:bg-surface-hover shadow-sm transition-colors">
                         Riesgos Críticos
-                        <span className="material-symbols-outlined text-base">swap_vert</span>
+                        <span className="material-symbols-outlined text-base text-text-secondary">swap_vert</span>
                     </button>
                 </div>
             </div>
@@ -99,10 +99,10 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                     return (
                         <div
                             key={ent.id}
-                            className="group glass-panel rounded-2xl border border-white/5 shadow-premium hover:shadow-premium-hover transition-all duration-300 flex flex-col overflow-hidden relative"
+                            className="group premium-card rounded-2xl flex flex-col overflow-hidden relative bg-white"
                         >
                             {/* Ambient Glow */}
-                            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 pointer-events-none rounded-full ${cfg.bg}`} />
+                            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-[0.08] pointer-events-none rounded-full ${cfg.bg}`} />
 
                             {/* colored top bar */}
                             <div className={`h-2 w-full ${cfg.bg}`}></div>
@@ -139,7 +139,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                                 </div>
 
                                 {/* Footer button */}
-                                <div className="mt-4 pt-3 border-t border-white/5 z-10 relative">
+                                <div className="mt-4 pt-3 border-t border-border/60 z-10 relative">
                                     <button
                                         onClick={() => onNavigate('informes')}
                                         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', background: 'rgba(11,115,218,0.08)', color: '#0b73da', fontWeight: 700, fontSize: '12px', padding: '7px 0', borderRadius: '7px', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -157,9 +157,9 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
             </div>
 
             {/* ── Alerts Section ── */}
-            <div className="glass-panel rounded-2xl border border-white/5 shadow-premium overflow-hidden mt-6 backdrop-blur-xl">
+            <div className="premium-card rounded-2xl overflow-hidden mt-6 bg-white">
                 {/* Header */}
-                <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                <div className="p-4 border-b border-border/60 flex items-center justify-between">
                     <div>
                         <h3 className="text-text-primary text-sm font-bold">Alertas de Vencimiento</h3>
                         <p className="text-text-muted text-xs mt-0.5">Plazos críticos en los próximos 30 días</p>

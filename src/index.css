@@ -2,56 +2,56 @@
 
 /* ===== AuditFlow Pro Design System ===== */
 @theme {
-  --color-primary: #8b5cf6;
-  --color-primary-light: #a78bfa;
-  --color-primary-dark: #7c3aed;
-  --color-primary-50: rgba(139, 92, 246, 0.05);
-  --color-primary-100: rgba(139, 92, 246, 0.1);
-  --color-primary-200: rgba(139, 92, 246, 0.2);
-  --color-primary-700: #6d28d9;
+  --color-primary: #2563eb;
+  --color-primary-light: #60a5fa;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-700: #1d4ed8;
 
-  --color-success: #10b981;
-  --color-success-light: rgba(16, 185, 129, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-light: rgba(245, 158, 11, 0.1);
-  --color-danger: #ef4444;
-  --color-danger-light: rgba(239, 68, 68, 0.1);
-  --color-info: #3b82f6;
-  --color-info-light: rgba(59, 130, 246, 0.1);
+  --color-success: #059669;
+  --color-success-light: #d1fae5;
+  --color-warning: #d97706;
+  --color-warning-light: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-light: #fee2e2;
+  --color-info: #0284c7;
+  --color-info-light: #e0f2fe;
 
-  --color-surface: #18181b;
-  --color-surface-alt: #09090b;
-  --color-surface-hover: #27272a;
-  --color-border: #3f3f46;
-  --color-border-light: rgba(255, 255, 255, 0.05);
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #71717a;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8fafc;
+  --color-surface-hover: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-light: #f8fafc;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
 
-  --color-risk-critico: #ef4444;
-  --color-risk-critico-bg: rgba(239, 68, 68, 0.1);
-  --color-risk-alto: #f97316;
-  --color-risk-alto-bg: rgba(249, 115, 22, 0.1);
-  --color-risk-medio: #f59e0b;
-  --color-risk-medio-bg: rgba(245, 158, 11, 0.1);
-  --color-risk-bajo: #3b82f6;
-  --color-risk-bajo-bg: rgba(59, 130, 246, 0.1);
+  --color-risk-critico: #dc2626;
+  --color-risk-critico-bg: #fee2e2;
+  --color-risk-alto: #ea580c;
+  --color-risk-alto-bg: #ffedd5;
+  --color-risk-medio: #d97706;
+  --color-risk-medio-bg: #fef3c7;
+  --color-risk-bajo: #2563eb;
+  --color-risk-bajo-bg: #dbeafe;
 
-  --color-estado-pendiente: #f59e0b;
-  --color-estado-pendiente-bg: rgba(245, 158, 11, 0.1);
-  --color-estado-encurso: #3b82f6;
-  --color-estado-encurso-bg: rgba(59, 130, 246, 0.1);
-  --color-estado-subsanada: #10b981;
-  --color-estado-subsanada-bg: rgba(16, 185, 129, 0.1);
-  --color-estado-parcial: #8b5cf6;
-  --color-estado-parcial-bg: rgba(139, 92, 246, 0.1);
-  --color-estado-vencida: #ef4444;
-  --color-estado-vencida-bg: rgba(239, 68, 68, 0.1);
+  --color-estado-pendiente: #d97706;
+  --color-estado-pendiente-bg: #fef3c7;
+  --color-estado-encurso: #2563eb;
+  --color-estado-encurso-bg: #dbeafe;
+  --color-estado-subsanada: #059669;
+  --color-estado-subsanada-bg: #d1fae5;
+  --color-estado-parcial: #7c3aed;
+  --color-estado-parcial-bg: #ede9fe;
+  --color-estado-vencida: #dc2626;
+  --color-estado-vencida-bg: #fee2e2;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
-  --shadow-premium: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-  --shadow-premium-hover: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 10px 15px -3px rgb(0 0 0 / 0.8), 0 4px 6px -4px rgb(0 0 0 / 0.8);
+  --shadow-premium: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), 0 0 0 1px rgb(0 0 0 / 0.03);
+  --shadow-premium-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 0 1px rgb(0 0 0 / 0.05);
 }
 
 /* ===== Base ===== */
@@ -95,10 +95,11 @@ body {
 
 /* ===== Custom Components ===== */
 .glass-panel {
-  background: rgba(24, 24, 27, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
 .premium-card {
