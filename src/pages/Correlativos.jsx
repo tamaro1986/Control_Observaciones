@@ -28,8 +28,7 @@ const getCategoryStyle = (text) => {
 const emptyForm = {
     blfOtro: '',
     fecha: new Date().toISOString().slice(0, 10),
-    codigoNorma: '',
-    nombreNorma: '',
+    normas: [],
     cantidadUnidades: 1,
     clasificacion: '',
     industria: '',
@@ -60,12 +59,15 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
     const filtered = useMemo(() => {
         const q = search.toLowerCase();
         return correlativos.filter(c => {
+            const codeStr = c.codigo || '';
+            const asntStr = c.asunto || '';
             const matchQ = !q ||
-                c.codigo.toLowerCase().includes(q) ||
+                codeStr.toLowerCase().includes(q) ||
                 c.entidad.toLowerCase().includes(q) ||
                 c.responsable.toLowerCase().includes(q) ||
-                c.codigoNorma.toLowerCase().includes(q) ||
-                c.asunto.toLowerCase().includes(q);
+                (c.normas && c.normas.some(n => n.codigo.toLowerCase().includes(q) || n.nombre.toLowerCase().includes(q))) ||
+                (c.codigoNorma && c.codigoNorma.toLowerCase().includes(q)) ||
+                asntStr.toLowerCase().includes(q);
             const matchClasif = !filterClasif || c.clasificacion === filterClasif;
             const matchIndust = !filterIndust || c.industria === filterIndust;
             const matchAccion = !filterAccion || c.accionSupervision === filterAccion;
@@ -78,14 +80,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
     const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     function handleField(key, val) {
-        setForm(f => {
-            const next = { ...f, [key]: val };
-            if (key === 'codigoNorma') {
-                const norma = catalogos.normas.find(n => n.codigo === val);
-                if (norma) next.nombreNorma = norma.nombre;
-            }
-            return next;
-        });
+        setForm(f => ({ ...f, [key]: val }));
     }
 
     function handleGuardar() {
@@ -113,11 +108,30 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                 .slice(0, limit);
         };
 
+        const getTopNormas = (arr, limit = 5) => {
+            const counts = {};
+            arr.forEach(curr => {
+                const normasDelDoc = curr.normas && curr.normas.length > 0
+                    ? curr.normas
+                    : (curr.codigoNorma ? [{ codigo: curr.codigoNorma }] : []);
+
+                if (normasDelDoc.length === 0) {
+                    counts['N/A'] = (counts['N/A'] || 0) + 1;
+                } else {
+                    normasDelDoc.forEach(n => {
+                        const val = n.codigo;
+                        counts[val] = (counts[val] || 0) + 1;
+                    });
+                }
+            });
+            return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, limit);
+        };
+
         return {
             total: correlativos.length,
             esteAño: correlativos.filter(c => c.año === new Date().getFullYear()).length,
             porTipo: getTop(correlativos, 'tipoInforme'),
-            porNorma: getTop(correlativos, 'codigoNorma'),
+            porNorma: getTopNormas(correlativos),
             porResponsable: getTop(correlativos, 'responsable'),
         };
     }, [correlativos]);
@@ -266,8 +280,21 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                                             <span className="text-[10px] font-bold text-text-secondary">{formatDate(c.fecha)}</span>
                                         </td>
                                         <td className="py-2 px-3 align-middle">
-                                            <span className="text-[10px] font-black text-text-primary">{c.codigoNorma}</span>
-                                            <p className="text-[9px] text-slate-400 max-w-[140px] truncate">{c.nombreNorma}</p>
+                                            {c.normas && c.normas.length > 0 ? (
+                                                <div className="space-y-1.5">
+                                                    {c.normas.map((n, i) => (
+                                                        <div key={i}>
+                                                            <span className="text-[10px] font-black text-text-primary">{n.codigo}</span>
+                                                            <p className="text-[9px] text-slate-400 max-w-[140px] truncate" title={n.nombre}>{n.nombre}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <span className="text-[10px] font-black text-text-primary">{c.codigoNorma || '—'}</span>
+                                                    <p className="text-[9px] text-slate-400 max-w-[140px] truncate">{c.nombreNorma || ''}</p>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="py-2 px-3 align-middle text-center">
                                             <span className="text-xs font-black text-text-primary">{c.cantidadUnidades}</span>
@@ -360,7 +387,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                         <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
                             {/* Row 1 */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Fecha *</label>
                                     <input type="date" value={form.fecha} onChange={e => handleField('fecha', e.target.value)}
@@ -371,31 +398,51 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                                     <input type="text" placeholder="ej. 10/02/2026" value={form.blfOtro} onChange={e => handleField('blfOtro', e.target.value)}
                                         className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
                                 </div>
-                            </div>
-
-                            {/* Row 2 — Norma */}
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Código de Norma</label>
-                                    <select value={form.codigoNorma} onChange={e => handleField('codigoNorma', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                        <option value="">— Seleccionar —</option>
-                                        {catalogos.normas.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Cantidad Unidades</label>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Cat. Unidades</label>
                                     <input type="number" min="1" value={form.cantidadUnidades} onChange={e => handleField('cantidadUnidades', e.target.value)}
                                         className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
                                 </div>
                             </div>
 
-                            {/* Nombre norma (auto-filled) */}
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Nombre de la Norma</label>
-                                <input type="text" placeholder="Se rellena automáticamente al elegir código, o escríbalo manualmente"
-                                    value={form.nombreNorma} onChange={e => handleField('nombreNorma', e.target.value)}
-                                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
+                            {/* Row 2 — Normas Multi-Select */}
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Normativas Aplicables (Puede agregar múltiples) *</label>
+                                <select
+                                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer"
+                                    value=""
+                                    onChange={(e) => {
+                                        const code = e.target.value;
+                                        if (!code) return;
+                                        const norma = catalogos.normas.find(n => n.codigo === code);
+                                        if (norma && (!form.normas || !form.normas.find(n => n.codigo === code))) {
+                                            setForm(f => ({ ...f, normas: [...(f.normas || []), norma] }));
+                                        }
+                                    }}
+                                >
+                                    <option value="">— Agregar norma... —</option>
+                                    {catalogos.normas.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo} - {n.nombre.substring(0, 60)}{n.nombre.length > 60 ? '...' : ''}</option>)}
+                                </select>
+
+                                {form.normas && form.normas.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2 p-2 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        {form.normas.map(n => (
+                                            <div key={n.codigo} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-slate-700 leading-none">{n.codigo}</span>
+                                                    <span className="text-[9px] font-medium text-slate-500 max-w-[200px] truncate mt-0.5">{n.nombre}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setForm(f => ({ ...f, normas: f.normas.filter(x => x.codigo !== n.codigo) }))}
+                                                    className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors ml-1 cursor-pointer"
+                                                    title="Remover norma"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Row 3 */}
