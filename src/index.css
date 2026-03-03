@@ -2,13 +2,13 @@
 
 /* ===== AuditFlow Pro Design System ===== */
 @theme {
-  --color-primary: #3b82f6;
-  --color-primary-light: #60a5fa;
-  --color-primary-dark: #2563eb;
-  --color-primary-50: rgba(59, 130, 246, 0.05);
-  --color-primary-100: rgba(59, 130, 246, 0.1);
-  --color-primary-200: rgba(59, 130, 246, 0.2);
-  --color-primary-700: #1d4ed8;
+  --color-primary: #8b5cf6;
+  --color-primary-light: #a78bfa;
+  --color-primary-dark: #7c3aed;
+  --color-primary-50: rgba(139, 92, 246, 0.05);
+  --color-primary-100: rgba(139, 92, 246, 0.1);
+  --color-primary-200: rgba(139, 92, 246, 0.2);
+  --color-primary-700: #6d28d9;
 
   --color-success: #10b981;
   --color-success-light: rgba(16, 185, 129, 0.1);
@@ -19,14 +19,14 @@
   --color-info: #3b82f6;
   --color-info-light: rgba(59, 130, 246, 0.1);
 
-  --color-surface: #0f172a;
-  --color-surface-alt: #020617;
-  --color-surface-hover: #1e293b;
-  --color-border: #334155;
-  --color-border-light: rgba(255,255,255,0.05);
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  --color-surface: #18181b;
+  --color-surface-alt: #09090b;
+  --color-surface-hover: #27272a;
+  --color-border: #3f3f46;
+  --color-border-light: rgba(255, 255, 255, 0.05);
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
 
   --color-risk-critico: #ef4444;
   --color-risk-critico-bg: rgba(239, 68, 68, 0.1);
@@ -95,10 +95,10 @@ body {
 
 /* ===== Custom Components ===== */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .premium-card {
