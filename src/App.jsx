@@ -22,16 +22,16 @@ export default function App() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [correlativos, setCorrelativos] = useState(() => {
         try {
-            const saved = localStorage.getItem('auditflow_correlativos');
-            return saved ? JSON.parse(saved) : MOCK_CORRELATIVOS;
-        } catch (e) { return MOCK_CORRELATIVOS; }
+            const saved = localStorage.getItem('auditflow_correlativos_v1');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) { return []; }
     });
 
     const [notas, setNotas] = useState(() => {
         try {
-            const saved = localStorage.getItem('auditflow_notas');
-            return saved ? JSON.parse(saved) : MOCK_CORRELATIVOS_NOTAS;
-        } catch (e) { return MOCK_CORRELATIVOS_NOTAS; }
+            const saved = localStorage.getItem('auditflow_notas_v1');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) { return []; }
     });
 
     const [catalogos, setCatalogos] = useState(() => {
@@ -64,11 +64,11 @@ export default function App() {
 
     // Persistent storage effects
     useEffect(() => {
-        localStorage.setItem('auditflow_correlativos', JSON.stringify(correlativos));
+        localStorage.setItem('auditflow_correlativos_v1', JSON.stringify(correlativos));
     }, [correlativos]);
 
     useEffect(() => {
-        localStorage.setItem('auditflow_notas', JSON.stringify(notas));
+        localStorage.setItem('auditflow_notas_v1', JSON.stringify(notas));
     }, [notas]);
 
     useEffect(() => {

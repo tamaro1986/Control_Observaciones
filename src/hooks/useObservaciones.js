@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MOCK_OBSERVACIONES } from '../data/data';
-
-const STORAGE_KEY = 'auditflow_observaciones';
-const COUNTER_KEY = 'auditflow_next_id';
+const STORAGE_KEY = 'auditflow_observaciones_v1';
+const COUNTER_KEY = 'auditflow_next_id_v1';
 
 function loadFromStorage() {
     try {
@@ -11,7 +10,7 @@ function loadFromStorage() {
     } catch (e) {
         console.error('Error loading data:', e);
     }
-    return MOCK_OBSERVACIONES;
+    return [];
 }
 
 function saveToStorage(data) {
@@ -27,7 +26,8 @@ function loadNextId(observaciones) {
         const saved = localStorage.getItem(COUNTER_KEY);
         if (saved) return parseInt(saved, 10);
     } catch (e) { /* ignore */ }
-    return Math.max(...observaciones.map(o => o.id), 1000) + 1;
+    if (observaciones.length === 0) return 1000;
+    return Math.max(...observaciones.map(o => o.id), 999) + 1;
 }
 
 function saveNextId(id) {
