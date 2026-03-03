@@ -1,0 +1,199 @@
+import { useState } from 'react';
+import { Card } from '../components/SharedComponents';
+
+export default function Configuracion({ catalogos, setCatalogos }) {
+    const [activeSubTab, setActiveSubTab] = useState('correlativos');
+    const [editingList, setEditingList] = useState(null); // { key: string, label: string }
+    const [newItem, setNewItem] = useState('');
+
+    const subTabs = [
+        { id: 'correlativos', label: 'Cartas e Informes', icon: '📄' },
+        { id: 'observaciones', label: 'Observaciones', icon: '🔍' },
+    ];
+
+    const correlativosLists = [
+        { key: 'normas', label: 'Normas (Código y Nombre)', isComplex: true },
+        { key: 'clasificaciones', label: 'Clasificaciones' },
+        { key: 'industrias', label: 'Industrias' },
+        { key: 'tiposInforme', label: 'Tipos de Informe' },
+        { key: 'tiposCorrespondencia', label: 'Tipos de Correspondencia' },
+        { key: 'accionesSupervision', label: 'Acciones de Supervisión' },
+        { key: 'responsables', label: 'Responsables' },
+        { key: 'entidades', label: 'Entidades', isComplex: true },
+        { key: 'descripcionesAccion', label: 'Descripciones Predeterminadas' },
+    ];
+
+    function handleAdd(key, isComplex) {
+        if (!newItem.trim()) return;
+        setCatalogos(prev => {
+            const list = [...prev[key]];
+            if (isComplex) {
+                // For Normas: item is "CODE | Name"
+                // For Entidades: item is "Name | Type | Cat"
+                if (key === 'normas') {
+                    const [codigo, ...rest] = newItem.split('|').map(s => s.trim());
+                    list.push({ codigo, nombre: rest.join(' ') });
+                } else if (key === 'entidades') {
+                    const [nombre, tipo, categoria] = newItem.split('|').map(s => s.trim());
+                    list.push({ id: Date.now(), nombre, tipo: tipo || 'Banco', categoria: categoria || 'General' });
+                }
+            } else {
+                list.push(newItem.trim());
+            }
+            return { ...prev, [key]: list };
+        });
+        setNewItem('');
+    }
+
+    function handleDelete(key, index) {
+        if (!window.confirm('¿Eliminar este elemento?')) return;
+        setCatalogos(prev => {
+            const list = [...prev[key]];
+            list.splice(index, 1);
+            return { ...prev, [key]: list };
+        });
+    }
+
+    return (
+        <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in pb-20">
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-2">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 border-4 border-white shadow-xl flex items-center justify-center text-2xl">
+                    ⚙️
+                </div>
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">Configuración del Sistema</h1>
+                    <p className="text-sm font-medium text-slate-500">Gestione los catálogos y parámetros globales de la aplicación</p>
+                </div>
+            </div>
+
+            {/* Sub-Tabs */}
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+                {subTabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveSubTab(tab.id)}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${activeSubTab === tab.id ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        <span>{tab.icon}</span>
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {activeSubTab === 'correlativos' ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* List of Catalogs */}
+                    <Card className="md:col-span-1 space-y-1 !p-3">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-2">Catálogos Disponibles</p>
+                        {correlativosLists.map(list => (
+                            <button
+                                key={list.key}
+                                onClick={() => { setEditingList(list); setNewItem(''); }}
+                                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${editingList?.key === list.key ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-100'}`}
+                            >
+                                {list.label}
+                                <svg className={`w-4 h-4 transition-transform ${editingList?.key === list.key ? 'translate-x-1' : 'opacity-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        ))}
+                    </Card>
+
+                    {/* Editor area */}
+                    <Card className="md:col-span-2 min-h-[500px] flex flex-col">
+                        {!editingList ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-slate-300 space-y-4">
+                                <div className="text-6xl">👈</div>
+                                <p className="font-bold uppercase tracking-widest text-xs">Seleccione un catálogo para editar</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col h-full space-y-6">
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900">{editingList.label}</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            {catalogos[editingList.key].length} elementos registrados
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Add new item */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                        {editingList.isComplex
+                                            ? (editingList.key === 'normas' ? 'Nuevo (Formato: CÓDIGO | Nombre)' : 'Nuevo (Formato: Nombre | Tipo | Categoría)')
+                                            : 'Nuevo Elemento'}
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newItem}
+                                            onChange={e => setNewItem(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAdd(editingList.key, editingList.isComplex)}
+                                            placeholder={editingList.isComplex ? 'Ej: NCMC-30 | Seguridad de Datos' : 'Escriba aquí...'}
+                                            className="flex-1 h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-slate-50"
+                                        />
+                                        <button
+                                            onClick={() => handleAdd(editingList.key, editingList.isComplex)}
+                                            className="h-11 px-6 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-95 cursor-pointer"
+                                        >
+                                            Agregar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Items List */}
+                                <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                    {catalogos[editingList.key].map((item, idx) => (
+                                        <div key={idx} className="group flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm transition-all">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                    {idx + 1}
+                                                </div>
+                                                <div>
+                                                    {editingList.key === 'normas' ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs font-black text-slate-900 border-r border-slate-200 pr-2">{item.codigo}</span>
+                                                            <span className="text-xs font-medium text-slate-600">{item.nombre}</span>
+                                                        </div>
+                                                    ) : editingList.key === 'entidades' ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-black text-slate-900">{item.nombre}</span>
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase">{item.tipo} · {item.categoria}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs font-bold text-slate-700">{item}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDelete(editingList.key, idx)}
+                                                className="w-8 h-8 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+            ) : (
+                <Card className="p-12 text-center space-y-4">
+                    <div className="text-6xl">🚧</div>
+                    <h2 className="text-xl font-black text-slate-900">Configuración de Observaciones</h2>
+                    <p className="text-sm text-slate-500 max-w-md mx-auto">
+                        Este módulo permitirá configurar los estados, niveles de riesgo y tipos de hallazgo para las observaciones generales.
+                    </p>
+                    <div className="inline-block px-4 py-2 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest">
+                        Próximamente disponible
+                    </div>
+                </Card>
+            )}
+        </div>
+    );
+}
