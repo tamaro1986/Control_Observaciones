@@ -12,6 +12,7 @@ import {
     CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
     ACCIONES_SUPERVISION, NORMAS_CORR, RESPONSABLES, ENTIDADES,
     TIPOS_CORRESPONDENCIA, NORMAS_NOTAS_EXTRA,
+    NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA
 } from './data/data.js';
 import Configuracion from './pages/Configuracion.jsx';
 
@@ -44,6 +45,10 @@ export default function App() {
             entidades: ENTIDADES,
             tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
             normasExtra: NORMAS_NOTAS_EXTRA,
+            nivelesRiesgo: NIVELES_RIESGO.map(n => n.value),
+            estados: ESTADOS.map(e => e.value),
+            tiposRiesgo: TIPOS_RIESGO,
+            tiposVisita: TIPOS_VISITA,
             descripcionesAccion: [
                 'Visita de supervisión focalizada en controles de seguridad de la información.',
                 'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
@@ -116,6 +121,7 @@ export default function App() {
                     observacion={selectedObs}
                     cambiarEstado={cambiarEstado}
                     onBack={handleBack}
+                    catalogos={catalogos}
                 />
             );
         }

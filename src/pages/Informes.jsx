@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { NIVELES_RIESGO, ESTADOS, formatDate } from '../data/data';
+import { NIVELES_RIESGO, ESTADOS } from '../data/data';
 import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/SharedComponents';
 
 const ITEMS_PER_PAGE = 10;
@@ -195,14 +195,14 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                         </div>
                         <CustomMultiSelect
                             label="Nivel de Riesgo"
-                            options={NIVELES_RIESGO.map(n => n.value)}
+                            options={catalogos.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value)}
                             selected={nivelesRiesgo}
                             onChange={setNivelesRiesgo}
                             placeholder="Todos los riesgos"
                         />
                         <CustomMultiSelect
                             label="Estado"
-                            options={ESTADOS.map(e => e.value)}
+                            options={catalogos.estados || ESTADOS.map(e => e.value)}
                             selected={estadosSeleccionados}
                             onChange={setEstadosSeleccionados}
                             placeholder="Todos los estados"

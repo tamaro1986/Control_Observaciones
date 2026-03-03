@@ -121,7 +121,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                     onChange={e => setTipoVisita(e.target.value)}
                                     className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50 cursor-pointer appearance-none"
                                 >
-                                    {TIPOS_VISITA.map(t => <option key={t} value={t}>{t}</option>)}
+                                    {(catalogos.tiposVisita || TIPOS_VISITA).map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                                 <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                                     <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,7 +219,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                                 onChange={e => updateTarjeta(index, 'nivelRiesgo', e.target.value)}
                                                 className="px-4 py-1.5 rounded-full border border-slate-200 text-[11px] font-black uppercase text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary cursor-pointer hover:bg-slate-50 transition-all appearance-none text-center min-w-[100px]"
                                             >
-                                                {NIVELES_RIESGO.map(n => <option key={n.value} value={n.value}>{n.value}</option>)}
+                                                {(catalogos.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value)).map(n => <option key={n} value={n}>{n}</option>)}
                                             </select>
                                         </div>
 
@@ -259,7 +259,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                                     onChange={e => updateTarjeta(index, 'estado', e.target.value)}
                                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer"
                                                 >
-                                                    {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.value}</option>)}
+                                                    {(catalogos.estados || ESTADOS.map(e => e.value)).map(e => <option key={e} value={e}>{e}</option>)}
                                                 </select>
                                             </div>
                                             <div>
@@ -269,7 +269,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                                     onChange={e => updateTarjeta(index, 'tipoRiesgo', e.target.value)}
                                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer"
                                                 >
-                                                    {TIPOS_RIESGO.map(t => <option key={t} value={t}>{t}</option>)}
+                                                    {(catalogos.tiposRiesgo || TIPOS_RIESGO).map(t => <option key={t} value={t}>{t}</option>)}
                                                 </select>
                                             </div>
                                         </div>

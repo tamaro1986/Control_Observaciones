@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { getEntidadById, formatDate, ESTADOS, RESPONSABLES } from '../data/data';
 import { RiskBadge, EstadoBadge, Avatar, SuccessToast, Card } from '../components/SharedComponents';
 
-export default function DetalleObservacion({ observacion, cambiarEstado, onBack }) {
+export default function DetalleObservacion({ observacion, cambiarEstado, onBack, catalogos }) {
     const ent = getEntidadById(observacion.entidadId);
     const [nuevoEstado, setNuevoEstado] = useState(observacion.estado);
     const [nroInforme, setNroInforme] = useState(observacion.nroInforme);
@@ -148,7 +148,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack 
                                         onChange={e => setNuevoEstado(e.target.value)}
                                         className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary uppercase focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary bg-slate-50/50 cursor-pointer"
                                     >
-                                        {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.value}</option>)}
+                                        {(catalogos?.estados || ESTADOS.map(e => e.value)).map(e => <option key={e} value={e}>{e}</option>)}
                                     </select>
                                 </div>
                                 <div>
