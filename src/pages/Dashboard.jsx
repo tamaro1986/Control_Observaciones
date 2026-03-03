@@ -66,26 +66,26 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
 
             {/* ── Headline Section ── */}
             <div className="mb-3">
-                <h2 className="text-[#111418] tracking-tight text-2xl font-bold leading-tight">Dashboard de Entidades de Auditoría</h2>
-                <p className="text-[#60758a] text-xs mt-0.5">Monitoreo en tiempo real de riesgos y cumplimiento normativo.</p>
+                <h2 className="text-text-primary tracking-tight text-2xl font-bold leading-tight">Dashboard de Entidades de Auditoría</h2>
+                <p className="text-text-secondary text-xs mt-0.5">Monitoreo en tiempo real de riesgos y cumplimiento normativo.</p>
             </div>
 
             {/* ── Filter Bar Section ── */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div className="flex gap-2 p-1 bg-white rounded-xl shadow-sm border border-[#e5e7eb] overflow-x-auto no-scrollbar">
-                    <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#0b73da] text-white px-4 text-sm font-semibold">
+                <div className="flex gap-2 p-1 bg-surface-hover/30 rounded-xl shadow-inner border border-white/5 overflow-x-auto no-scrollbar backdrop-blur-md">
+                    <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary text-white px-4 text-sm font-semibold shadow-[0_0_15px_rgba(59,130,246,0.3)]">
                         <span>Todas</span>
                     </button>
                     {['Anual', 'Seguimiento', 'Especial'].map(tab => (
-                        <button key={tab} className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#f0f2f5] text-[#111418] px-4 text-sm font-medium hover:bg-gray-200 transition-colors">
+                        <button key={tab} className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-transparent text-text-secondary px-4 text-sm font-medium hover:bg-white/5 transition-colors">
                             <span>{tab}</span>
                             <span className="material-symbols-outlined text-base">keyboard_arrow_down</span>
                         </button>
                     ))}
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-[#60758a]">Ordenar por:</span>
-                    <button className="flex h-9 items-center justify-center gap-2 rounded-lg bg-white border border-[#e5e7eb] px-4 text-sm font-medium">
+                    <span className="text-sm font-medium text-text-muted">Ordenar por:</span>
+                    <button className="flex h-9 items-center justify-center gap-2 rounded-lg bg-surface/50 border border-white/5 px-4 text-sm font-medium text-text-primary hover:bg-white/5 backdrop-blur-md transition-colors">
                         Riesgos Críticos
                         <span className="material-symbols-outlined text-base">swap_vert</span>
                     </button>
@@ -99,8 +99,11 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                     return (
                         <div
                             key={ent.id}
-                            className="group bg-white rounded-xl border border-[#e5e7eb] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden"
+                            className="group glass-panel rounded-2xl border border-white/5 shadow-premium hover:shadow-premium-hover transition-all duration-300 flex flex-col overflow-hidden relative"
                         >
+                            {/* Ambient Glow */}
+                            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 pointer-events-none rounded-full ${cfg.bg}`} />
+
                             {/* colored top bar */}
                             <div className={`h-2 w-full ${cfg.bg}`}></div>
 
@@ -116,28 +119,27 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="group-hover:text-[#0b73da] transition-colors" style={{ color: '#111418', fontSize: '14px', fontWeight: 700, lineHeight: '1.3', marginBottom: '2px' }}>
+                                <h3 className="group-hover:text-primary transition-colors text-text-primary font-bold text-sm leading-tight mb-0.5 z-10 relative">
                                     {ent.nombre.split(',')[0]}
                                 </h3>
-                                <p style={{ color: '#60758a', fontSize: '12px' }}>Sector: {ent.categoria}</p>
+                                <p className="text-text-muted text-xs z-10 relative">Sector: {ent.categoria}</p>
 
                                 {/* Metric row */}
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px' }}>
+                                <div className="flex items-center justify-between mt-4 z-10 relative">
                                     <div>
-                                        <span style={{ fontSize: '26px', fontWeight: 800, lineHeight: 1 }}
-                                            className={ent.riesgosAbiertos > 0 ? cfg.countColor : 'text-[#111418]'}>
+                                        <span className={`text-2xl font-black leading-none ${ent.riesgosAbiertos > 0 ? cfg.countColor : 'text-text-primary'}`}>
                                             {ent.riesgosAbiertos}
                                         </span>
-                                        <p style={{ fontSize: '9px', color: '#60758a', fontWeight: 600, textTransform: 'uppercase', marginTop: '2px' }}>Riesgos Abiertos</p>
+                                        <p className="text-[9px] text-text-secondary font-bold uppercase mt-1">Riesgos Abiertos</p>
                                     </div>
-                                    <div style={{ display: 'flex' }}>
+                                    <div className="flex">
                                         <Avatar nombre={ent.nombre} size="xs" />
-                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid white', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: '#6b7280', marginLeft: '-6px' }}>+1</div>
+                                        <div className="w-6 h-6 rounded-full border-2 border-surface bg-surface-hover flex items-center justify-center text-[9px] font-bold text-text-muted -ml-1.5">+1</div>
                                     </div>
                                 </div>
 
                                 {/* Footer button */}
-                                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f2f5' }}>
+                                <div className="mt-4 pt-3 border-t border-white/5 z-10 relative">
                                     <button
                                         onClick={() => onNavigate('informes')}
                                         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', background: 'rgba(11,115,218,0.08)', color: '#0b73da', fontWeight: 700, fontSize: '12px', padding: '7px 0', borderRadius: '7px', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -155,12 +157,12 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
             </div>
 
             {/* ── Alerts Section ── */}
-            <div style={{ marginTop: '20px', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+            <div className="glass-panel rounded-2xl border border-white/5 shadow-premium overflow-hidden mt-6 backdrop-blur-xl">
                 {/* Header */}
-                <div style={{ padding: '14px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="p-4 border-b border-white/5 flex items-center justify-between">
                     <div>
-                        <h3 style={{ color: '#111418', fontSize: '14px', fontWeight: 700 }}>Alertas de Vencimiento</h3>
-                        <p style={{ color: '#60758a', fontSize: '12px', marginTop: '1px' }}>Plazos críticos en los próximos 30 días</p>
+                        <h3 className="text-text-primary text-sm font-bold">Alertas de Vencimiento</h3>
+                        <p className="text-text-muted text-xs mt-0.5">Plazos críticos en los próximos 30 días</p>
                     </div>
                     {alertas.length > 0 && (
                         <span style={{ background: '#fee2e2', color: '#dc2626', padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700 }}>
@@ -205,14 +207,14 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                             </div>
 
                             <Avatar nombre={a.responsable} size="xs" />
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#9ca3af' }}>arrow_forward_ios</span>
+                            <span className="material-symbols-outlined text-[16px] text-text-muted/50 group-hover:text-primary transition-colors">arrow_forward_ios</span>
                         </div>
                     ))}
 
                     {alertas.length === 0 && (
-                        <div style={{ padding: '40px', textAlign: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#34d399', display: 'block', marginBottom: '8px' }}>check_circle</span>
-                            <p style={{ color: '#60758a', fontSize: '13px', fontWeight: 500 }}>Sin alertas de vencimiento pendientes</p>
+                        <div className="p-10 text-center">
+                            <span className="material-symbols-outlined text-4xl text-emerald-500 mb-2 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">check_circle</span>
+                            <p className="text-text-secondary text-sm font-medium">Sin alertas de vencimiento pendientes</p>
                         </div>
                     )}
                 </div>
@@ -222,7 +224,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
             <div className="fixed bottom-8 right-8 z-[100]">
                 <button
                     onClick={() => onNavigate('nuevo')}
-                    className="size-14 bg-[#0b73da] text-white rounded-full shadow-lg shadow-[#0b73da]/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                    className="size-14 bg-primary text-white rounded-full shadow-[0_0_20px_rgba(59,130,246,0.6)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all outline outline-1 outline-white/20 outline-offset-2"
                 >
                     <span className="material-symbols-outlined text-2xl">add</span>
                 </button>
