@@ -132,7 +132,7 @@ export default function App() {
                     />
                 );
             case 'nuevo':
-                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={catalogos} />;
+                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={catalogos} correlativos={correlativos} />;
             case 'informes':
                 return (
                     <Informes
