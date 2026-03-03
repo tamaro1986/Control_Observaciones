@@ -18,7 +18,6 @@ const EMPTY_TARJETA = {
 export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos = [] }) {
     const [entidadId, setEntidadId] = useState('');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
-    const [tipoInforme, setTipoInforme] = useState('');
     const [fechaInicio, setFechaInicio] = useState('');
     const [fechaFin, setFechaFin] = useState('');
     const [tarjetas, setTarjetas] = useState([{ ...EMPTY_TARJETA }]);
@@ -100,7 +99,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                 </div>
 
                 <Card className="!p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Entidad Auditada</label>
                             <select
@@ -123,29 +122,6 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                     className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50 cursor-pointer appearance-none"
                                 >
                                     {TIPOS_VISITA.map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                                    <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Tipo de Informe</label>
-                            <div className="relative">
-                                <select
-                                    value={tipoInforme}
-                                    onChange={e => {
-                                        setTipoInforme(e.target.value);
-                                        // Resetear referencia cuando cambia el tipo de informe
-                                        setTarjetas(prev => prev.map(t => ({ ...t, nroInforme: '' })));
-                                    }}
-                                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50 cursor-pointer appearance-none"
-                                >
-                                    <option value="">Manual / Ninguno</option>
-                                    {catalogos.tiposInforme && catalogos.tiposInforme.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                                 <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                                     <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -326,26 +302,25 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="col-span-2">
                                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Referencia Informe</label>
-                                                {tipoInforme === 'Informe de supervisión' ? (
+                                                <div className="relative">
                                                     <select
                                                         value={tarjeta.nroInforme}
                                                         onChange={e => updateTarjeta(index, 'nroInforme', e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-indigo-50/50 text-sm font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer appearance-none truncate"
+                                                        className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer appearance-none truncate pr-10"
                                                     >
-                                                        <option value="">Seleccione Correlativo...</option>
+                                                        <option value="">— Seleccione Informe de Supervisión —</option>
                                                         {correlativos.filter(c => c.tipoInforme === 'Informe de supervisión').map(c => (
-                                                            <option key={c.id} value={c.codigo}>{c.codigo} - {c.entidad}</option>
+                                                            <option key={c.id} value={c.codigo}>
+                                                                {c.codigo} | {c.asunto ? (c.asunto.length > 60 ? c.asunto.substring(0, 60) + '...' : c.asunto) : 'Sin título'}
+                                                            </option>
                                                         ))}
                                                     </select>
-                                                ) : (
-                                                    <input
-                                                        type="text"
-                                                        placeholder="N° INF-2025-001"
-                                                        value={tarjeta.nroInforme}
-                                                        onChange={e => updateTarjeta(index, 'nroInforme', e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-sm font-bold text-text-primary focus:outline-none"
-                                                    />
-                                                )}
+                                                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div className="col-span-1">
                                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Sección</label>
