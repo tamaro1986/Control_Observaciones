@@ -302,13 +302,25 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                     <div className="lg:col-span-1 space-y-3">
                                         <div>
                                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Normativa Aplicable</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Ej. Art. 45 - Lineamientos de Seguridad IT"
-                                                value={tarjeta.normativa}
-                                                onChange={e => updateTarjeta(index, 'normativa', e.target.value)}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-sm font-bold text-text-primary focus:outline-none focus:border-primary transition-all"
-                                            />
+                                            <div className="relative">
+                                                <select
+                                                    value={tarjeta.normativa}
+                                                    onChange={e => updateTarjeta(index, 'normativa', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer appearance-none truncate pr-10"
+                                                >
+                                                    <option value="">— Seleccionar Normativa —</option>
+                                                    {catalogos.normas && catalogos.normas.map(n => (
+                                                        <option key={n.codigo} value={`${n.codigo} - ${n.nombre}`}>
+                                                            {n.codigo} - {n.nombre.substring(0, 70)}{n.nombre.length > 70 ? '...' : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                                    <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-3 gap-4">
