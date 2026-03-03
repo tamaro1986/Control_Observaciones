@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import NuevoRegistro from './pages/NuevoRegistro';
-import Informes from './pages/Informes';
 import Correlativos from './pages/Correlativos';
 import CorrelativosNotas from './pages/CorrelativosNotas';
 import InformesGlobal from './pages/InformesGlobal';
@@ -133,16 +132,6 @@ export default function App() {
                 );
             case 'nuevo':
                 return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={catalogos} correlativos={correlativos} />;
-            case 'informes':
-                return (
-                    <Informes
-                        observaciones={observaciones}
-                        filtrar={filtrar}
-                        getEstadisticas={getEstadisticas}
-                        onSelectObservacion={handleSelectObservacion}
-                        catalogos={catalogos}
-                    />
-                );
             case 'correlativos':
                 return (
                     <Correlativos
@@ -173,6 +162,10 @@ export default function App() {
                         observaciones={observaciones}
                         correlativos={correlativos}
                         notas={notas}
+                        filtrar={filtrarObservaciones}
+                        getEstadisticas={getGlobalStats}
+                        onSelectObservacion={handleSelectObservacion}
+                        catalogos={catalogos}
                     />
                 );
             default:
@@ -201,12 +194,11 @@ export default function App() {
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col">
                             <h1 className="text-sm font-black text-text-primary uppercase tracking-widest leading-none">
-                                {activeView === 'dashboard' && 'Panel de Control'}
-                                {activeView === 'nuevo' && 'Registro de Hallazgo'}
-                                {activeView === 'informes' && 'Reportes Consolidados'}
-                                {activeView === 'correlativos' && 'Correlativos de Informes — DSFIT'}
-                                {activeView === 'notas' && 'Correlativos de Correspondencia — DSFIT'}
-                                {activeView === 'reportes' && 'Informes y Analítica — DSFIT'}
+                                {activeView === 'dashboard' && 'Panel de Control — Casos Abiertos'}
+                                {activeView === 'nuevo' && 'Registro de Hallazgo — Observaciones'}
+                                {activeView === 'correlativos' && 'Correlativos de Informes'}
+                                {activeView === 'notas' && 'Correlativos de Notas'}
+                                {activeView === 'reportes' && 'Reportes y Analítica'}
                                 {activeView === 'detalle' && 'Expediente de Observación'}
                             </h1>
                             <div className="flex items-center gap-1.5 mt-1">

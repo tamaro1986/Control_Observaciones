@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ENTIDADES } from '../data/data.js';
+import Informes from './Informes';
 
 const ENTIDAD_MAP = Object.fromEntries(ENTIDADES.map(e => [e.id, e.nombre]));
 
@@ -517,9 +518,10 @@ const TABS = [
     { id: 'observaciones', label: 'Observaciones', icon: '🔍' },
     { id: 'correlativos', label: 'Correlativos Informes', icon: '📄' },
     { id: 'notas', label: 'Correspondencia', icon: '📬' },
+    { id: 'generador', label: 'Generador de Informes', icon: '📑' },
 ];
 
-export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [] }) {
+export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, catalogos }) {
     const [activeTab, setActiveTab] = useState('resumen');
 
     return (
@@ -566,6 +568,17 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
             {activeTab === 'observaciones' && <TabObservaciones observaciones={observaciones} />}
             {activeTab === 'correlativos' && <TabCorrelativos correlativos={correlativos} />}
             {activeTab === 'notas' && <TabNotas notas={notas} />}
+            {activeTab === 'generador' && (
+                <div className="pt-2">
+                    <Informes
+                        observaciones={observaciones}
+                        filtrar={filtrar}
+                        getEstadisticas={getEstadisticas}
+                        onSelectObservacion={onSelectObservacion}
+                        catalogos={catalogos}
+                    />
+                </div>
+            )}
         </div>
     );
 }
