@@ -2,15 +2,55 @@ import { useState } from 'react';
 import { getEntidadById, formatDate, ESTADOS, RESPONSABLES } from '../data/data';
 import { RiskBadge, EstadoBadge, Avatar, SuccessToast, Card } from '../components/SharedComponents';
 
+// ─── Shared sub-components ────────────────────────────────────────────────────
+function SectionHeader({ number, label, color = 'slate', icon }) {
+    const colors = {
+        slate: { ring: 'ring-slate-200', bg: 'bg-slate-900', text: 'text-white', border: 'border-l-slate-700', numBg: 'bg-slate-100', numText: 'text-slate-700' },
+        blue: { ring: 'ring-blue-100', bg: 'bg-blue-600', text: 'text-white', border: 'border-l-blue-600', numBg: 'bg-blue-50', numText: 'text-blue-700' },
+        violet: { ring: 'ring-violet-100', bg: 'bg-violet-600', text: 'text-white', border: 'border-l-violet-600', numBg: 'bg-violet-50', numText: 'text-violet-700' },
+        emerald: { ring: 'ring-emerald-100', bg: 'bg-emerald-600', text: 'text-white', border: 'border-l-emerald-600', numBg: 'bg-emerald-50', numText: 'text-emerald-700' },
+    };
+    const c = colors[color];
+    return (
+        <div className={`flex items-center gap-3 mb-4 pb-3 border-b border-slate-100`}>
+            <div className={`w-7 h-7 rounded-lg ${c.numBg} flex items-center justify-center flex-shrink-0`}>
+                <span className={`text-xs font-black ${c.numText}`}>{number}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-1">
+                {icon && <span className={`${c.numText}`}>{icon}</span>}
+                <h3 className={`text-[11px] font-black text-text-primary uppercase tracking-[0.18em]`}>{label}</h3>
+            </div>
+        </div>
+    );
+}
+
+function FieldLabel({ children }) {
+    return <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{children}</label>;
+}
+
+function inputCls() {
+    return "w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary bg-slate-50/50 transition-all";
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function DetalleObservacion({ observacion, cambiarEstado, onBack, catalogos }) {
     const ent = getEntidadById(observacion.entidadId);
+
+    // Section 3 – Respuesta de la Entidad
+    const [fechaRespuesta, setFechaRespuesta] = useState('');
+    const [respuestaEntidad, setRespuestaEntidad] = useState('');
+
+    // Section 4 – Situación Actual
     const [nuevoEstado, setNuevoEstado] = useState(observacion.estado);
+    const [comentarioAuditor, setComentarioAuditor] = useState('');
+
+    // Legacy fields kept so the data shape stays compatible
     const [nroInforme, setNroInforme] = useState(observacion.nroInforme);
     const [nota, setNota] = useState('');
-    const [respuestaEntidad, setRespuestaEntidad] = useState('');
     const [analisisAuditor, setAnalisisAuditor] = useState('');
     const [planAccion, setPlanAccion] = useState('');
     const [fechaPlanAccion, setFechaPlanAccion] = useState('');
+
     const [showToast, setShowToast] = useState(false);
 
     const handleGuardar = () => {
@@ -19,22 +59,26 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
             nroInforme,
             nota,
             respuestaEntidad,
-            analisisAuditor,
+            fechaRespuesta,
+            analisisAuditor: comentarioAuditor || analisisAuditor,
             planAccion,
             fechaPlanAccion,
         });
-        setNota('');
+        // Reset section-3 fields
+        setFechaRespuesta('');
         setRespuestaEntidad('');
-        setAnalisisAuditor('');
-        setPlanAccion('');
-        setFechaPlanAccion('');
+        // Reset section-4 fields (state stays as new value)
+        setComentarioAuditor('');
         setShowToast(true);
         setTimeout(() => setShowToast(false), 4000);
     };
 
+    const estados = catalogos?.estados || ESTADOS.map(e => e.value);
+
     return (
         <div className="max-w-6xl mx-auto animate-fade-in space-y-4 pb-6">
-            {/* Header & Navigation */}
+
+            {/* ── Header ──────────────────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="flex flex-col gap-2">
                     <button
@@ -60,15 +104,16 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
                         </div>
                     </div>
                 </div>
-
                 <div className="flex items-center gap-4">
                     <RiskBadge nivel={observacion.nivelRiesgo} />
                     <EstadoBadge estado={observacion.estado} />
                 </div>
             </div>
 
+            {/* ── Layout ──────────────────────────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Left Column: Details */}
+
+                {/* Left Column – static info */}
                 <div className="lg:col-span-1 space-y-4">
                     <Card className="!p-0 overflow-hidden shadow-xl border-0 ring-1 ring-slate-100">
                         <div className="bg-slate-900 p-4">
@@ -126,82 +171,108 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
                     </Card>
                 </div>
 
-                {/* Right Column: Actions and Timeline */}
+                {/* Right Column – sections 3 & 4 + timeline */}
                 <div className="lg:col-span-2 space-y-4">
-                    {/* Interaction Form */}
-                    <Card className="!p-4 shadow-xl border-0 ring-1 ring-primary/10">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-base font-black text-text-primary uppercase tracking-widest">Actualización de Expediente</h3>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* ╔═══════════════════════════════════════════════════════╗ */}
+                    {/* ║  SECCIÓN 3 – Respuesta de la Entidad                 ║ */}
+                    {/* ╚═══════════════════════════════════════════════════════╝ */}
+                    <Card className="!p-5 shadow-xl border-0 ring-1 ring-blue-100">
+                        <SectionHeader
+                            number="3"
+                            color="blue"
+                            label="Respuesta de la Entidad"
+                            icon={
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            }
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Date field – 1 col */}
+                            <div>
+                                <FieldLabel>Fecha de Respuesta</FieldLabel>
+                                <input
+                                    type="date"
+                                    value={fechaRespuesta}
+                                    onChange={e => setFechaRespuesta(e.target.value)}
+                                    className={inputCls()}
+                                />
+                            </div>
+
+                            {/* Response text – 2 cols */}
+                            <div className="md:col-span-2">
+                                <FieldLabel>Contenido de la Respuesta</FieldLabel>
+                                <textarea
+                                    placeholder="Describa lo que respondió la entidad a la observación planteada..."
+                                    value={respuestaEntidad}
+                                    onChange={e => setRespuestaEntidad(e.target.value)}
+                                    rows={3}
+                                    className={`${inputCls()} resize-none`}
+                                />
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* ╔═══════════════════════════════════════════════════════╗ */}
+                    {/* ║  SECCIÓN 4 – Situación Actual                        ║ */}
+                    {/* ╚═══════════════════════════════════════════════════════╝ */}
+                    <Card className="!p-5 shadow-xl border-0 ring-1 ring-violet-100">
+                        <SectionHeader
+                            number="4"
+                            color="violet"
+                            label="Situación Actual"
+                            icon={
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            }
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Estado – 1 col */}
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nuevo Estado de Gestión</label>
+                                    <FieldLabel>Estado de Gestión Inicial</FieldLabel>
                                     <select
                                         value={nuevoEstado}
                                         onChange={e => setNuevoEstado(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary uppercase focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary bg-slate-50/50 cursor-pointer"
+                                        className={`${inputCls()} font-bold uppercase cursor-pointer`}
                                     >
-                                        {(catalogos?.estados || ESTADOS.map(e => e.value)).map(e => <option key={e} value={e}>{e}</option>)}
+                                        {estados.map(e => (
+                                            <option key={e} value={e}>{e}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Referencia de Informe Actualizado</label>
-                                    <div className="flex gap-3">
-                                        <input
-                                            type="text"
-                                            value={nroInforme}
-                                            onChange={e => setNroInforme(e.target.value)}
-                                            className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold bg-slate-50/50"
-                                            placeholder="Nro. Informe"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Nota"
-                                            value={nota}
-                                            onChange={e => setNota(e.target.value)}
-                                            className="w-24 px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold bg-slate-50/50"
-                                        />
-                                    </div>
+
+                                {/* Estado pill visual */}
+                                <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 rounded-xl border border-violet-100">
+                                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse flex-shrink-0" />
+                                    <span className="text-[10px] font-black text-violet-700 uppercase tracking-widest leading-none">
+                                        {nuevoEstado}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Fecha Estimada de Regularización</label>
-                                    <input
-                                        type="date"
-                                        value={fechaPlanAccion}
-                                        onChange={e => setFechaPlanAccion(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary bg-slate-50/50"
-                                    />
-                                </div>
-                                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100">
-                                    <p className="text-[10px] font-bold text-amber-700 leading-relaxed italic">
-                                        * Al cambiar de estado, se notificará automáticamente a los entes de control correspondientes.
-                                    </p>
-                                </div>
-                            </div>
-
+                            {/* Comentario del auditor – 2 cols */}
                             <div className="md:col-span-2">
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Análisis Profesional del Auditor</label>
+                                <FieldLabel>Comentario del Auditor</FieldLabel>
                                 <textarea
-                                    placeholder="Describa el progreso, hallazgos adicionales o justificación de cambios..."
-                                    value={analisisAuditor}
-                                    onChange={e => setAnalisisAuditor(e.target.value)}
-                                    rows={3}
-                                    className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary bg-slate-50/50 resize-none"
+                                    placeholder="Registre el análisis o comentario del auditor respecto a la situación actual de la observación..."
+                                    value={comentarioAuditor}
+                                    onChange={e => setComentarioAuditor(e.target.value)}
+                                    rows={4}
+                                    className={`${inputCls()} resize-none`}
                                 />
                             </div>
                         </div>
 
-                        <div className="flex justify-end mt-4">
+                        {/* Action bar */}
+                        <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
+                            <p className="text-[10px] text-amber-600 font-bold italic max-w-sm">
+                                * Al registrar se completará el ciclo de gestión y se actualizará la bitácora histórica.
+                            </p>
                             <button
                                 onClick={handleGuardar}
                                 className="px-6 py-2.5 rounded-xl bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
@@ -209,12 +280,12 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
-                                Registrar Actualización
+                                Registrar Ciclo
                             </button>
                         </div>
                     </Card>
 
-                    {/* Timeline History */}
+                    {/* ── Timeline History ─────────────────────────────────── */}
                     <section className="space-y-3">
                         <div className="flex items-center justify-between px-1">
                             <div className="flex items-center gap-2">
@@ -240,7 +311,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
                                                 <div className="flex items-center gap-2">
                                                     {h.estadoAnterior && (
                                                         <>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase line-through uppercase">{h.estadoAnterior}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase line-through">{h.estadoAnterior}</span>
                                                             <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                                             </svg>
@@ -258,12 +329,38 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                            {h.analisisAuditor && (
-                                                <div className="space-y-2">
-                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Análisis Ejecutivo:</span>
-                                                    <p className="text-[13px] font-medium text-text-secondary leading-relaxed">{h.analisisAuditor}</p>
+                                            {/* Sección 3 en historial: Respuesta de la Entidad */}
+                                            {(h.respuestaEntidad || h.fechaRespuesta) && (
+                                                <div className="space-y-2 md:col-span-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                                            <span className="text-[9px] font-black text-blue-700">3</span>
+                                                        </div>
+                                                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Respuesta de la Entidad</span>
+                                                        {h.fechaRespuesta && (
+                                                            <span className="ml-auto text-[9px] font-bold text-blue-500 px-2 py-0.5 bg-blue-100 rounded-lg">{formatDate(h.fechaRespuesta)}</span>
+                                                        )}
+                                                    </div>
+                                                    {h.respuestaEntidad && (
+                                                        <p className="text-[13px] font-medium text-blue-900 leading-relaxed italic">"{h.respuestaEntidad}"</p>
+                                                    )}
                                                 </div>
                                             )}
+
+                                            {/* Sección 4 en historial: Situación Actual / Comentario Auditor */}
+                                            {h.analisisAuditor && (
+                                                <div className="space-y-2 md:col-span-2 p-4 bg-violet-50 rounded-2xl border border-violet-100">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center flex-shrink-0">
+                                                            <span className="text-[9px] font-black text-violet-700">4</span>
+                                                        </div>
+                                                        <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Situación Actual — Comentario del Auditor</span>
+                                                    </div>
+                                                    <p className="text-[13px] font-medium text-violet-900 leading-relaxed">{h.analisisAuditor}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Plan de acción (legacy) */}
                                             {h.planAccion && (
                                                 <div className="space-y-2">
                                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Plan de Rectificación:</span>
@@ -278,12 +375,6 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
                                                     )}
                                                 </div>
                                             )}
-                                            {h.respuestaEntidad && (
-                                                <div className="space-y-2 md:col-span-2 pt-4 border-t border-slate-50">
-                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Argumento de la Entidad:</span>
-                                                    <p className="text-[13px] font-medium text-text-secondary leading-relaxed bg-slate-50 p-4 rounded-2xl italic">"{h.respuestaEntidad}"</p>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -295,7 +386,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, onBack,
 
             {showToast && (
                 <SuccessToast
-                    message="El registro ha sido actualizado y sincronizado en la bitácora histórica exitosamente."
+                    message="Ciclo de gestión registrado exitosamente en la bitácora histórica."
                     onClose={() => setShowToast(false)}
                 />
             )}

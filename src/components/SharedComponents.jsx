@@ -152,4 +152,10 @@ export function SuccessToast({ message, onClose }) {
     );
 }
 
-
+export function Badge({ children, className = '' }) {
+    return (
+        <span className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border border-black/5 hover:brightness-95 transition-all duration-300 cursor-default select-none ${className}`}>
+            {children}
+        </span>
+    );
+}

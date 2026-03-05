@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import NuevoRegistro from './pages/NuevoRegistro';
+import SeguimientoList from './pages/SeguimientoList';
+import NuevoSeguimiento from './pages/NuevoSeguimiento';
 import Correlativos from './pages/Correlativos';
 import CorrelativosNotas from './pages/CorrelativosNotas';
 import InformesGlobal from './pages/InformesGlobal';
@@ -89,15 +91,20 @@ export default function App() {
         getEstadisticas,
     } = useObservaciones();
 
-    const handleSelectObservacion = useCallback((id) => {
+    const handleSelectObservacion = useCallback((id, view = 'detalle') => {
         setSelectedObsId(id);
-        setActiveView('detalle');
+        setActiveView(view);
     }, []);
 
     const handleBack = useCallback(() => {
         setSelectedObsId(null);
-        setActiveView('informes');
-    }, []);
+        // Si regresamos desde nuevo_seguimiento, volvemos a listar seguimientos
+        if (activeView === 'nuevo_seguimiento') {
+            setActiveView('seguimiento');
+        } else {
+            setActiveView('reportes');
+        }
+    }, [activeView]);
 
     const handleNavigate = useCallback((view) => {
         setSelectedObsId(null);
@@ -138,6 +145,19 @@ export default function App() {
                 );
             case 'nuevo':
                 return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={catalogos} correlativos={correlativos} />;
+            case 'seguimiento':
+                return <SeguimientoList observaciones={observaciones} onSelectObservacion={handleSelectObservacion} />;
+            case 'nuevo_seguimiento':
+                if (!selectedObs) return null;
+                return (
+                    <NuevoSeguimiento
+                        observacion={selectedObs}
+                        cambiarEstado={cambiarEstado}
+                        onBack={handleBack}
+                        catalogos={catalogos}
+                        correlativos={correlativos}
+                    />
+                );
             case 'correlativos':
                 return (
                     <Correlativos
@@ -163,6 +183,7 @@ export default function App() {
                     />
                 );
             case 'reportes':
+            case 'informes':
                 return (
                     <InformesGlobal
                         observaciones={observaciones}
@@ -202,6 +223,8 @@ export default function App() {
                             <h1 className="text-sm font-black text-text-primary uppercase tracking-widest leading-none">
                                 {activeView === 'dashboard' && 'Panel de Control — Casos Abiertos'}
                                 {activeView === 'nuevo' && 'Registro de Hallazgo — Observaciones'}
+                                {activeView === 'seguimiento' && 'Módulo de Seguimiento'}
+                                {activeView === 'nuevo_seguimiento' && 'Documentación de Seguimiento'}
                                 {activeView === 'correlativos' && 'Correlativos de Informes'}
                                 {activeView === 'notas' && 'Correlativos de Notas'}
                                 {activeView === 'reportes' && 'Reportes y Analítica'}
