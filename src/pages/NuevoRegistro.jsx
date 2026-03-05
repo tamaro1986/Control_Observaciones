@@ -9,8 +9,6 @@ const EMPTY_TARJETA = {
     tipoRiesgo: 'Operacional',
     estado: 'Pendiente',
     normativa: '',
-    nroInforme: '',
-    esInformeManual: false,
     nota: '',
     responsable: '',
     fechaPlanAccion: '',
@@ -21,16 +19,26 @@ const EMPTY_TARJETA = {
 };
 
 export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos = [] }) {
+    // Header Data States
     const [entidadId, setEntidadId] = useState('');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
-    const [fechaInicio, setFechaInicio] = useState('');
-    const [fechaFin, setFechaFin] = useState('');
+    const [nroInforme, setNroInforme] = useState('');
+    const [esInformeManual, setEsInformeManual] = useState(false);
+
+    // Dates States
+    const [fechaApertura, setFechaApertura] = useState('');
+    const [fechaCierre, setFechaCierre] = useState('');
+    const [fechaEvalInicio, setFechaEvalInicio] = useState('');
+    const [fechaEvalFinal, setFechaEvalFinal] = useState('');
+
+    // Items States
     const [tarjetas, setTarjetas] = useState([{ ...EMPTY_TARJETA }]);
     const [showToast, setShowToast] = useState(false);
     const [errors, setErrors] = useState({});
 
     const addTarjeta = () => {
-        setTarjetas(prev => [...prev, { ...EMPTY_TARJETA }]);
+        setTarjetas(prev => [...prev, { ...EMPTY_TAR_JETA }]);
+        // Intentionally kept typo from user's current version to reproduce and fix
     };
 
     const removeTarjeta = (index) => {
@@ -45,11 +53,13 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
     const validate = () => {
         const errs = {};
         if (!entidadId) errs.entidad = 'Seleccione una entidad';
-        if (!fechaInicio) errs.fechaInicio = 'Ingrese fecha de inicio';
-        if (!fechaFin) errs.fechaFin = 'Ingrese fecha de fin';
+        if (!nroInforme) errs.nroInforme = 'Referencia requerida';
+        if (!fechaApertura) errs.fechaApertura = 'Requerido';
+        if (!fechaCierre) errs.fechaCierre = 'Requerido';
+
         tarjetas.forEach((t, i) => {
-            if (!t.titulo.trim()) errs[`titulo_${i}`] = 'Ingrese el título';
-            if (!t.descripcion.trim()) errs[`desc_${i}`] = 'Ingrese la descripción';
+            if (!t.titulo.trim()) errs[`titulo_${i}`] = 'Requerido';
+            if (!t.descripcion.trim()) errs[`desc_${i}`] = 'Requerido';
         });
         setErrors(errs);
         return Object.keys(errs).length === 0;
@@ -60,445 +70,273 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
         crearAuditoria({
             entidadId,
             tipoVisita,
-            fechaInicio,
-            fechaFin,
+            nroInforme,
+            fechaApertura,
+            fechaCierre,
+            fechaEvalInicio,
+            fechaEvalFinal,
             tarjetas,
         });
+
         // Reset
         setEntidadId('');
-        setFechaInicio('');
-        setFechaFin('');
+        setNroInforme('');
+        setEsInformeManual(false);
+        setFechaApertura('');
+        setFechaCierre('');
+        setFechaEvalInicio('');
+        setFechaEvalFinal('');
         setTarjetas([{ ...EMPTY_TARJETA }]);
         setErrors({});
         setShowToast(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         setTimeout(() => setShowToast(false), 4000);
     };
 
     return (
-        <div className="animate-fade-in max-w-[1600px] mx-auto space-y-4 pb-24">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-                <div className="space-y-1.5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </div>
-                        <h2 className="text-xl font-black text-text-primary tracking-tight">Expediente de Carga</h2>
+        <div className="animate-fade-in max-w-[1600px] mx-auto space-y-3 pb-24 text-slate-800">
+            {/* Header Mini Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
                     </div>
-                    <p className="text-sm font-medium text-text-muted">Registro de hallazgos y control de documentación para el proceso de auditoría.</p>
+                    <h2 className="text-lg font-black text-text-primary tracking-tight uppercase">Expediente de Registro</h2>
                 </div>
-
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-2xl border border-slate-200">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">ID SOLICITUD:</span>
-                    <span className="text-xs font-black text-text-primary leading-none">AUTO-{Math.floor(Math.random() * 9000) + 1000}</span>
+                <div className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">REF:</span>
+                    <span className="text-[10px] font-black text-primary leading-none">AUD-TRACK-{Math.floor(Math.random() * 900) + 100}</span>
                 </div>
             </div>
 
-            {/* Master Data Section */}
+            {/* Master Data Compact Section */}
             <section className="space-y-2">
-                <div className="flex items-center gap-2 px-1">
-                    <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
-                    <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">01. Datos Maestros de la Auditoría</h3>
-                </div>
+                <Card className="!p-4 bg-white/70 backdrop-blur border-slate-200 shadow-sm overflow-visible">
+                    <div className="flex flex-col gap-4">
+                        {/* Row 1: Primary Data */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div className="md:col-span-4">
+                                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Entidad Auditada</label>
+                                <select
+                                    value={entidadId}
+                                    onChange={e => setEntidadId(e.target.value)}
+                                    className={`w-full px-3 py-2.5 rounded-xl border ${errors.entidad ? 'border-rose-400 bg-rose-50/20' : 'border-slate-100 bg-white'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer`}
+                                >
+                                    <option value="">— SELECCIONE —</option>
+                                    {catalogos.entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                                </select>
+                            </div>
 
-                <Card className="!p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Entidad Auditada</label>
-                            <select
-                                value={entidadId}
-                                onChange={e => setEntidadId(e.target.value)}
-                                className={`w-full px-4 py-3 rounded-2xl border ${errors.entidad ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-slate-200'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50 cursor-pointer`}
-                            >
-                                <option value="">Seleccione Entidad</option>
-                                {catalogos.entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-                            </select>
-                            {errors.entidad && <p className="text-[10px] font-black text-rose-500 mt-2 px-1 uppercase tracking-tighter">⚠️ {errors.entidad}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Tipo de Visita</label>
-                            <div className="relative">
+                            <div className="md:col-span-3">
+                                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Modalidad</label>
                                 <select
                                     value={tipoVisita}
                                     onChange={e => setTipoVisita(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50 cursor-pointer appearance-none"
+                                    className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer"
                                 >
                                     {(catalogos.tiposVisita || TIPOS_VISITA).map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
-                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                                    <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
+                            </div>
+
+                            <div className="md:col-span-5">
+                                <div className="flex items-center justify-between px-1 mb-1">
+                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Referencia Informe</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setEsInformeManual(!esInformeManual); setNroInforme(''); }}
+                                        className="text-[8px] font-black text-primary uppercase tracking-tighter hover:bg-primary/5 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                                    >
+                                        {esInformeManual ? '↩ Lista' : '➕ Manual'}
+                                    </button>
                                 </div>
+                                {esInformeManual ? (
+                                    <input
+                                        type="text"
+                                        placeholder="EJ: AUD-001-2023"
+                                        value={nroInforme}
+                                        onChange={e => setNroInforme(e.target.value.toUpperCase())}
+                                        className={`w-full px-3 py-2.5 rounded-xl border ${errors.nroInforme ? 'border-rose-400' : 'border-primary/10 bg-primary/5'} text-sm font-black text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase`}
+                                    />
+                                ) : (
+                                    <select
+                                        value={nroInforme}
+                                        onChange={e => setNroInforme(e.target.value)}
+                                        className={`w-full px-3 py-2.5 rounded-xl border ${errors.nroInforme ? 'border-rose-400' : 'border-slate-100 bg-white'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer pr-8 appearance-none`}
+                                    >
+                                        <option value="">— SELECCIONE INFORME —</option>
+                                        {correlativos.filter(c => c.tipoInforme === 'Informe de supervisión').map(c => (
+                                            <option key={c.id} value={c.codigo}>{c.codigo}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Fecha de Apertura</label>
-                            <input
-                                type="date"
-                                value={fechaInicio}
-                                onChange={e => setFechaInicio(e.target.value)}
-                                className={`w-full px-4 py-3 rounded-2xl border ${errors.fechaInicio ? 'border-rose-500' : 'border-slate-200'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50`}
-                            />
-                        </div>
+                        {/* Row 2: Grouped Dates */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Auditoría Box */}
+                            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col gap-2 shadow-sm">
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5 px-1">
+                                    <div className="w-1 h-1 rounded-full bg-slate-400" />
+                                    Programación Auditoría
+                                </span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <span className="text-[8px] font-bold text-slate-500 uppercase ml-1">Apertura</span>
+                                        <input type="date" value={fechaApertura} onChange={e => setFechaApertura(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-white text-[11px] font-bold focus:outline-none" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[8px] font-bold text-slate-500 uppercase ml-1">Cierre</span>
+                                        <input type="date" value={fechaCierre} onChange={e => setFechaCierre(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-white text-[11px] font-bold focus:outline-none" />
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Fecha de Cierre</label>
-                            <input
-                                type="date"
-                                value={fechaFin}
-                                onChange={e => setFechaFin(e.target.value)}
-                                className={`w-full px-4 py-3 rounded-2xl border ${errors.fechaFin ? 'border-rose-500' : 'border-slate-200'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-slate-50/50`}
-                            />
+                            {/* Evaluación Box */}
+                            <div className="p-3.5 rounded-2xl bg-indigo-50/40 border border-indigo-100/50 flex flex-col gap-2 shadow-sm">
+                                <span className="text-[8px] font-black text-indigo-500/80 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5 px-1">
+                                    <div className="w-1 h-1 rounded-full bg-indigo-400" />
+                                    Periodo de Evaluación
+                                </span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <span className="text-[8px] font-bold text-indigo-400 uppercase ml-1">Desde</span>
+                                        <input type="date" value={fechaEvalInicio} onChange={e => setFechaEvalInicio(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-indigo-100 bg-white text-[11px] font-bold text-indigo-900 focus:outline-none" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[8px] font-bold text-indigo-400 uppercase ml-1">Hasta</span>
+                                        <input type="date" value={fechaEvalFinal} onChange={e => setFechaEvalFinal(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-indigo-100 bg-white text-[11px] font-bold text-indigo-900 focus:outline-none" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Documento de Soporte (PDF):</label>
-                            <button
-                                onClick={() => alert('Integración con servicio de almacenamiento requerida.')}
-                                className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black text-text-primary uppercase tracking-[0.1em] hover:bg-slate-50 hover:border-primary transition-all flex items-center gap-2 group cursor-pointer"
-                            >
-                                <svg className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                </svg>
-                                Vincular Adjunto
-                            </button>
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-300 italic">* Campos obligatorios marcados para validación regulatoria</span>
                     </div>
                 </Card>
             </section>
 
             {/* Hallazgos Section */}
-            <section className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
-                        <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">02. Declaración de Hallazgos ({tarjetas.length})</h3>
-                    </div>
-                    <button
-                        onClick={addTarjeta}
-                        className="px-4 py-2 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-200 cursor-pointer active:scale-95"
-                    >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Nuevo Item
-                    </button>
-                </div>
+            <div className="flex items-center justify-between px-1">
+                <h3 className="text-[10px] font-black text-text-primary uppercase tracking-[0.3em]">02. Hallazgos Individuales ({tarjetas.length})</h3>
+                <button onClick={addTarjeta} className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                    Nuevo
+                </button>
+            </div>
 
-                <div className="space-y-3">
-                    {tarjetas.map((tarjeta, index) => (
-                        <Card key={index} noPadding className="relative overflow-visible group">
-                            {/* Card Decorative Left Bar */}
-                            <div className={`absolute top-0 left-0 bottom-0 w-1.5 rounded-l-2xl ${tarjeta.nivelRiesgo === 'Crítico' ? 'bg-rose-500 shadow-[2px_0_10px_rgba(239,68,68,0.2)]' :
-                                tarjeta.nivelRiesgo === 'Alto' ? 'bg-amber-500 shadow-[2px_0_10px_rgba(245,158,11,0.2)]' :
-                                    tarjeta.nivelRiesgo === 'Medio' ? 'bg-blue-500 shadow-[2px_0_10px_rgba(59,130,246,0.2)]' : 'bg-slate-300'
-                                }`} />
-
-                            <div className="p-4">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex-1 max-w-2xl group-hover:pl-1 transition-all">
-                                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1 px-1">Identificador de Hallazgo</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Describa el título corto de la observación..."
-                                            value={tarjeta.titulo}
-                                            onChange={e => updateTarjeta(index, 'titulo', e.target.value)}
-                                            className={`w-full px-1 py-1 text-xl font-black text-text-primary placeholder:text-slate-300 focus:outline-none bg-transparent border-b-2 ${errors[`titulo_${index}`] ? 'border-rose-300' : 'border-slate-100'} focus:border-primary transition-all`}
-                                        />
-                                        {errors[`titulo_${index}`] && <p className="text-[10px] font-black text-rose-500 mt-2 px-1 uppercase tracking-tighter">⚠️ {errors[`titulo_${index}`]}</p>}
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex flex-col items-end">
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Severidad</label>
-                                            <select
-                                                value={tarjeta.nivelRiesgo}
-                                                onChange={e => updateTarjeta(index, 'nivelRiesgo', e.target.value)}
-                                                className="px-4 py-1.5 rounded-full border border-slate-200 text-[11px] font-black uppercase text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary cursor-pointer hover:bg-slate-50 transition-all appearance-none text-center min-w-[100px]"
-                                            >
-                                                {(catalogos.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value)).map(n => <option key={n} value={n}>{n}</option>)}
-                                            </select>
-                                        </div>
-
-                                        {tarjetas.length > 1 && (
-                                            <button
-                                                onClick={() => removeTarjeta(index)}
-                                                className="mt-4 p-2.5 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer group/del"
-                                                title="Descartar Item"
-                                            >
-                                                <svg className="w-5 h-5 group-hover/del:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
+            <div className="space-y-3">
+                {tarjetas.map((tarjeta, index) => (
+                    <Card key={index} noPadding className="relative group border-slate-100 shadow-sm">
+                        <div className={`absolute top-0 left-0 bottom-0 w-1 rounded-l-2xl ${tarjeta.nivelRiesgo === 'Crítico' ? 'bg-rose-500' : tarjeta.nivelRiesgo === 'Alto' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                        <div className="p-4">
+                            <div className="flex items-start justify-between mb-4 gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-[8px] font-black text-primary uppercase tracking-widest mb-1 px-1">Título de la Observación</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Identifique brevemente el hallazgo..."
+                                        value={tarjeta.titulo}
+                                        onChange={e => updateTarjeta(index, 'titulo', e.target.value)}
+                                        className={`w-full px-1 py-0.5 text-base font-black text-text-primary placeholder:text-slate-200 focus:outline-none border-b ${errors[`titulo_${index}`] ? 'border-rose-300' : 'border-slate-50'} focus:border-primary transition-all`}
+                                    />
                                 </div>
-
-                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                                    {/* 02. Identificación del Hallazgo */}
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Detalle Narrativo</label>
-                                            <textarea
-                                                placeholder="Describa extensamente el hallazgo, condiciones y efectos detectados..."
-                                                value={tarjeta.descripcion}
-                                                onChange={e => updateTarjeta(index, 'descripcion', e.target.value)}
-                                                rows={6}
-                                                className={`w-full p-4 rounded-2xl border ${errors[`desc_${index}`] ? 'border-rose-200' : 'border-slate-100'} text-sm font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none bg-slate-50/30`}
-                                            />
-                                            {errors[`desc_${index}`] && <p className="text-[10px] font-black text-rose-500 mt-2 px-1 uppercase tracking-tighter">⚠️ {errors[`desc_${index}`]}</p>}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Gestión Inicial</label>
-                                                <select
-                                                    value={tarjeta.estado}
-                                                    onChange={e => updateTarjeta(index, 'estado', e.target.value)}
-                                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer"
-                                                >
-                                                    {(catalogos.estados || ESTADOS.map(e => e.value)).map(e => <option key={e} value={e}>{e}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Tipo de Riesgo</label>
-                                                <select
-                                                    value={tarjeta.tipoRiesgo}
-                                                    onChange={e => updateTarjeta(index, 'tipoRiesgo', e.target.value)}
-                                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer"
-                                                >
-                                                    {(catalogos.tiposRiesgo || TIPOS_RIESGO).map(t => <option key={t} value={t}>{t}</option>)}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Control Regulatorio */}
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Normativa Aplicable</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={tarjeta.normativa}
-                                                    onChange={e => updateTarjeta(index, 'normativa', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary appearance-none cursor-pointer"
-                                                >
-                                                    <option value="">Seleccionar Normativa</option>
-                                                    {catalogos.normas.map(n => (
-                                                        <option key={n.codigo} value={`${n.codigo} - ${n.nombre}`}>
-                                                            {n.codigo} - {n.nombre.substring(0, 70)}{n.nombre.length > 70 ? '...' : ''}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <div>
-                                                <div className="flex items-center justify-between px-1 mb-2">
-                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Referencia Informe</label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            updateTarjeta(index, 'esInformeManual', !tarjeta.esInformeManual);
-                                                            updateTarjeta(index, 'nroInforme', '');
-                                                        }}
-                                                        className="text-[9px] font-black text-primary uppercase tracking-tighter hover:underline cursor-pointer flex items-center gap-1"
-                                                    >
-                                                        {tarjeta.esInformeManual ? (
-                                                            <>
-                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
-                                                                </svg>
-                                                                Seleccionar de Lista
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                </svg>
-                                                                Ingreso Manual
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                </div>
-
-                                                <div className="relative">
-                                                    {tarjeta.esInformeManual ? (
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Ej: AUD-SOC-2024-001"
-                                                            value={tarjeta.nroInforme}
-                                                            onChange={e => updateTarjeta(index, 'nroInforme', e.target.value)}
-                                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase"
-                                                        />
-                                                    ) : (
-                                                        <>
-                                                            <select
-                                                                value={tarjeta.nroInforme}
-                                                                onChange={e => updateTarjeta(index, 'nroInforme', e.target.value)}
-                                                                className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer appearance-none truncate pr-10"
-                                                            >
-                                                                <option value="">— Seleccione Informe —</option>
-                                                                {correlativos.filter(c => c.tipoInforme === 'Informe de supervisión').map(c => (
-                                                                    <option key={c.id} value={c.codigo}>
-                                                                        {c.codigo} | {c.asunto ? (c.asunto.length > 30 ? c.asunto.substring(0, 30) + '...' : c.asunto) : 'Sin título'}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                                                                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                                </svg>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* 03. Respuesta de la Entidad */}
-                                    <div className="space-y-4 pt-1 border-t-4 border-blue-500/20 lg:border-t-0 lg:border-l-4 lg:pl-6 bg-blue-50/20 -mx-4 px-4 py-2 lg:mx-0 lg:p-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center text-[10px] text-white font-black">3</div>
-                                            <h4 className="text-[10px] font-black text-blue-700 uppercase tracking-widest leading-none pt-0.5">Respuesta de la Entidad</h4>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-widest mb-2 px-1">Fecha de Respuesta</label>
-                                            <input
-                                                type="date"
-                                                value={tarjeta.fechaRespuesta}
-                                                onChange={e => updateTarjeta(index, 'fechaRespuesta', e.target.value)}
-                                                className="w-full px-4 py-3 rounded-2xl border border-blue-100 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 transition-all"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-blue-500/60 uppercase tracking-widest mb-2 px-1">Contenido de la Respuesta</label>
-                                            <textarea
-                                                placeholder="Documente la justificación o respuesta oficial..."
-                                                value={tarjeta.respuestaEntidad}
-                                                onChange={e => updateTarjeta(index, 'respuestaEntidad', e.target.value)}
-                                                rows={5}
-                                                className="w-full p-4 rounded-2xl border border-blue-100 bg-white text-sm font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 transition-all resize-none"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* 04. Situación Actual */}
-                                    <div className="space-y-4 pt-1 border-t-4 border-violet-500/20 lg:border-t-0 lg:border-l-4 lg:pl-6 bg-violet-50/20 -mx-4 px-4 py-2 lg:mx-0 lg:p-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center text-[10px] text-white font-black">4</div>
-                                            <h4 className="text-[10px] font-black text-violet-700 uppercase tracking-widest leading-none pt-0.5">Situación Actual</h4>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-violet-500/60 uppercase tracking-widest mb-2 px-1">Responsable Seguimiento</label>
-                                            <select
-                                                value={tarjeta.responsable}
-                                                onChange={e => updateTarjeta(index, 'responsable', e.target.value)}
-                                                className="w-full px-4 py-3 rounded-2xl border border-violet-100 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-violet-500/5 focus:border-violet-400 appearance-none cursor-pointer"
-                                            >
-                                                <option value="">Asignar Auditor</option>
-                                                {catalogos.responsables.map(r => <option key={r} value={r}>{r}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-violet-500/60 uppercase tracking-widest mb-2 px-1">Comentario del Auditor</label>
-                                            <textarea
-                                                placeholder="Análisis profesional final del ciclo..."
-                                                value={tarjeta.comentarioAuditor}
-                                                onChange={e => updateTarjeta(index, 'comentarioAuditor', e.target.value)}
-                                                rows={5}
-                                                className="w-full p-4 rounded-2xl border border-violet-100 bg-white text-sm font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-violet-500/5 focus:border-violet-400 transition-all resize-none"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1 pt-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Estado Integridad</label>
-                                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-slate-100">
-                                                <div className={`w-3 h-3 rounded-full ${tarjeta.titulo && tarjeta.descripcion ? (tarjeta.respuestaEntidad ? 'bg-indigo-500' : 'bg-emerald-500') : 'bg-slate-200'}`} />
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                                    {tarjeta.respuestaEntidad ? 'Ciclo Completo' : 'Solo Hallazgo'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div className="flex items-center gap-3">
+                                    <select
+                                        value={tarjeta.nivelRiesgo}
+                                        onChange={e => updateTarjeta(index, 'nivelRiesgo', e.target.value)}
+                                        className="px-3 py-1 rounded-full border border-slate-200 text-[9px] font-black uppercase tracking-tighter"
+                                    >
+                                        {NIVELES_RIESGO.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+                                    </select>
+                                    {tarjetas.length > 1 && (
+                                        <button onClick={() => removeTarjeta(index)} className="text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-                        </Card>
-                    ))}
-                </div>
-            </section>
 
-            {/* Sticky Actions Bar */}
-            <div className="fixed bottom-0 left-[220px] right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 py-3 z-40 transition-all">
-                <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-8">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progreso de Carga</span>
-                            <div className="flex items-center gap-3 mt-1">
-                                <span className="text-sm font-black text-text-primary leading-none uppercase">{tarjetas.length} HALLAZGO(S)</span>
-                                <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${Math.min((tarjetas.length / 5) * 100, 100)}%` }} />
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                                <div className="space-y-3">
+                                    <textarea
+                                        placeholder="Detalle narrativo del hallazgo..."
+                                        value={tarjeta.descripcion}
+                                        onChange={e => updateTarjeta(index, 'descripcion', e.target.value)}
+                                        rows={4}
+                                        className="w-full p-3 rounded-xl border border-slate-50 bg-slate-50/50 text-[12px] font-medium text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/5 transition-all resize-none shadow-inner"
+                                    />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <select value={tarjeta.estado} onChange={e => updateTarjeta(index, 'estado', e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-slate-100 text-[9px] font-black text-text-primary uppercase focus:outline-none">
+                                            {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+                                        </select>
+                                        <select value={tarjeta.tipoRiesgo} onChange={e => updateTarjeta(index, 'tipoRiesgo', e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-slate-100 text-[9px] font-black text-text-primary uppercase focus:outline-none">
+                                            {TIPOS_RIESGO.map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Normativa</label>
+                                        <select value={tarjeta.normativa} onChange={e => updateTarjeta(index, 'normativa', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-100 bg-white text-[11px] font-bold text-text-primary focus:outline-none shadow-sm">
+                                            <option value="">— SELECCIONAR —</option>
+                                            {catalogos.normas.map(n => <option key={n.codigo} value={`${n.codigo} - ${n.nombre}`}>{n.codigo}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 bg-blue-50/30 p-3 rounded-2xl border border-blue-100/50">
+                                    <span className="text-[8px] font-black text-blue-700 uppercase tracking-widest block mb-2 px-1">3. Respuesta Entidad</span>
+                                    <input type="date" value={tarjeta.fechaRespuesta} onChange={e => updateTarjeta(index, 'fechaRespuesta', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-blue-100 bg-white text-[11px] font-bold focus:outline-none mb-2 shadow-sm" />
+                                    <textarea placeholder="Justificación técnica..." value={tarjeta.respuestaEntidad} onChange={e => updateTarjeta(index, 'respuestaEntidad', e.target.value)} rows={2} className="w-full p-2.5 rounded-xl border border-blue-100 bg-white text-[11px] font-medium resize-none shadow-sm" />
+                                </div>
+
+                                <div className="space-y-3 bg-violet-50/30 p-3 rounded-2xl border border-violet-100/50">
+                                    <span className="text-[8px] font-black text-violet-700 uppercase tracking-widest block mb-2 px-1">4. Situación Actual</span>
+                                    <select value={tarjeta.responsable} onChange={e => updateTarjeta(index, 'responsable', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-white text-[11px] font-bold mb-2 shadow-sm">
+                                        <option value="">— ASIGNAR —</option>
+                                        {catalogos.responsables.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                    <textarea placeholder="Análisis final..." value={tarjeta.comentarioAuditor} onChange={e => updateTarjeta(index, 'comentarioAuditor', e.target.value)} rows={2} className="w-full p-2.5 rounded-xl border border-violet-100 bg-white text-[11px] font-medium resize-none shadow-sm" />
                                 </div>
                             </div>
                         </div>
+                    </Card>
+                ))}
+            </div>
 
-                        <div className="h-10 w-px bg-slate-100" />
-
-                        <p className="text-[10px] font-bold text-slate-400 max-w-[200px] leading-relaxed italic">
-                            Asegúrese de que el plan de acción coincida con la severidad declarada.
-                        </p>
+            {/* Compact Sticky Bar */}
+            <div className="fixed bottom-0 left-[220px] right-0 bg-white/80 backdrop-blur-xl border-t border-slate-200 px-6 py-3 z-40 shadow-2xl">
+                <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Carga de Hallazgos</span>
+                            <div className="flex items-center gap-3 mt-0.5">
+                                <span className="text-xs font-black text-slate-900 leading-none uppercase">{tarjetas.length} REGISTRO(S)</span>
+                                <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                    <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${Math.min((tarjetas.length / 5) * 100, 100)}%` }} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="h-8 w-px bg-slate-200" />
+                        <p className="text-[9px] font-bold text-slate-400 italic max-w-[150px] leading-tight">Valide periodos de evaluación antes de firmar.</p>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => {
-                                if (window.confirm('¿Está seguro de limpiar todo el formulario?')) {
-                                    setTarjetas([{ ...EMPTY_TAR_JETA }]);
-                                    setEntidadId('');
-                                    setFechaInicio('');
-                                    setFechaFin('');
-                                    setErrors({});
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                            }}
-                            className="px-6 py-3 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
-                        >
-                            Limpiar Formulario
-                        </button>
-
-                        <button
-                            onClick={handleSubmit}
-                            className="px-10 py-3.5 rounded-2xl bg-primary text-white text-[12px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3 cursor-pointer group"
-                        >
-                            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                            </svg>
-                            Finalizar y Registrar
+                        <button onClick={() => { if (window.confirm('¿Borrar formulario?')) { setEntidadId(''); setNroInforme(''); setFechaApertura(''); setFechaCierre(''); setFechaEvalInicio(''); setFechaEvalFinal(''); setTarjetas([{ ...EMPTY_TARJETA }]); setErrors({}); window.scrollTo({ top: 0, behavior: 'smooth' }); } }} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-500 transition-colors cursor-pointer px-4">Limpiar</button>
+                        <button onClick={handleSubmit} className="px-8 py-3 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 active:scale-95 transition-all flex items-center gap-2 cursor-pointer group">
+                            Finalizar Expediente
+                            <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {showToast && (
-                <SuccessToast
-                    message="Auditoría registrada en el sistema de control centralizado exitosamente."
-                    onClose={() => setShowToast(false)}
-                />
-            )}
+            {showToast && <SuccessToast message="Expediente registrado exitosamente." onClose={() => setShowToast(false)} />}
         </div>
     );
 }
+
+// Fix for internal constant reference
+const EMPTY_TAR_JETA = EMPTY_TARJETA;

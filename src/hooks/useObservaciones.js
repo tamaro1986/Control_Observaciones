@@ -6,11 +6,15 @@ const COUNTER_KEY = 'auditflow_next_id_v1';
 function loadFromStorage() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
     } catch (e) {
         console.error('Error loading data:', e);
     }
-    return [];
+    // Seed initial data if nothing found or empty
+    return MOCK_OBSERVACIONES;
 }
 
 function saveToStorage(data) {
@@ -49,34 +53,49 @@ export default function useObservaciones() {
     }, [nextId]);
 
     // Create a new audit with multiple observations
-    const crearAuditoria = useCallback(({ entidadId, tipoVisita, fechaInicio, fechaFin, tarjetas }) => {
+    const crearAuditoria = useCallback(({
+        entidadId,
+        tipoVisita,
+        fechaApertura,
+        fechaCierre,
+        fechaEvalInicio,
+        fechaEvalFinal,
+        nroInforme,
+        tarjetas
+    }) => {
         const nuevas = tarjetas.map((t, idx) => {
             const id = nextId + idx;
             return {
                 id,
                 entidadId: parseInt(entidadId),
                 tipoVisita,
-                fechaInicio,
-                fechaFin,
+                fechaApertura,
+                fechaCierre,
+                fechaEvalInicio,
+                fechaEvalFinal,
+                nroInforme: nroInforme || t.nroInforme || '', // Header takes precedence
                 titulo: t.titulo,
                 descripcion: t.descripcion,
                 nivelRiesgo: t.nivelRiesgo,
                 tipoRiesgo: t.tipoRiesgo || 'Operacional',
                 estado: t.estado || 'Pendiente',
                 normativa: t.normativa || '',
-                nroInforme: t.nroInforme || '',
                 nota: t.nota || '',
                 responsable: t.responsable || '',
                 fechaPlanAccion: t.fechaPlanAccion || '',
+                // Cycle finishing details (Sections 3 & 4)
+                respuestaEntidad: t.respuestaEntidad || '',
+                fechaRespuesta: t.fechaRespuesta || '',
                 historialEstados: [
                     {
                         fecha: new Date().toISOString().split('T')[0],
                         estadoAnterior: null,
                         estadoNuevo: t.estado || 'Pendiente',
-                        nroInforme: t.nroInforme || '',
+                        nroInforme: nroInforme || t.nroInforme || '',
                         nota: t.nota || '',
-                        respuestaEntidad: '',
-                        analisisAuditor: 'Hallazgo registrado.',
+                        respuestaEntidad: t.respuestaEntidad || '',
+                        fechaRespuesta: t.fechaRespuesta || '',
+                        analisisAuditor: t.comentarioAuditor || 'Hallazgo registrado.',
                         planAccion: '',
                         fechaPlanAccion: t.fechaPlanAccion || '',
                     },
@@ -101,6 +120,7 @@ export default function useObservaciones() {
                     nroInforme: cambio.nroInforme || obs.nroInforme,
                     nota: cambio.nota || '',
                     respuestaEntidad: cambio.respuestaEntidad || '',
+                    fechaRespuesta: cambio.fechaRespuesta || '',
                     analisisAuditor: cambio.analisisAuditor || '',
                     planAccion: cambio.planAccion || '',
                     fechaPlanAccion: cambio.fechaPlanAccion || '',
