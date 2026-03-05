@@ -368,27 +368,6 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Sección</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Nota 1.2"
-                                                        value={tarjeta.nota}
-                                                        onChange={e => updateTarjeta(index, 'nota', e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-[11px] font-bold text-text-primary focus:outline-none uppercase"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Plazo Plan</label>
-                                                    <input
-                                                        type="date"
-                                                        value={tarjeta.fechaPlanAccion}
-                                                        onChange={e => updateTarjeta(index, 'fechaPlanAccion', e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 text-[11px] font-bold text-text-primary focus:outline-none"
-                                                    />
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -488,7 +467,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                         <button
                             onClick={() => {
                                 if (window.confirm('¿Está seguro de limpiar todo el formulario?')) {
-                                    setTarjetas([{ ...EMPTY_TARJETA }]);
+                                    setTarjetas([{ ...EMPTY_TAR_JETA }]);
                                     setEntidadId('');
                                     setFechaInicio('');
                                     setFechaFin('');
@@ -523,4 +502,3 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
         </div>
     );
 }
-
