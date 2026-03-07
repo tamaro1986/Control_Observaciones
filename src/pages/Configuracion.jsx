@@ -9,6 +9,7 @@ export default function Configuracion({ catalogos, setCatalogos }) {
     const subTabs = [
         { id: 'correlativos', label: 'Cartas e Informes', icon: '📄' },
         { id: 'observaciones', label: 'Observaciones', icon: '🔍' },
+        { id: 'respaldo', label: 'Respaldo de Datos', icon: '💾' },
     ];
 
     const correlativosLists = [
@@ -60,6 +61,61 @@ export default function Configuracion({ catalogos, setCatalogos }) {
             return { ...prev, [key]: list };
         });
     }
+
+    const exportarDatos = () => {
+        // Obtenemos todos los datos (el hook useObservaciones ya guarda en localStorage)
+        const obsSaved = localStorage.getItem('auditflow_observaciones_v1');
+        const nextIdSaved = localStorage.getItem('auditflow_next_id_v1');
+
+        const data = {
+            observaciones: obsSaved ? JSON.parse(obsSaved) : [],
+            nextId: nextIdSaved ? parseInt(nextIdSaved) : 1000,
+            correlativos: JSON.parse(localStorage.getItem('auditflow_correlativos_v1')) || [],
+            notas: JSON.parse(localStorage.getItem('auditflow_notas_v1')) || [],
+            catalogos: catalogos,
+            fechaRespaldo: new Date().toISOString(),
+            version: "1.0"
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `respaldo_SCO_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const importarDatos = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!data.observaciones || !data.catalogos) {
+                    throw new Error("Formato de archivo no válido");
+                }
+
+                if (window.confirm("¿Está seguro de importar los datos? Se reemplazará toda la información actual por el contenido del archivo.")) {
+                    // Guardar en localStorage para que App.jsx y useObservaciones lo tomen al recargar
+                    localStorage.setItem('auditflow_observaciones_v1', JSON.stringify(data.observaciones));
+                    localStorage.setItem('auditflow_next_id_v1', String(data.nextId || 1000));
+                    localStorage.setItem('auditflow_correlativos_v1', JSON.stringify(data.correlativos || []));
+                    localStorage.setItem('auditflow_notas_v1', JSON.stringify(data.notas || []));
+                    localStorage.setItem('auditflow_catalogos', JSON.stringify(data.catalogos));
+
+                    alert("Importación exitosa. La aplicación se recargará para aplicar los cambios.");
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert("Error al importar: El archivo no tiene el formato correcto.");
+            }
+        };
+        reader.readAsText(file);
+    };
 
     return (
         <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in pb-20">
@@ -189,7 +245,7 @@ export default function Configuracion({ catalogos, setCatalogos }) {
                         )}
                     </Card>
                 </div>
-            ) : (
+            ) : activeSubTab === 'observaciones' ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* List of Catalogs for Observaciones */}
                     <Card className="md:col-span-1 space-y-1 !p-3">
@@ -272,6 +328,55 @@ export default function Configuracion({ catalogos, setCatalogos }) {
                                 </div>
                             </div>
                         )}
+                    </Card>
+                </div>
+            ) : (
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <Card className="!p-8 text-center space-y-6">
+                        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center text-4xl mx-auto border border-emerald-100 shadow-sm">
+                            💾
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Copia de Seguridad Local</h2>
+                            <p className="text-sm text-slate-500 mt-2 font-medium">Respalde toda su información en un archivo físico para no perder su avance si se limpia el navegador.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                            <button
+                                onClick={exportarDatos}
+                                className="flex flex-col items-center justify-center p-6 bg-slate-900 hover:bg-slate-800 text-white rounded-3xl shadow-xl transition-all active:scale-95 group cursor-pointer"
+                            >
+                                <svg className="w-8 h-8 mb-3 text-emerald-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                <span className="text-sm font-black uppercase tracking-widest">Descargar Respaldo</span>
+                                <span className="text-[10px] text-slate-400 mt-1 font-bold">Guarda en Descargas</span>
+                            </button>
+
+                            <label className="flex flex-col items-center justify-center p-6 bg-white border-2 border-dashed border-slate-200 hover:border-slate-900 hover:bg-slate-50 rounded-3xl transition-all active:scale-95 group cursor-pointer">
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    onChange={importarDatos}
+                                    className="hidden"
+                                />
+                                <svg className="w-8 h-8 mb-3 text-slate-400 group-hover:text-slate-900 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                                <span className="text-sm font-black uppercase tracking-widest text-slate-700">Cargar Archivo</span>
+                                <span className="text-[10px] text-slate-400 mt-1 font-bold">Selecciona tu .json</span>
+                            </label>
+                        </div>
+
+                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex gap-4 text-left">
+                            <span className="text-2xl mt-1">⚠️</span>
+                            <div>
+                                <p className="text-xs font-black text-amber-900 uppercase tracking-widest">Atención</p>
+                                <p className="text-xs text-amber-800 mt-1 font-medium leading-relaxed">
+                                    Al importar un archivo, se **sobrescribirán** todos los datos actuales del navegador. Se recomienda descargar un respaldo antes de realizar una importación.
+                                </p>
+                            </div>
+                        </div>
                     </Card>
                 </div>
             )}
