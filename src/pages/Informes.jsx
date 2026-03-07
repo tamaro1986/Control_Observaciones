@@ -68,7 +68,7 @@ function CustomMultiSelect({ label, options, selected, onChange, placeholder = "
     );
 }
 
-export default function Informes({ observaciones, filtrar, getEstadisticas, onSelectObservacion, catalogos }) {
+export default function Informes({ observaciones, filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos }) {
     const getEntidadById = (id) => catalogos.entidades.find(e => String(e.id) === String(id));
 
     const [entidadSeleccionadas, setEntidadSeleccionadas] = useState([]);
@@ -239,6 +239,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Observación</th>
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Estado</th>
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Responsable</th>
+                                <th className="text-center py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/60">
@@ -292,6 +293,28 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                                                 <div className="flex items-center gap-2">
                                                     <Avatar nombre={obs.responsable} size="xs" />
                                                     <span className="text-xs font-bold text-text-primary whitespace-nowrap">{obs.responsable}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-2 px-4 align-middle">
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); alert('Edición de datos base pronto disponible...'); }}
+                                                        className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors cursor-pointer"
+                                                        title="Editar Información"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); eliminarObservacion(obs.id); }}
+                                                        className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors cursor-pointer"
+                                                        title="Eliminar Hallazgo"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -378,7 +401,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
 
             <div className="pt-3 text-center">
                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
-                    © {new Date().getFullYear()} AuditFlow Pro • Enterprise Intelligence Systems
+                    © {new Date().getFullYear()} AuditFlow • García Integrum
                 </p>
             </div>
         </div>

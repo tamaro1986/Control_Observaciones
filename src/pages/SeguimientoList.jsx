@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, Badge } from '../components/SharedComponents';
 import { getEstadoStyle, getRiesgoStyle, formatDate, daysUntil } from '../data/data';
 
-export default function SeguimientoList({ observaciones, onSelectObservacion }) {
+export default function SeguimientoList({ observaciones, onSelectObservacion, eliminarObservacion, editarObservacion }) {
     // Filtrar solo las que no están subsanadas
     const pendientes = observaciones.filter(o => o.estado !== 'Subsanada');
 
@@ -112,15 +112,26 @@ export default function SeguimientoList({ observaciones, onSelectObservacion }) 
                                                 </div>
                                             </td>
                                             <td className="py-2.5 px-3 align-middle text-right">
-                                                <button
-                                                    onClick={() => onSelectObservacion(obs.id, 'nuevo_seguimiento')}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all text-xs font-black uppercase tracking-widest group-hover:shadow-md cursor-pointer"
-                                                >
-                                                    Gestionar
-                                                    <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                                                    </svg>
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => onSelectObservacion(obs.id, 'nuevo_seguimiento')}
+                                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all text-xs font-black uppercase tracking-widest group-hover:shadow-md cursor-pointer"
+                                                    >
+                                                        Gestionar
+                                                        <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); eliminarObservacion(obs.id); }}
+                                                        className="p-2 rounded-xl hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer group/del"
+                                                        title="Eliminar Hallazgo"
+                                                    >
+                                                        <svg className="w-4 h-4 group-hover/del:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

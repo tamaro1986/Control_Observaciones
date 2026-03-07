@@ -1,4 +1,4 @@
-// ===== AuditFlow Pro — Data Models & Mock Data =====
+// ===== AuditFlow — Data Models & Mock Data =====
 
 export const ENTIDADES = [
     { id: 1, nombre: 'Banco Agrícola, S.A.', tipo: 'Banco', categoria: 'Sucursal Central' },
@@ -652,14 +652,17 @@ export const MOCK_CORRELATIVOS = [
  * @returns {string} código formateado
  */
 export function getNextCorrelativo(correlativos, año = new Date().getFullYear()) {
-    const delAño = correlativos.filter(c => c.año === año);
-    const siguiente = delAño.length > 0
-        ? Math.max(...delAño.map(c => c.numero)) + 1
-        : 1;
+    const targetYear = Number(año);
+    const delAño = (correlativos || []).filter(c => Number(c.año) === targetYear);
+
+    // Obtenemos el máximo número actual para ese año
+    const numeros = delAño.map(c => Number(c.numero)).filter(num => !isNaN(num));
+    const siguiente = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+
     return {
-        codigo: `DSFIT-${String(siguiente).padStart(3, '0')}/${año}`,
+        codigo: `DSFIT-${String(siguiente).padStart(3, '0')}/${targetYear}`,
         numero: siguiente,
-        año,
+        año: targetYear,
     };
 }
 
@@ -885,13 +888,18 @@ export const MOCK_CORRELATIVOS_NOTAS = [
  * El contador reinicia cada año.
  */
 export function getNextCorrelativoNota(notas, año = new Date().getFullYear()) {
-    const delAño = notas.filter(n => n.año === año && n.codigo.startsWith('SAV-DSFIT-M'));
-    const siguiente = delAño.length > 0
-        ? Math.max(...delAño.map(n => n.numero)) + 1
-        : 1;
+    const targetYear = Number(año);
+    const delAño = (notas || []).filter(n =>
+        Number(n.año) === targetYear &&
+        (n.codigo || '').startsWith('SAV-DSFIT-M')
+    );
+
+    const numeros = delAño.map(n => Number(n.numero)).filter(num => !isNaN(num));
+    const siguiente = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+
     return {
         codigo: `SAV-DSFIT-M${String(siguiente).padStart(3, '0')}`,
         numero: siguiente,
-        año,
+        año: targetYear,
     };
 }

@@ -521,7 +521,7 @@ const TABS = [
     { id: 'generador', label: 'Generador de Informes', icon: '📑' },
 ];
 
-export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, catalogos }) {
+export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos }) {
     const [activeTab, setActiveTab] = useState('resumen');
 
     return (
@@ -575,6 +575,8 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                         filtrar={filtrar}
                         getEstadisticas={getEstadisticas}
                         onSelectObservacion={onSelectObservacion}
+                        eliminarObservacion={eliminarObservacion}
+                        editarObservacion={editarObservacion}
                         catalogos={catalogos}
                     />
                 </div>

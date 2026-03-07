@@ -40,8 +40,9 @@ const emptyForm = {
     entidad: '',
 };
 
-export default function Correlativos({ correlativos, onAgregarCorrelativo, catalogos }) {
+export default function Correlativos({ correlativos, onAgregarCorrelativo, onEliminarCorrelativo, onEditarCorrelativo, catalogos }) {
     const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
     const [search, setSearch] = useState('');
     const [filterClasif, setFilterClasif] = useState('');
@@ -83,15 +84,31 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
         setForm(f => ({ ...f, [key]: val }));
     }
 
+    function handleOpenEdit(corr) {
+        setForm({
+            ...corr,
+            normas: corr.normas || (corr.codigoNorma ? [{ codigo: corr.codigoNorma, nombre: corr.nombreNorma }] : [])
+        });
+        setEditingId(corr.id);
+        setShowForm(true);
+    }
+
     function handleGuardar() {
         if (!form.fecha || !form.clasificacion || !form.industria || !form.tipoInforme || !form.responsable || !form.entidad) {
             alert('Por favor complete los campos obligatorios marcados con *.');
             return;
         }
-        const { codigo, numero, año } = getNextCorrelativo(correlativos, new Date(form.fecha + 'T00:00:00').getFullYear());
-        const nuevo = { ...form, id: `corr-${Date.now()}`, codigo, numero, año, cantidadUnidades: Number(form.cantidadUnidades) };
-        onAgregarCorrelativo(nuevo);
+
+        if (editingId) {
+            onEditarCorrelativo({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
+        } else {
+            const { codigo, numero, año } = getNextCorrelativo(correlativos, new Date(form.fecha + 'T00:00:00').getFullYear());
+            const nuevo = { ...form, id: `corr-${Date.now()}`, codigo, numero, año, cantidadUnidades: Number(form.cantidadUnidades) };
+            onAgregarCorrelativo(nuevo);
+        }
+
         setForm(emptyForm);
+        setEditingId(null);
         setShowForm(false);
         setCurrentPage(1);
     }
@@ -155,7 +172,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                     </div>
                 </div>
                 <button
-                    onClick={() => setShowForm(true)}
+                    onClick={() => { setForm(emptyForm); setEditingId(null); setShowForm(true); }}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-primary shadow-xl transition-all duration-300 cursor-pointer"
                 >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,13 +184,11 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
 
             {/* Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-3">
-                {/* Main Stats - Smaller */}
                 <Card className="md:col-span-2 lg:col-span-2 flex flex-col items-center justify-center text-center !bg-slate-900 !text-white border-0 shadow-sm min-h-[140px]">
                     <span className="text-3xl font-black mb-0.5">{stats.total}</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total</span>
                 </Card>
 
-                {/* Categories Stats - Larger */}
                 {[
                     { label: 'Tipo de Informe', data: stats.porTipo, icon: '📋', span: 'md:col-span-2 lg:col-span-3' },
                     { label: 'Norma Aplicada', data: stats.porNorma, icon: '⚖️', span: 'md:col-span-2 lg:col-span-3' },
@@ -207,7 +222,6 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
             {/* Filters */}
             <Card className="!p-0 overflow-visible">
                 <div className="px-4 py-3 flex flex-wrap gap-3 items-center border-b border-border bg-slate-50/50">
-                    {/* Search */}
                     <div className="relative flex-1 min-w-[180px]">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -252,34 +266,32 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                     <table className="w-full border-collapse text-left">
                         <thead>
                             <tr>
-                                {['#', 'Código', 'Fecha', 'Norma', 'Uds.', 'Clasificación', 'Industria', 'Tipo Informe', 'Acción', 'Responsable', 'Entidad'].map(h => (
-                                    <th key={h} className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap">{h}</th>
+                                {['#', 'Código', 'Fecha', 'Norma', 'Uds.', 'Clasificación', 'Industria', 'Tipo Informe', 'Acción', 'Responsable', 'Entidad', 'Acciones'].map(h => (
+                                    <th key={h} className={`py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap ${h === 'Acciones' ? 'text-center' : ''}`}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {paginated.length === 0 ? (
-                                <tr><td colSpan={11} className="py-16 text-center text-sm text-text-muted font-medium">No se encontraron correlativos</td></tr>
+                                <tr><td colSpan={12} className="py-16 text-center text-sm text-text-muted font-medium">No se encontraron correlativos</td></tr>
                             ) : paginated.map((c, idx) => (
-                                <>
+                                <React.Fragment key={c.id}>
                                     <tr
-                                        key={c.id}
-                                        onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}
                                         className={`group cursor-pointer transition-colors ${expandedRow === c.id ? 'bg-slate-50' : 'hover:bg-primary/[0.02]'}`}
                                     >
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-[10px] font-black text-slate-300">
                                                 {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                                             </span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle whitespace-nowrap">
+                                        <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-xs font-black text-slate-900 tracking-tight">{c.codigo}</span>
                                             {c.blfOtro && <div className="text-[9px] text-slate-400 font-medium">{c.blfOtro}</div>}
                                         </td>
-                                        <td className="py-2 px-3 align-middle whitespace-nowrap">
+                                        <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-[10px] font-bold text-text-secondary">{formatDate(c.fecha)}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             {c.normas && c.normas.length > 0 ? (
                                                 <div className="space-y-1.5">
                                                     {c.normas.map((n, i) => (
@@ -296,40 +308,62 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="py-2 px-3 align-middle text-center">
+                                        <td className="py-2 px-3 align-middle text-center" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-xs font-black text-text-primary">{c.cantidadUnidades}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className={getCategoryStyle(c.clasificacion)}>
                                                 {c.clasificacion}
                                             </span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className={getCategoryStyle(c.industria)}>
                                                 {c.industria}
                                             </span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">{c.tipoInforme}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${ACCION_COLOR[c.accionSupervision] || 'bg-slate-100 text-slate-600'}`}>
                                                 {c.accionSupervision}
                                             </span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <div className="flex items-center gap-1.5">
                                                 <Avatar nombre={c.responsable} size="xs" />
                                                 <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{c.responsable.split(' ').slice(0, 2).join(' ')}</span>
                                             </div>
                                         </td>
-                                        <td className="py-2 px-3 align-middle max-w-[180px]">
+                                        <td className="py-2 px-3 align-middle max-w-[180px]" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-[10px] font-bold text-text-primary line-clamp-2">{c.entidad}</span>
+                                        </td>
+                                        <td className="py-2 px-3 align-middle">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(c); }}
+                                                    className="p-1.5 rounded-lg hover:bg-indigo-50 text-indigo-500 hover:text-indigo-600 transition-colors cursor-pointer"
+                                                    title="Editar"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onEliminarCorrelativo(c.id); }}
+                                                    className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors cursor-pointer"
+                                                    title="Eliminar"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     {expandedRow === c.id && (
                                         <tr key={`${c.id}-exp`} className="bg-slate-50 border-b border-slate-100">
-                                            <td colSpan={11} className="px-6 py-4">
+                                            <td colSpan={12} className="px-6 py-4">
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                                                     <div className="space-y-2">
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Asunto</p>
@@ -343,13 +377,12 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="px-4 py-3 flex items-center justify-between border-t border-border bg-slate-50/30">
                         <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
@@ -375,9 +408,9 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                         {/* Panel header */}
                         <div className="flex items-center justify-between px-6 py-4 bg-slate-900 shrink-0">
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nuevo Registro</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{editingId ? 'Editando Registro' : 'Nuevo Registro'}</p>
                                 <p className="text-sm font-black text-white">
-                                    {getNextCorrelativo(correlativos, new Date(form.fecha + 'T00:00:00').getFullYear()).codigo}
+                                    {editingId ? form.codigo : getNextCorrelativo(correlativos, new Date(form.fecha + 'T00:00:00').getFullYear()).codigo}
                                 </p>
                             </div>
                             <button onClick={() => setShowForm(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-sm cursor-pointer transition-colors">✕</button>
@@ -534,7 +567,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
 
                         {/* Panel footer */}
                         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3 shrink-0">
-                            <button onClick={() => setShowForm(false)}
+                            <button onClick={() => { setShowForm(false); setEditingId(null); }}
                                 className="px-5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-text-secondary hover:border-slate-400 transition-colors cursor-pointer">
                                 Cancelar
                             </button>
@@ -543,7 +576,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
-                                Guardar Correlativo
+                                {editingId ? 'Actualizar Correlativo' : 'Guardar Correlativo'}
                             </button>
                         </div>
                     </div>
@@ -552,3 +585,5 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, catal
         </div>
     );
 }
+
+import React from 'react';

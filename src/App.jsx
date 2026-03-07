@@ -22,20 +22,24 @@ export default function App() {
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedObsId, setSelectedObsId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    // Correlativos Persistence
     const [correlativos, setCorrelativos] = useState(() => {
         try {
             const saved = localStorage.getItem('auditflow_correlativos_v1');
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) { return []; }
+            return saved ? JSON.parse(saved) : MOCK_CORRELATIVOS;
+        } catch (e) { return MOCK_CORRELATIVOS; }
     });
 
+    // Notas Persistence
     const [notas, setNotas] = useState(() => {
         try {
             const saved = localStorage.getItem('auditflow_notas_v1');
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) { return []; }
+            return saved ? JSON.parse(saved) : MOCK_CORRELATIVOS_NOTAS;
+        } catch (e) { return MOCK_CORRELATIVOS_NOTAS; }
     });
 
+    // Catalogos Persistence
     const [catalogos, setCatalogos] = useState(() => {
         const defaultCats = {
             clasificaciones: CLASIFICACIONES_CORR,
@@ -81,7 +85,7 @@ export default function App() {
         localStorage.setItem('auditflow_catalogos', JSON.stringify(catalogos));
     }, [catalogos]);
 
-    const [activeTab, setActiveTab] = useState('dashboard');
+    // Hook logic
     const {
         observaciones,
         crearAuditoria,
@@ -89,16 +93,44 @@ export default function App() {
         getObservacion,
         filtrar,
         getEstadisticas,
+        editarObservacion,
+        eliminarObservacion,
     } = useObservaciones();
+
+    // --- Alphabetic Sorting Logic ---
+    const sortedCorrelativos = useMemo(() => {
+        return [...correlativos].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+    }, [correlativos]);
+
+    const sortedNotas = useMemo(() => {
+        return [...notas].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+    }, [notas]);
+
+    const sortedCatalogos = useMemo(() => {
+        const sorted = { ...catalogos };
+        Object.keys(sorted).forEach(key => {
+            if (Array.isArray(sorted[key])) {
+                if (key === 'normas' || key === 'normasExtra') {
+                    sorted[key] = [...sorted[key]].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+                } else if (key === 'entidades') {
+                    sorted[key] = [...sorted[key]].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+                } else {
+                    sorted[key] = [...sorted[key]].sort((a, b) => String(a).localeCompare(String(b)));
+                }
+            }
+        });
+        return sorted;
+    }, [catalogos]);
+
 
     const handleSelectObservacion = useCallback((id, view = 'detalle') => {
         setSelectedObsId(id);
         setActiveView(view);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
     const handleBack = useCallback(() => {
         setSelectedObsId(null);
-        // Si regresamos desde nuevo_seguimiento, volvemos a listar seguimientos
         if (activeView === 'nuevo_seguimiento') {
             setActiveView('seguimiento');
         } else {
@@ -111,12 +143,32 @@ export default function App() {
         setActiveView(view);
     }, []);
 
+    // Handlers for Correlativos
     const handleAgregarCorrelativo = useCallback((nuevo) => {
         setCorrelativos(prev => [nuevo, ...prev]);
     }, []);
 
+    const handleEliminarCorrelativo = useCallback((id) => {
+        if (!window.confirm('¿Está seguro de eliminar este correlativo?')) return;
+        setCorrelativos(prev => prev.filter(c => c.id !== id));
+    }, []);
+
+    const handleEditarCorrelativo = useCallback((updated) => {
+        setCorrelativos(prev => prev.map(c => c.id === updated.id ? updated : c));
+    }, []);
+
+    // Handlers for Notas
     const handleAgregarNota = useCallback((nuevo) => {
         setNotas(prev => [nuevo, ...prev]);
+    }, []);
+
+    const handleEliminarNota = useCallback((id) => {
+        if (!window.confirm('¿Está seguro de eliminar esta nota?')) return;
+        setNotas(prev => prev.filter(n => n.id !== id));
+    }, []);
+
+    const handleEditarNota = useCallback((updated) => {
+        setNotas(prev => prev.map(n => n.id === updated.id ? updated : n));
     }, []);
 
     const selectedObs = selectedObsId ? getObservacion(selectedObsId) : null;
@@ -127,8 +179,10 @@ export default function App() {
                 <DetalleObservacion
                     observacion={selectedObs}
                     cambiarEstado={cambiarEstado}
+                    eliminarObservacion={eliminarObservacion}
+                    editarObservacion={editarObservacion}
                     onBack={handleBack}
-                    catalogos={catalogos}
+                    catalogos={sortedCatalogos}
                 />
             );
         }
@@ -144,9 +198,16 @@ export default function App() {
                     />
                 );
             case 'nuevo':
-                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={catalogos} correlativos={correlativos} />;
+                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={sortedCatalogos} correlativos={sortedCorrelativos} />;
             case 'seguimiento':
-                return <SeguimientoList observaciones={observaciones} onSelectObservacion={handleSelectObservacion} />;
+                return (
+                    <SeguimientoList
+                        observaciones={observaciones}
+                        onSelectObservacion={handleSelectObservacion}
+                        eliminarObservacion={eliminarObservacion}
+                        editarObservacion={editarObservacion}
+                    />
+                );
             case 'nuevo_seguimiento':
                 if (!selectedObs) return null;
                 return (
@@ -154,31 +215,35 @@ export default function App() {
                         observacion={selectedObs}
                         cambiarEstado={cambiarEstado}
                         onBack={handleBack}
-                        catalogos={catalogos}
-                        correlativos={correlativos}
+                        catalogos={sortedCatalogos}
+                        correlativos={sortedCorrelativos}
                     />
                 );
             case 'correlativos':
                 return (
                     <Correlativos
-                        correlativos={correlativos}
+                        correlativos={sortedCorrelativos}
                         onAgregarCorrelativo={handleAgregarCorrelativo}
-                        catalogos={catalogos}
+                        onEliminarCorrelativo={handleEliminarCorrelativo}
+                        onEditarCorrelativo={handleEditarCorrelativo}
+                        catalogos={sortedCatalogos}
                     />
                 );
             case 'notas':
                 return (
                     <CorrelativosNotas
-                        notas={notas}
+                        notas={sortedNotas}
                         onAgregarNota={handleAgregarNota}
-                        catalogos={catalogos}
-                        correlativos={correlativos}
+                        onEliminarNota={handleEliminarNota}
+                        onEditarNota={handleEditarNota}
+                        catalogos={sortedCatalogos}
+                        correlativos={sortedCorrelativos}
                     />
                 );
             case 'config':
                 return (
                     <Configuracion
-                        catalogos={catalogos}
+                        catalogos={sortedCatalogos}
                         setCatalogos={setCatalogos}
                     />
                 );
@@ -187,12 +252,14 @@ export default function App() {
                 return (
                     <InformesGlobal
                         observaciones={observaciones}
-                        correlativos={correlativos}
-                        notas={notas}
+                        correlativos={sortedCorrelativos}
+                        notas={sortedNotas}
                         filtrar={filtrar}
                         getEstadisticas={getEstadisticas}
                         onSelectObservacion={handleSelectObservacion}
-                        catalogos={catalogos}
+                        eliminarObservacion={eliminarObservacion}
+                        editarObservacion={editarObservacion}
+                        catalogos={sortedCatalogos}
                     />
                 );
             default:
@@ -266,5 +333,3 @@ export default function App() {
         </div>
     );
 }
-
-

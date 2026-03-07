@@ -72,16 +72,14 @@ export default function Sidebar({ activeView, onNavigate, collapsed, setCollapse
             className="fixed top-0 left-0 h-screen bg-slate-900 border-r border-white/5 z-40 flex flex-col transition-all duration-500"
         >
             {/* Brand Header */}
-            <div className={`flex items-center h-12 border-b border-white/5 shrink-0 overflow-hidden transition-all duration-500 ${collapsed ? 'justify-center px-0' : 'gap-3 px-4'}`}>
-                <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/30">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+            <div className={`flex items-center h-16 border-b border-white/5 shrink-0 overflow-hidden transition-all duration-500 ${collapsed ? 'justify-center px-0' : 'gap-3 px-4'}`}>
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-lg overflow-hidden">
+                    <img src="/garcia_logo.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 {!collapsed && (
                     <div className="overflow-hidden whitespace-nowrap">
-                        <h1 className="text-base font-black text-white tracking-tight leading-none">AuditFlow Pro</h1>
-                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Control de Auditoría</p>
+                        <h1 className="text-base font-black text-white tracking-tight leading-none">AuditFlow</h1>
+                        <p className="text-[9px] text-emerald-400 font-black uppercase tracking-[0.2em] mt-1">García Integrum</p>
                     </div>
                 )}
             </div>

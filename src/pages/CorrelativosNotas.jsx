@@ -9,8 +9,6 @@ const ACCION_COLOR = {
     'Extra Sitio': 'bg-violet-50 text-violet-700 ring-1 ring-violet-200',
 };
 
-
-
 // ─── Empty junta template ───────────────────────────────────────────────────
 const emptyJunta = {
     industria: '',
@@ -35,16 +33,14 @@ const emptyForm = {
     entidad: '',
     asunto: '',
     vinculado: '',
-    vieneDeInforme: 'NO', // Nuevo campo
-    juntas: [],           // ← new
+    vieneDeInforme: 'NO',
+    juntas: [],
 };
 
-// ─── CSS helpers ─────────────────────────────────────────────────────────────
 const INPUT = 'w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-500 bg-slate-50';
 const SELECT = INPUT + ' cursor-pointer';
 const LABEL = 'block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5';
 
-// ─── JuntasSubForm component ─────────────────────────────────────────────────
 function JuntasSubForm({ juntas, onChange, catalogos }) {
     const [draft, setDraft] = useState(emptyJunta);
 
@@ -67,7 +63,6 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
 
     return (
         <div className="rounded-xl border-2 border-amber-200 bg-amber-50/30 overflow-hidden">
-            {/* sub-header */}
             <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-100/60 border-b border-amber-200">
                 <span className="text-lg">🏛️</span>
                 <div>
@@ -80,7 +75,6 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
             </div>
 
             <div className="p-4 space-y-4">
-                {/* ── Existing juntas table ── */}
                 {juntas.length > 0 && (
                     <div className="overflow-x-auto rounded-lg border border-amber-200 bg-white">
                         <table className="w-full border-collapse text-left text-[10px]">
@@ -125,11 +119,9 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                     </div>
                 )}
 
-                {/* ── Draft entry form ── */}
                 <div className="bg-white rounded-xl border border-amber-200 p-4 space-y-3">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">+ Agregar junta</p>
 
-                    {/* Row 1: Industria · Fecha · Hora */}
                     <div className="grid grid-cols-3 gap-3">
                         <div>
                             <label className={LABEL}>Industria</label>
@@ -148,19 +140,16 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                         </div>
                     </div>
 
-                    {/* Row 2: Entidad */}
                     <div>
                         <label className={LABEL}>Entidad *</label>
                         <input type="text" placeholder="Nombre completo de la entidad que celebra la junta…" value={draft.entidad} onChange={e => handleDraft('entidad', e.target.value)} className={INPUT} />
                     </div>
 
-                    {/* Row 3: Lugar */}
                     <div>
                         <label className={LABEL}>Lugar (dirección exacta)</label>
                         <input type="text" placeholder="Dirección completa donde se celebra la junta…" value={draft.lugar} onChange={e => handleDraft('lugar', e.target.value)} className={INPUT} />
                     </div>
 
-                    {/* Row 4: Responsable · Tipo de Junta */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={LABEL}>Responsable</label>
@@ -196,9 +185,9 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
     );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, correlativos = [] }) {
+export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota, onEditarNota, catalogos, correlativos = [] }) {
     const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
     const [search, setSearch] = useState('');
     const [filterClasif, setFilterClasif] = useState('');
@@ -247,11 +236,9 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                 const norma = TODAS_NORMAS.find(n => n.codigo === val);
                 if (norma) next.nombreNorma = norma.nombre;
             }
-            // Clear juntas when switching away from Gobierno Corporativo
             if (key === 'clasificacion' && val !== 'Gobierno Corporativo') {
                 next.juntas = [];
             }
-            // Clear linked report if "Viene de Informe" is "NO"
             if (key === 'vieneDeInforme' && val === 'NO') {
                 next.vinculado = '';
             }
@@ -263,19 +250,32 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
         setForm(f => ({ ...f, juntas: newJuntas }));
     }
 
+    function handleOpenEdit(nota) {
+        setForm({ ...nota });
+        setEditingId(nota.id);
+        setShowForm(true);
+    }
+
     function handleGuardar() {
         if (!form.fecha || !form.clasificacion || !form.industria || !form.responsable || !form.entidad) {
             alert('Por favor complete los campos obligatorios (*).');
             return;
         }
-        const año = new Date(form.fecha + 'T00:00:00').getFullYear();
-        const { codigo, numero } = getNextCorrelativoNota(notas, año);
-        const nuevo = {
-            ...form, id: `nota-${Date.now()}`, codigo, numero, año,
-            cantidadUnidades: Number(form.cantidadUnidades),
-        };
-        onAgregarNota(nuevo);
+
+        if (editingId) {
+            onEditarNota({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
+        } else {
+            const año = new Date(form.fecha + 'T00:00:00').getFullYear();
+            const { codigo, numero } = getNextCorrelativoNota(notas, año);
+            const nuevo = {
+                ...form, id: `nota-${Date.now()}`, codigo, numero, año,
+                cantidadUnidades: Number(form.cantidadUnidades),
+            };
+            onAgregarNota(nuevo);
+        }
+
         setForm(emptyForm);
+        setEditingId(null);
         setShowForm(false);
         setCurrentPage(1);
     }
@@ -304,14 +304,13 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
     const hasFilters = search || filterClasif || filterIndust || filterAccion || filterAño;
 
     const previewCodigo = useMemo(() => {
+        if (editingId) return form.codigo;
         const año = new Date(form.fecha + 'T00:00:00').getFullYear();
         return getNextCorrelativoNota(notas, año).codigo;
-    }, [notas, form.fecha]);
+    }, [notas, form.fecha, editingId, form.codigo]);
 
     return (
         <div className="max-w-[1800px] mx-auto space-y-4 animate-fade-in">
-
-            {/* ── Header ── */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-600 shadow-lg flex items-center justify-center shrink-0">
@@ -326,7 +325,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                     </div>
                 </div>
                 <button
-                    onClick={() => setShowForm(true)}
+                    onClick={() => { setForm(emptyForm); setEditingId(null); setShowForm(true); }}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-black uppercase tracking-widest hover:bg-amber-700 shadow-xl shadow-amber-600/20 transition-all duration-300 cursor-pointer shrink-0"
                 >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -336,15 +335,12 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                 </button>
             </div>
 
-            {/* Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-3">
-                {/* Main Stats - Smaller */}
                 <Card className="md:col-span-2 lg:col-span-2 flex flex-col items-center justify-center text-center !bg-amber-600 !text-white border-0 shadow-sm min-h-[140px]">
                     <span className="text-3xl font-black mb-0.5">{stats.total}</span>
                     <span className="text-[9px] font-bold text-amber-100 uppercase tracking-[0.2em]">Total Notas</span>
                 </Card>
 
-                {/* Categories Stats - Larger */}
                 {[
                     { label: 'Clasificación', data: stats.porClasif, icon: '🏷️', span: 'md:col-span-2 lg:col-span-3' },
                     { label: 'Industria', data: stats.porIndustria, icon: '🏭', span: 'md:col-span-2 lg:col-span-3' },
@@ -375,7 +371,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                 ))}
             </div>
 
-            {/* ── Filters + Table ── */}
             <Card className="!p-0 overflow-visible">
                 <div className="px-4 py-3 flex flex-wrap gap-3 items-center border-b border-border bg-slate-50/50">
                     <div className="relative flex-1 min-w-[180px]">
@@ -417,13 +412,12 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                     </span>
                 </div>
 
-                {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-left">
                         <thead>
                             <tr>
-                                {['#', 'Código Despacho', 'Fecha', 'Norma', 'Clasificación', 'Uds.', 'Industria', 'Acción', 'Responsable', 'Entidad'].map(h => (
-                                    <th key={h} className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap">{h}</th>
+                                {['#', 'Código Despacho', 'Fecha', 'Norma', 'Clasificación', 'Uds.', 'Industria', 'Acción', 'Responsable', 'Entidad', 'Acciones'].map(h => (
+                                    <th key={h} className={`py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap ${h === 'Acciones' ? 'text-center' : ''}`}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -431,16 +425,14 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                             {paginated.length === 0 ? (
                                 <tr><td colSpan={12} className="py-16 text-center text-sm text-text-muted font-medium">No se encontraron registros</td></tr>
                             ) : paginated.map((n, idx) => (
-                                <>
+                                <React.Fragment key={n.id}>
                                     <tr
-                                        key={n.id}
-                                        onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}
                                         className={`group cursor-pointer transition-colors border-b border-slate-50 ${expandedRow === n.id ? 'bg-amber-50/40' : 'hover:bg-amber-50/20'}`}
                                     >
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-black text-slate-300">{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle whitespace-nowrap">
+                                        <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <div className="flex items-center gap-1.5">
                                                 <span className="text-[11px] font-black text-slate-900 tracking-tight">{n.codigo}</span>
                                                 {n.juntas?.length > 0 && (
@@ -450,42 +442,63 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="py-2 px-3 align-middle whitespace-nowrap">
+                                        <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-bold text-text-secondary">{formatDate(n.fecha)}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-black text-text-primary">{n.codigoNorma}</span>
                                             <p className="text-[9px] text-slate-400 max-w-[110px] truncate">{n.nombreNorma}</p>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-bold text-text-secondary">{n.clasificacion}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle text-center">
+                                        <td className="py-2 px-3 align-middle text-center" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-xs font-black text-text-primary">{n.cantidadUnidades}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle whitespace-nowrap">
+                                        <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-bold text-text-secondary">{n.industria}</span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${ACCION_COLOR[n.accionSupervision] || 'bg-slate-100 text-slate-600'}`}>
                                                 {n.accionSupervision}
                                             </span>
                                         </td>
-                                        <td className="py-2 px-3 align-middle">
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <div className="flex items-center gap-1.5">
                                                 <Avatar nombre={n.responsable} size="xs" />
                                                 <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{n.responsable.split(' ').slice(0, 2).join(' ')}</span>
                                             </div>
                                         </td>
-                                        <td className="py-2 px-3 align-middle max-w-[160px]">
+                                        <td className="py-2 px-3 align-middle max-w-[160px]" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-bold text-text-primary line-clamp-2">{n.entidad}</span>
+                                        </td>
+                                        <td className="py-2 px-3 align-middle">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(n); }}
+                                                    className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-colors cursor-pointer"
+                                                    title="Editar"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onEliminarNota(n.id); }}
+                                                    className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors cursor-pointer"
+                                                    title="Eliminar"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     {expandedRow === n.id && (
                                         <tr key={`${n.id}-exp`} className="bg-amber-50/30 border-b border-amber-100">
                                             <td colSpan={12} className="px-6 py-4">
                                                 <div className="space-y-4">
-                                                    {/* Text fields */}
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div className="space-y-1">
                                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Asunto</p>
@@ -501,7 +514,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                                         </div>
                                                     </div>
 
-                                                    {/* Juntas table — only if present */}
                                                     {n.juntas?.length > 0 && (
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-2">
@@ -514,7 +526,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                                                 <table className="w-full border-collapse text-left text-[10px]">
                                                                     <thead>
                                                                         <tr className="bg-amber-50">
-                                                                            {['Industria', 'Fecha', 'Hora', 'Entidad', 'Lugar (dirección exacta)', 'Responsable', 'Tipo/Nombre de Junta'].map(h => (
+                                                                            {['Industria', 'Fecha', 'Hora', 'Entidad', 'Lugar', 'Responsable', 'Tipo/Nombre de Junta'].map(h => (
                                                                                 <th key={h} className="py-2 px-3 font-black text-amber-700 uppercase tracking-widest whitespace-nowrap border-b border-amber-100">{h}</th>
                                                                             ))}
                                                                         </tr>
@@ -540,13 +552,12 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="px-4 py-3 flex items-center justify-between border-t border-border bg-slate-50/30">
                         <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
@@ -562,26 +573,20 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                 )}
             </Card>
 
-            {/* ══════════════════ FORM PANEL ══════════════════ */}
             {showForm && (
                 <div className="fixed inset-0 z-50 flex">
                     <div className="flex-1 bg-black/40 backdrop-blur-sm" onClick={() => setShowForm(false)} />
                     <div className="w-full max-w-2xl h-full bg-white shadow-2xl flex flex-col animate-fade-in overflow-hidden">
-
-                        {/* Panel header */}
                         <div className="flex items-center justify-between px-6 py-4 bg-amber-600 shrink-0">
                             <div>
-                                <p className="text-[10px] font-black text-amber-100 uppercase tracking-[0.2em]">Nueva Correspondencia</p>
+                                <p className="text-[10px] font-black text-amber-100 uppercase tracking-[0.2em]">{editingId ? 'Editando Nota' : 'Nueva Correspondencia'}</p>
                                 <p className="text-sm font-black text-white">{previewCodigo}</p>
                             </div>
                             <button onClick={() => setShowForm(false)}
                                 className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-sm cursor-pointer transition-colors">✕</button>
                         </div>
 
-                        {/* Form body */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-5">
-
-                            {/* Fecha + Tipo */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={LABEL}>Fecha *</label>
@@ -593,7 +598,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 </div>
                             </div>
 
-                            {/* Norma */}
                             <div className="grid grid-cols-1">
                                 <div>
                                     <label className={LABEL}>Código de Norma</label>
@@ -604,14 +608,12 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 </div>
                             </div>
 
-                            {/* Nombre norma */}
                             <div>
                                 <label className={LABEL}>Nombre de la Norma</label>
                                 <input type="text" value={form.nombreNorma} onChange={e => handleField('nombreNorma', e.target.value)}
                                     placeholder="Se rellena automáticamente al elegir código…" className={INPUT} />
                             </div>
 
-                            {/* Clasificación + Industria */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={LABEL}>Clasificación *</label>
@@ -629,7 +631,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 </div>
                             </div>
 
-                            {/* Acción */}
                             <div className="grid grid-cols-1">
                                 <div>
                                     <label className={LABEL}>Acción Supervisión</label>
@@ -639,7 +640,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 </div>
                             </div>
 
-                            {/* Viene de Informe + Vinculado a */}
                             <div className="grid grid-cols-2 gap-4 bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
                                 <div>
                                     <label className={LABEL}>¿Viene de un Informe?</label>
@@ -672,7 +672,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 </div>
                             </div>
 
-                            {/* Responsable + Entidad */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={LABEL}>Responsable *</label>
@@ -690,7 +689,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 </div>
                             </div>
 
-                            {/* Descripción acción */}
                             <div>
                                 <div className="flex justify-between items-center mb-1.5">
                                     <label className={LABEL}>Descripción de la Acción</label>
@@ -707,7 +705,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 <textarea rows={2} placeholder="Describa la acción…" value={form.descripcionAccion} onChange={e => handleField('descripcionAccion', e.target.value)} className={SELECT + " resize-none"} />
                             </div>
 
-                            {/* Asunto */}
                             <div>
                                 <label className={LABEL}>Asunto</label>
                                 <textarea rows={3} value={form.asunto} onChange={e => handleField('asunto', e.target.value)}
@@ -715,15 +712,13 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                     className="w-full p-3 rounded-lg border border-slate-200 text-xs font-medium text-text-secondary focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-500 bg-slate-50 resize-none" />
                             </div>
 
-                            {/* ══ JUNTAS SUB-FORM — only when Gobierno Corporativo ══ */}
                             {isGobiernoCorporativo && (
                                 <JuntasSubForm juntas={form.juntas} onChange={handleJuntas} catalogos={catalogos} />
                             )}
                         </div>
 
-                        {/* Panel footer */}
                         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3 shrink-0">
-                            <button onClick={() => setShowForm(false)}
+                            <button onClick={() => { setShowForm(false); setEditingId(null); }}
                                 className="px-5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-text-secondary hover:border-slate-400 transition-colors cursor-pointer">
                                 Cancelar
                             </button>
@@ -732,7 +727,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
-                                Guardar Nota / Carta
+                                {editingId ? 'Actualizar Nota / Carta' : 'Guardar Nota / Carta'}
                                 {isGobiernoCorporativo && form.juntas.length > 0 && (
                                     <span className="bg-white/20 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
                                         +{form.juntas.length} junta{form.juntas.length !== 1 ? 's' : ''}
@@ -746,3 +741,5 @@ export default function CorrelativosNotas({ notas, onAgregarNota, catalogos, cor
         </div>
     );
 }
+
+import React from 'react';

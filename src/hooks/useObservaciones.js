@@ -137,6 +137,20 @@ export default function useObservaciones() {
         );
     }, []);
 
+    // Edit an existing observation
+    const editarObservacion = useCallback((id, data) => {
+        setObservaciones(prev => prev.map(obs => {
+            if (obs.id !== id) return obs;
+            return { ...obs, ...data };
+        }));
+    }, []);
+
+    // Delete an observation
+    const eliminarObservacion = useCallback((id) => {
+        if (!window.confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.')) return;
+        setObservaciones(prev => prev.filter(obs => obs.id !== id));
+    }, []);
+
     // Get a single observation by id
     const getObservacion = useCallback((id) => {
         return observaciones.find(o => o.id === id) || null;
@@ -168,14 +182,15 @@ export default function useObservaciones() {
             const kw = filtros.keyword.toLowerCase();
             resultado = resultado.filter(o =>
                 String(o.id).includes(kw) ||
-                o.titulo.toLowerCase().includes(kw) ||
-                o.descripcion.toLowerCase().includes(kw) ||
-                o.responsable.toLowerCase().includes(kw) ||
-                o.normativa.toLowerCase().includes(kw)
+                (o.titulo || '').toLowerCase().includes(kw) ||
+                (o.descripcion || '').toLowerCase().includes(kw) ||
+                (o.responsable || '').toLowerCase().includes(kw) ||
+                (o.normativa || '').toLowerCase().includes(kw)
             );
         }
 
-        return resultado;
+        // Always sort results alphabetically by title
+        return resultado.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
     }, [observaciones]);
 
     // Get stats
@@ -200,11 +215,13 @@ export default function useObservaciones() {
     }, [observaciones]);
 
     return {
-        observaciones,
+        observaciones: [...observaciones].sort((a, b) => (a.titulo || '').localeCompare(b.titulo || '')),
         crearAuditoria,
         cambiarEstado,
         getObservacion,
         filtrar,
         getEstadisticas,
+        editarObservacion,
+        eliminarObservacion,
     };
 }
