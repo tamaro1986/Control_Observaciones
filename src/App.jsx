@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import NuevoRegistro from './pages/NuevoRegistro';

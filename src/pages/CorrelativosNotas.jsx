@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, Avatar } from '../components/SharedComponents.jsx';
 import { getNextCorrelativoNota, formatDate } from '../data/data.js';
 
@@ -741,5 +741,3 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
         </div>
     );
 }
-
-import React from 'react';

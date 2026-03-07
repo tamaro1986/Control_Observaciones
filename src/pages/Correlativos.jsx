@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, Avatar } from '../components/SharedComponents.jsx';
 import { getNextCorrelativo, formatDate } from '../data/data.js';
 
@@ -585,5 +585,3 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
         </div>
     );
 }
-
-import React from 'react';
