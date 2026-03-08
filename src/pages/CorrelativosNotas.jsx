@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Avatar } from '../components/SharedComponents.jsx';
 import { getNextCorrelativoNota, formatDate } from '../data/data.js';
+import { Mail, FileText, Download, Briefcase, Globe, Activity, CheckCircle, AlertCircle, Calendar, Award } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -17,7 +18,7 @@ const emptyJunta = {
     entidad: '',
     lugar: '',
     responsable: '',
-    tipoJunta: '',   // "Tipo de Junta o nombre del Fondo" — libre
+    tipoJunta: '',
 };
 
 const emptyForm = {
@@ -174,9 +175,7 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                         onClick={agregarJunta}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all cursor-pointer shadow-md shadow-amber-600/20"
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                        </svg>
+                        <Activity className="w-3.5 h-3.5" />
                         Agregar Junta
                     </button>
                 </div>
@@ -301,8 +300,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
         };
     }, [notas]);
 
-    const hasFilters = search || filterClasif || filterIndust || filterAccion || filterAño;
-
     const previewCodigo = useMemo(() => {
         if (editingId) return form.codigo;
         const año = new Date(form.fecha + 'T00:00:00').getFullYear();
@@ -314,13 +311,10 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-600 shadow-lg flex items-center justify-center shrink-0">
-                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
+                        <Mail className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-text-primary tracking-tight">Correlativos de Correspondencia Enviada — DSFIT</h2>
+                        <h2 className="text-xl font-black text-text-primary tracking-tight">Correlativos de Correspondencia — DSFIT</h2>
                         <p className="text-xs font-medium text-text-muted">Control correlativo de cartas y memos emitidos</p>
                     </div>
                 </div>
@@ -335,48 +329,68 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-3">
-                <Card className="md:col-span-2 lg:col-span-2 flex flex-col items-center justify-center text-center !bg-amber-600 !text-white border-0 shadow-sm min-h-[140px]">
-                    <span className="text-3xl font-black mb-0.5">{stats.total}</span>
-                    <span className="text-[9px] font-bold text-amber-100 uppercase tracking-[0.2em]">Total Notas</span>
-                </Card>
+            {/* Stats Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
+                <div className="bg-amber-600 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <Mail className="w-20 h-20" />
+                    </div>
+                    <p className="text-3xl font-black mb-1">{stats.total}</p>
+                    <p className="text-[10px] font-bold text-amber-100 uppercase tracking-widest">Total Correspondencia</p>
+                    <div className="mt-4 flex items-center gap-2">
+                        <span className="text-[10px] font-black bg-white/10 px-2 py-0.5 rounded-full">{stats.esteAño} en {new Date().getFullYear()}</span>
+                    </div>
+                </div>
 
-                {[
-                    { label: 'Clasificación', data: stats.porClasif, icon: '🏷️', span: 'md:col-span-2 lg:col-span-3' },
-                    { label: 'Industria', data: stats.porIndustria, icon: '🏭', span: 'md:col-span-2 lg:col-span-3' },
-                    { label: 'Responsable', data: stats.porResponsable, icon: '👤', span: 'md:col-span-6 lg:col-span-4' },
-                ].map(cat => (
-                    <Card key={cat.label} className={`${cat.span} !p-3.5 !bg-white border-slate-100 hover:shadow-md transition-shadow min-h-[140px] flex flex-col`}>
-                        <div className="flex items-center gap-2 mb-2.5 border-b border-slate-50 pb-2">
-                            <span className="text-sm">{cat.icon}</span>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{cat.label}</span>
-                        </div>
-                        <div className="space-y-1.5 flex-1 overflow-y-auto max-h-[110px] scrollbar-hide">
-                            {cat.data.map(([val, count]) => {
-                                const pct = Math.round((count / stats.total) * 100);
-                                return (
-                                    <div key={val} className="group">
-                                        <div className="flex justify-between items-center text-[10px] mb-0.5">
-                                            <span className="font-bold text-slate-700 truncate max-w-[140px]" title={val}>{val}</span>
-                                            <span className="font-black text-amber-600">{count}</span>
-                                        </div>
-                                        <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-slate-200 group-hover:bg-amber-400 transition-colors" style={{ width: `${pct}%` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
-                ))}
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Clasificación Principal</p>
+                    <div className="space-y-3 flex-1">
+                        {stats.porClasif.slice(0, 3).map(([name, count]) => (
+                            <div key={name}>
+                                <div className="flex justify-between text-[10px] font-bold mb-1">
+                                    <span className="text-slate-600 truncate mr-2">{name}</span>
+                                    <span className="text-slate-900">{count}</span>
+                                </div>
+                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${(count / (stats.total || 1)) * 100}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Industrias Frecuentes</p>
+                    <div className="space-y-3 flex-1">
+                        {stats.porIndustria.slice(0, 3).map(([name, count]) => (
+                            <div key={name}>
+                                <div className="flex justify-between text-[10px] font-bold mb-1">
+                                    <span className="text-slate-600 truncate mr-2">{name}</span>
+                                    <span className="text-slate-900">{count}</span>
+                                </div>
+                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(count / (stats.total || 1)) * 100}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Carga Unidades</p>
+                    <div className="flex flex-col items-center justify-center flex-1">
+                        <p className="text-3xl font-black text-slate-800">
+                            {notas.reduce((a, n) => a + (Number(n.cantidadUnidades) || 1), 0)}
+                        </p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Unidades Reportadas</p>
+                    </div>
+                </div>
             </div>
 
             <Card className="!p-0 overflow-visible">
                 <div className="px-4 py-3 flex flex-wrap gap-3 items-center border-b border-border bg-slate-50/50">
                     <div className="relative flex-1 min-w-[180px]">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Buscar por código, entidad, responsable, asunto…"
@@ -401,7 +415,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                             {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                     ))}
-                    {hasFilters && (
+                    {(search || filterClasif || filterIndust || filterAccion || filterAño) && (
                         <button onClick={resetFilters}
                             className="h-9 px-3 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer">
                             ✕ Limpiar
@@ -724,9 +738,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                             </button>
                             <button onClick={handleGuardar}
                                 className="px-6 py-2 rounded-xl bg-amber-600 text-white text-xs font-black uppercase tracking-wider hover:bg-amber-700 shadow-lg shadow-amber-600/20 transition-all cursor-pointer flex items-center gap-2">
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <CheckCircle className="w-3.5 h-3.5" />
                                 {editingId ? 'Actualizar Nota / Carta' : 'Guardar Nota / Carta'}
                                 {isGobiernoCorporativo && form.juntas.length > 0 && (
                                     <span className="bg-white/20 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">

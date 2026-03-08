@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Avatar } from '../components/SharedComponents.jsx';
 import { getNextCorrelativo, formatDate } from '../data/data.js';
+import { FileText, Users, Award, Shield, Briefcase, Globe, Activity, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -161,9 +162,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                 <div>
                     <div className="flex items-center gap-3 mb-1">
                         <div className="w-9 h-9 rounded-xl bg-slate-900 shadow-lg flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            <FileText className="w-5 h-5 text-white" />
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-text-primary tracking-tight">Correlativos de Informes — DSFIT</h2>
@@ -182,41 +181,62 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                 </button>
             </div>
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-3">
-                <Card className="md:col-span-2 lg:col-span-2 flex flex-col items-center justify-center text-center !bg-slate-900 !text-white border-0 shadow-sm min-h-[140px]">
-                    <span className="text-3xl font-black mb-0.5">{stats.total}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total</span>
-                </Card>
+            {/* Dashboard Visual */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
+                <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <FileText className="w-20 h-20" />
+                    </div>
+                    <p className="text-3xl font-black mb-1">{stats.total}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registros Totales</p>
+                    <div className="mt-4 flex items-center gap-2">
+                        <span className="text-[10px] font-black bg-white/10 px-2 py-0.5 rounded-full">{stats.esteAño} en {new Date().getFullYear()}</span>
+                    </div>
+                </div>
 
-                {[
-                    { label: 'Tipo de Informe', data: stats.porTipo, icon: '📋', span: 'md:col-span-2 lg:col-span-3' },
-                    { label: 'Norma Aplicada', data: stats.porNorma, icon: '⚖️', span: 'md:col-span-2 lg:col-span-3' },
-                    { label: 'Responsable', data: stats.porResponsable, icon: '👤', span: 'md:col-span-6 lg:col-span-4' },
-                ].map(cat => (
-                    <Card key={cat.label} className={`${cat.span} !p-3.5 !bg-white border-slate-100 hover:shadow-md transition-shadow min-h-[140px] flex flex-col`}>
-                        <div className="flex items-center gap-2 mb-2.5 border-b border-slate-50 pb-2">
-                            <span className="text-sm">{cat.icon}</span>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{cat.label}</span>
-                        </div>
-                        <div className="space-y-1.5 flex-1 overflow-y-auto max-h-[110px] scrollbar-hide">
-                            {cat.data.map(([val, count]) => {
-                                const pct = Math.round((count / stats.total) * 100);
-                                return (
-                                    <div key={val} className="group">
-                                        <div className="flex justify-between items-center text-[10px] mb-0.5">
-                                            <span className="font-bold text-slate-700 truncate max-w-[140px]" title={val}>{val}</span>
-                                            <span className="font-black text-primary">{count}</span>
-                                        </div>
-                                        <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-slate-300 group-hover:bg-primary transition-colors" style={{ width: `${pct}%` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
-                ))}
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Top 3 Categorías</p>
+                    <div className="space-y-3 flex-1">
+                        {stats.porTipo.slice(0, 3).map(([name, count]) => (
+                            <div key={name}>
+                                <div className="flex justify-between text-[10px] font-bold mb-1">
+                                    <span className="text-slate-600 truncate mr-2">{name}</span>
+                                    <span className="text-slate-900">{count}</span>
+                                </div>
+                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(count / (stats.total || 1)) * 100}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Normas Frecuentes</p>
+                    <div className="space-y-3 flex-1">
+                        {stats.porNorma.slice(0, 3).map(([name, count]) => (
+                            <div key={name}>
+                                <div className="flex justify-between text-[10px] font-bold mb-1">
+                                    <span className="text-slate-600 truncate mr-2">{name}</span>
+                                    <span className="text-slate-900">{count}</span>
+                                </div>
+                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(count / (stats.total || 1)) * 100}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Distribución Unidades</p>
+                    <div className="flex flex-col items-center justify-center flex-1">
+                        <p className="text-3xl font-black text-slate-800">
+                            {correlativos.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0)}
+                        </p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Unidades Auditadas</p>
+                    </div>
+                </div>
             </div>
 
             {/* Filters */}
@@ -413,7 +433,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                     {editingId ? form.codigo : getNextCorrelativo(correlativos, new Date(form.fecha + 'T00:00:00').getFullYear()).codigo}
                                 </p>
                             </div>
-                            <button onClick={() => setShowForm(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-sm cursor-pointer transition-colors">✕</button>
+                            <button onClick={() => setShowForm(false)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-sm cursor-pointer transition-colors">✕</button>
                         </div>
 
                         {/* Scrollable form body */}

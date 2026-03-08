@@ -1,6 +1,16 @@
 import { useState, useMemo } from 'react';
 import { ENTIDADES } from '../data/data.js';
 import Informes from './Informes';
+import {
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+    BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Legend as RechartsLegend, AreaChart, Area
+} from 'recharts';
+import {
+    Calendar, Users, FileText, Activity, Shield,
+    TrendingUp, Filter, CheckCircle, AlertCircle,
+    Download, Briefcase, Globe, Award
+} from 'lucide-react';
 
 const ENTIDAD_MAP = Object.fromEntries(ENTIDADES.map(e => [e.id, e.nombre]));
 
@@ -24,552 +34,548 @@ function countBy(arr, key) {
     }, {});
 }
 
+function countByMulti(arr, key) {
+    return arr.reduce((acc, item) => {
+        const vals = item[key] || [];
+        if (vals.length === 0) {
+            acc['N/A'] = (acc['N/A'] || 0) + 1;
+        } else {
+            vals.forEach(v => {
+                const label = typeof v === 'object' ? (v.codigo || v.nombre) : v;
+                acc[label] = (acc[label] || 0) + 1;
+            });
+        }
+        return acc;
+    }, {});
+}
+
 function toSorted(obj) {
     return Object.entries(obj).sort((a, b) => b[1] - a[1]);
 }
 
-// ─── Custom Charts ─────────────────────────────────────────────────────────
+function toChartData(obj) {
+    return Object.entries(obj)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, value]) => ({ name, value }));
+}
 
-/** Donut SVG chart */
-function DonutChart({ data, palette, size = 140, strokeW = 22 }) {
-    const r = (size - strokeW) / 2;
-    const circ = 2 * Math.PI * r;
-    const total = data.reduce((s, d) => s + d.value, 0) || 1;
+// ─── Time Filtering Logic ───────────────────────────────────────────────
+const filterByPeriod = (data, dateField, period, specificValue) => {
+    if (period === 'all') return data;
 
-    let offset = 0;
-    const slices = data.map((d, i) => {
-        const len = (d.value / total) * circ;
-        const dash = `${len} ${circ - len}`;
-        const slice = { dasharray: dash, dashoffset: -offset, color: palette[i % palette.length] };
-        offset += len;
-        return slice;
+    return data.filter(item => {
+        const dateStr = item[dateField];
+        if (!dateStr) return false;
+        const d = new Date(dateStr + 'T00:00:00');
+        const year = d.getFullYear();
+        const month = d.getMonth(); // 0-indexed
+
+        if (period === 'month') {
+            return month === parseInt(specificValue.month) && year === parseInt(specificValue.year);
+        }
+        if (period === 'quarter') {
+            const q = Math.floor(month / 3) + 1;
+            return q === parseInt(specificValue.quarter) && year === parseInt(specificValue.year);
+        }
+        if (period === 'semester') {
+            const s = Math.floor(month / 6) + 1;
+            return s === parseInt(specificValue.semester) && year === parseInt(specificValue.year);
+        }
+        if (period === 'annual') {
+            return year === parseInt(specificValue.year);
+        }
+        return true;
     });
+};
 
+// ─── Custom UI Components ─────────────────────────────────────────
+
+function ChartCard({ title, subtitle, children, className = '', height = 300 }) {
     return (
-        <div className="relative" style={{ width: size, height: size }}>
-            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-                {/* track */}
-                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f1f5f9" strokeWidth={strokeW} />
-                {slices.map((s, i) => (
-                    <circle key={i} cx={size / 2} cy={size / 2} r={r} fill="none"
-                        stroke={s.color} strokeWidth={strokeW - 2}
-                        strokeDasharray={s.dasharray}
-                        strokeDashoffset={s.dashoffset}
-                        strokeLinecap="round"
-                        style={{ transition: 'stroke-dashoffset 0.4s ease' }}
-                    />
-                ))}
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-black text-slate-900">{total}</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
+        <div className={`bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 ${className} flex flex-col`}>
+            <div className="mb-6">
+                <p className="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-1">{title}</p>
+                {subtitle && <p className="text-[10px] text-slate-400 font-semibold tracking-wide">{subtitle}</p>}
+            </div>
+            <div style={{ height }} className="flex-1 w-full">
+                {children}
             </div>
         </div>
     );
 }
 
-/** Horizontal bar chart */
-function BarChart({ data, palette, maxBars = 8 }) {
-    const sliced = data.slice(0, maxBars);
-    const max = Math.max(...sliced.map(d => d.value), 1);
+function KPI({ label, value, icon: Icon, colorClass, subText }) {
     return (
-        <div className="space-y-2.5">
-            {sliced.map(([label, value], i) => {
-                const pct = Math.round((value / max) * 100);
-                const color = palette[i % palette.length];
-                return (
-                    <div key={label} className="flex items-center gap-3 group">
-                        <span className="text-[10px] font-bold text-slate-500 truncate w-32 shrink-0 text-right">{label}</span>
-                        <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                                className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500"
-                                style={{ width: `${pct}%`, backgroundColor: color, minWidth: 24 }}
-                            >
-                                <span className="text-[9px] font-black text-white drop-shadow">{value}</span>
-                            </div>
-                        </div>
-                        <span className="text-[9px] font-black text-slate-300 w-6 text-right">{pct}%</span>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
-/** Legend pills */
-function Legend({ data, palette }) {
-    return (
-        <div className="flex flex-wrap gap-2 mt-3">
-            {data.map(([label, value], i) => (
-                <span key={label} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-bold text-slate-600">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: palette[i % palette.length] }} />
-                    {label} <span className="font-black text-slate-800">{value}</span>
-                </span>
-            ))}
-        </div>
-    );
-}
-
-/** Section card wrapper */
-function ChartCard({ title, subtitle, children, className = '' }) {
-    return (
-        <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-5 ${className}`}>
-            <p className="text-xs font-black text-slate-900 uppercase tracking-wider mb-0.5">{title}</p>
-            {subtitle && <p className="text-[10px] text-slate-400 font-medium mb-4">{subtitle}</p>}
-            {!subtitle && <div className="mb-4" />}
-            {children}
-        </div>
-    );
-}
-
-/** KPI card */
-function KPI({ label, value, icon, color = 'bg-slate-900', sub }) {
-    return (
-        <div className={`${color} rounded-2xl p-4 flex items-center gap-3 shadow-lg`}>
-            <span className="text-3xl">{icon}</span>
-            <div>
-                <p className="text-2xl font-black text-white leading-none">{value}</p>
-                <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">{label}</p>
-                {sub && <p className="text-[10px] font-black text-white/50 mt-0.5">{sub}</p>}
+        <div className={`relative overflow-hidden rounded-[2rem] p-6 shadow-2xl transition-all hover:scale-[1.02] ${colorClass}`}>
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+            <div className="relative z-10 flex items-start justify-between">
+                <div>
+                    <p className="text-3xl font-black text-white tracking-tighter mb-1">{value}</p>
+                    <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest">{label}</p>
+                    {subText && <p className="text-[9px] font-black text-white/40 mt-1 uppercase tracking-tighter">{subText}</p>}
+                </div>
+                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/10">
+                    <Icon className="w-5 h-5 text-white" />
+                </div>
             </div>
         </div>
     );
 }
 
-/** Table ranking */
-function RankTable({ rows, headers }) {
-    return (
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
-            <table className="w-full border-collapse text-left">
-                <thead>
-                    <tr className="bg-slate-50">
-                        {headers.map(h => (
-                            <th key={h} className="py-2 px-3 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 whitespace-nowrap">{h}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((row, i) => (
-                        <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition-colors">
-                            {row.map((cell, j) => (
-                                <td key={j} className="py-2 px-3 text-[10px] font-medium text-slate-600">{cell}</td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
-
-// ─── Tab: Resumen General ─────────────────────────────────────────────────
-function TabResumen({ observaciones, correlativos, notas }) {
-    const añoActual = new Date().getFullYear();
-
-    const kpis = [
-        { label: 'Observaciones / Hallazgos', value: observaciones.length, icon: '🔍', color: 'bg-indigo-600', sub: `${observaciones.filter(o => o.año === añoActual || (o.fechaInicio || '').startsWith(String(añoActual))).length} este año` },
-        { label: 'Correlativos de Informes', value: correlativos.length, icon: '📄', color: 'bg-slate-800', sub: `${correlativos.filter(c => c.año === añoActual).length} en ${añoActual}` },
-        { label: 'Correspondencia Enviada', value: notas.length, icon: '📬', color: 'bg-amber-600', sub: `${notas.filter(n => n.año === añoActual).length} en ${añoActual}` },
-        { label: 'Total de Registros', value: observaciones.length + correlativos.length + notas.length, icon: '📊', color: 'bg-emerald-600' },
+function PeriodFilters({ period, setPeriod, values, setValues, availableYears }) {
+    const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
 
-    // Activity by month (last 12m) across all modules
-    const now = new Date();
-    const meses = Array.from({ length: 6 }, (_, i) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-        return {
-            label: d.toLocaleDateString('es-SV', { month: 'short', year: '2-digit' }),
-            year: d.getFullYear(), month: d.getMonth() + 1,
-        };
-    });
-
-    function countInMonth(arr, dateField, year, month) {
-        return arr.filter(x => {
-            const d = new Date((x[dateField] || '') + 'T00:00:00');
-            return d.getFullYear() === year && d.getMonth() + 1 === month;
-        }).length;
-    }
-
-    const activityData = meses.map(m => ({
-        label: m.label,
-        obs: countInMonth(observaciones, 'fechaInicio', m.year, m.month),
-        corr: countInMonth(correlativos, 'fecha', m.year, m.month),
-        notas: countInMonth(notas, 'fecha', m.year, m.month),
-    }));
-    const maxAct = Math.max(...activityData.map(d => d.obs + d.corr + d.notas), 1);
-
-    // Industria distribution combined
-    const industCombined = {};
-    [...correlativos, ...notas].forEach(x => {
-        const v = x.industria || 'Sin datos';
-        industCombined[v] = (industCombined[v] || 0) + 1;
-    });
-    const industSorted = toSorted(industCombined);
-
-    // Responsable activity
-    const respMap = {};
-    [...observaciones.map(o => ({ responsable: o.responsable })), ...correlativos, ...notas].forEach(x => {
-        if (x.responsable) respMap[x.responsable] = (respMap[x.responsable] || 0) + 1;
-    });
-    const respSorted = toSorted(respMap).slice(0, 6);
-
     return (
-        <div className="space-y-5">
-            {/* KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {kpis.map(k => <KPI key={k.label} {...k} />)}
+        <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-[1.5rem] border border-slate-100 shadow-sm">
+            <div className="flex items-center gap-2 mr-2">
+                <Filter className="w-4 h-4 text-slate-400" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtros de Tiempo</span>
             </div>
 
-            {/* Activity timeline + Industria donut */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Grouped bar chart — 6-month activity */}
-                <ChartCard title="Actividad últimos 6 meses" subtitle="Registros por módulo por mes" className="lg:col-span-2">
-                    <div className="flex items-end gap-3 h-36">
-                        {activityData.map(d => {
-                            const total = d.obs + d.corr + d.notas;
-                            const pctObs = (d.obs / maxAct) * 100;
-                            const pctCorr = (d.corr / maxAct) * 100;
-                            const pctNota = (d.notas / maxAct) * 100;
-                            return (
-                                <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
-                                    <span className="text-[9px] font-black text-slate-400">{total || ''}</span>
-                                    <div className="w-full flex gap-0.5 items-end h-24">
-                                        {[
-                                            { pct: pctObs, color: '#6366f1' },
-                                            { pct: pctCorr, color: '#1e293b' },
-                                            { pct: pctNota, color: '#d97706' },
-                                        ].map((b, bi) => (
-                                            <div key={bi} className="flex-1 rounded-t-sm transition-all duration-500"
-                                                style={{ height: `${b.pct}%`, backgroundColor: b.color, minHeight: b.pct > 0 ? 4 : 0 }} />
-                                        ))}
-                                    </div>
-                                    <span className="text-[9px] font-bold text-slate-400 whitespace-nowrap">{d.label}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="flex gap-4 mt-3">
-                        {[['Observaciones', '#6366f1'], ['Correlativos', '#1e293b'], ['Correspondencia', '#d97706']].map(([l, c]) => (
-                            <span key={l} className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500">
-                                <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: c }} />{l}
-                            </span>
-                        ))}
-                    </div>
-                </ChartCard>
+            <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+            >
+                <option value="all">Todo el tiempo</option>
+                <option value="month">Mensual</option>
+                <option value="quarter">Trimestral</option>
+                <option value="semester">Semestral</option>
+                <option value="annual">Anual</option>
+            </select>
 
-                {/* Industria donut */}
-                <ChartCard title="Distribución por Industria" subtitle="Correlativos + Correspondencia">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={industSorted.map(([l, v]) => ({ label: l, value: v }))} palette={PALETTES.indust} />
-                        <Legend data={industSorted} palette={PALETTES.indust} />
-                    </div>
-                </ChartCard>
-            </div>
-
-            {/* Responsable ranking */}
-            <ChartCard title="Ranking de Actividad por Responsable" subtitle="Total de registros en los tres módulos">
-                <BarChart data={respSorted} palette={PALETTES.clasif} />
-            </ChartCard>
-        </div>
-    );
-}
-
-// ─── Tab: Observaciones ───────────────────────────────────────────────────
-function TabObservaciones({ observaciones }) {
-    if (observaciones.length === 0) {
-        return <div className="py-20 text-center text-sm text-slate-400 font-medium">Sin datos de observaciones disponibles</div>;
-    }
-    const nivelData = toSorted(countBy(observaciones, 'nivelRiesgo'));
-    const estadoData = toSorted(countBy(observaciones, 'estado'));
-    const tipoData = toSorted(countBy(observaciones, 'tipoRiesgo'));
-    // Map entidadId → nombre for entity breakdown
-    const entidadMap2 = {};
-    observaciones.forEach(o => {
-        const nombre = ENTIDAD_MAP[o.entidadId] || o.entidad || 'Sin datos';
-        entidadMap2[nombre] = (entidadMap2[nombre] || 0) + 1;
-    });
-    const entidadData = toSorted(entidadMap2);
-    const responsableData = toSorted(countBy(observaciones, 'responsable'));
-
-    const pendientes = observaciones.filter(o => o.estado === 'Pendiente').length;
-    const criticas = observaciones.filter(o => o.nivelRiesgo === 'Crítico').length;
-    const vencidas = observaciones.filter(o => o.estado === 'Vencida').length;
-    const subsanadas = observaciones.filter(o => o.estado === 'Subsanada').length;
-
-    const RISK_PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
-    const ESTADO_PALETTE = ['#6366f1', '#f59e0b', '#10b981', '#06b6d4', '#dc2626'];
-
-    return (
-        <div className="space-y-5">
-            {/* KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <KPI label="Total Hallazgos" value={observaciones.length} icon="🔍" color="bg-indigo-600" />
-                <KPI label="Críticos" value={criticas} icon="🚨" color="bg-red-600" />
-                <KPI label="Pendientes" value={pendientes} icon="⏳" color="bg-amber-600" />
-                <KPI label="Subsanadas" value={subsanadas} icon="✅" color="bg-emerald-600" sub={`${vencidas} vencidas`} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Nivel Riesgo donut */}
-                <ChartCard title="Por Nivel de Riesgo" subtitle="Distribución de hallazgos activos">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={nivelData.map(([l, v]) => ({ label: l, value: v }))} palette={RISK_PALETTE} />
-                        <Legend data={nivelData} palette={RISK_PALETTE} />
-                    </div>
-                </ChartCard>
-
-                {/* Estado donut */}
-                <ChartCard title="Por Estado" subtitle="Ciclo de vida de los hallazgos">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={estadoData.map(([l, v]) => ({ label: l, value: v }))} palette={ESTADO_PALETTE} />
-                        <Legend data={estadoData} palette={ESTADO_PALETTE} />
-                    </div>
-                </ChartCard>
-
-                {/* Tipo Riesgo bar */}
-                <ChartCard title="Por Tipo de Riesgo" subtitle="Frecuencia de categoría de riesgo">
-                    <BarChart data={tipoData} palette={PALETTES.clasif} />
-                </ChartCard>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Responsable bar */}
-                <ChartCard title="Carga por Responsable" subtitle="Hallazgos asignados">
-                    <BarChart data={responsableData} palette={PALETTES.indust} />
-                </ChartCard>
-
-                {/* Top observaciones críticas */}
-                <ChartCard title="Hallazgos Críticos / Vencidos" subtitle="Requieren atención inmediata">
-                    <RankTable
-                        headers={['Nivel', 'Estado', 'Normativa', 'Responsable']}
-                        rows={observaciones
-                            .filter(o => o.nivelRiesgo === 'Crítico' || o.estado === 'Vencida')
-                            .slice(0, 8)
-                            .map(o => [
-                                <span key="n" className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black ${o.nivelRiesgo === 'Crítico' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{o.nivelRiesgo}</span>,
-                                <span key="e" className="text-[10px] font-bold">{o.estado}</span>,
-                                <span key="nr" className="text-[10px] text-slate-500">{o.normativa || '—'}</span>,
-                                <span key="r" className="text-[10px]">{(o.responsable || '').split(' ').slice(0, 2).join(' ')}</span>,
-                            ])
-                        }
-                    />
-                </ChartCard>
-            </div>
-        </div>
-    );
-}
-
-// ─── Tab: Correlativos Informes ───────────────────────────────────────────
-function TabCorrelativos({ correlativos }) {
-    const añoActual = new Date().getFullYear();
-    const clasifData = toSorted(countBy(correlativos, 'clasificacion'));
-    const industData = toSorted(countBy(correlativos, 'industria'));
-    const accionData = toSorted(countBy(correlativos, 'accionSupervision'));
-    const normaData = toSorted(countBy(correlativos, 'codigoNorma'));
-    const respData = toSorted(countBy(correlativos, 'responsable'));
-    const añoData = toSorted(countBy(correlativos, 'año'));
-
-    const inSitu = correlativos.filter(c => c.accionSupervision === 'In Situ').length;
-    const extraSitio = correlativos.filter(c => c.accionSupervision === 'Extra Sitio').length;
-    const esteAño = correlativos.filter(c => c.año === añoActual).length;
-    const totalUds = correlativos.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0);
-
-    return (
-        <div className="space-y-5">
-            {/* KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <KPI label="Total Correlativos" value={correlativos.length} icon="📄" color="bg-slate-800" />
-                <KPI label={`Emitidos ${añoActual}`} value={esteAño} icon="📅" color="bg-indigo-600" />
-                <KPI label="In Situ" value={inSitu} icon="🏢" color="bg-blue-600" />
-                <KPI label="Extra Sitio" value={extraSitio} icon="🖥️" color="bg-violet-600" sub={`${totalUds} unidades totales`} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Clasificación donut */}
-                <ChartCard title="Por Clasificación" subtitle="Categoría temática del informe">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={clasifData.map(([l, v]) => ({ label: l, value: v }))} palette={PALETTES.clasif} />
-                        <Legend data={clasifData} palette={PALETTES.clasif} />
-                    </div>
-                </ChartCard>
-
-                {/* Industria donut */}
-                <ChartCard title="Por Industria" subtitle="Sector supervisado">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={industData.map(([l, v]) => ({ label: l, value: v }))} palette={PALETTES.indust} />
-                        <Legend data={industData} palette={PALETTES.indust} />
-                    </div>
-                </ChartCard>
-
-                {/* Acción + Año */}
-                <div className="space-y-4">
-                    <ChartCard title="Por Acción de Supervisión" subtitle="">
-                        <BarChart data={accionData} palette={PALETTES.accion} />
-                    </ChartCard>
-                    <ChartCard title="Por Año" subtitle="">
-                        <BarChart data={añoData.sort((a, b) => b[0] - a[0])} palette={PALETTES.indust} maxBars={5} />
-                    </ChartCard>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <ChartCard title="Normas más Referenciadas" subtitle="Código de norma por frecuencia de uso">
-                    <BarChart data={normaData} palette={PALETTES.clasif} maxBars={8} />
-                </ChartCard>
-                <ChartCard title="Producción por Responsable" subtitle="Correlativos emitidos por analista">
-                    <BarChart data={respData} palette={PALETTES.indust} maxBars={8} />
-                </ChartCard>
-            </div>
-        </div>
-    );
-}
-
-// ─── Tab: Correspondencia ─────────────────────────────────────────────────
-function TabNotas({ notas }) {
-    const añoActual = new Date().getFullYear();
-    const tipoData = toSorted(countBy(notas, 'tipoCorrespondencia'));
-    const clasifData = toSorted(countBy(notas, 'clasificacion'));
-    const industData = toSorted(countBy(notas, 'industria'));
-    const visaData = toSorted(countBy(notas, 'visasInforme'));
-    const accionData = toSorted(countBy(notas, 'accionSupervision'));
-    const respData = toSorted(countBy(notas, 'responsable'));
-    const normaData = toSorted(countBy(notas, 'codigoNorma'));
-
-    const cartas = notas.filter(n => n.tipoCorrespondencia === 'Carta').length;
-    const memos = notas.filter(n => n.tipoCorrespondencia === 'Memo').length;
-    const conVisa = notas.filter(n => n.visasInforme === 'SI').length;
-    const esteAño = notas.filter(n => n.año === añoActual).length;
-    const totalJuntas = notas.reduce((a, n) => a + (n.juntas?.length || 0), 0);
-
-    return (
-        <div className="space-y-5">
-            {/* KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <KPI label="Total Correspondencia" value={notas.length} icon="📬" color="bg-amber-600" />
-                <KPI label="Cartas" value={cartas} icon="✉️" color="bg-amber-700" sub={`${memos} memos`} />
-                <KPI label="Con Visa Informe" value={conVisa} icon="✅" color="bg-emerald-600" />
-                <KPI label={`Emitidas ${añoActual}`} value={esteAño} icon="📅" color="bg-slate-800" sub={totalJuntas > 0 ? `${totalJuntas} juntas registradas` : undefined} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Tipo Carta/Memo donut */}
-                <ChartCard title="Carta vs. Memo" subtitle="Tipo de correspondencia enviada">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={tipoData.map(([l, v]) => ({ label: l, value: v }))} palette={PALETTES.tipo} />
-                        <Legend data={tipoData} palette={PALETTES.tipo} />
-                    </div>
-                </ChartCard>
-
-                {/* Clasificación donut */}
-                <ChartCard title="Por Clasificación" subtitle="Categoría temática de la carta/memo">
-                    <div className="flex flex-col items-center gap-3">
-                        <DonutChart data={clasifData.map(([l, v]) => ({ label: l, value: v }))} palette={PALETTES.clasif} />
-                        <Legend data={clasifData} palette={PALETTES.clasif} />
-                    </div>
-                </ChartCard>
-
-                {/* Visa + Acción */}
-                <div className="space-y-4">
-                    <ChartCard title="Visas de Informe" subtitle="">
-                        <BarChart data={visaData} palette={PALETTES.visa} />
-                    </ChartCard>
-                    <ChartCard title="Acción de Supervisión" subtitle="">
-                        <BarChart data={accionData} palette={PALETTES.accion} />
-                    </ChartCard>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <ChartCard title="Por Industria" subtitle="">
-                    <BarChart data={industData} palette={PALETTES.indust} />
-                </ChartCard>
-                <ChartCard title="Normas Referenciadas" subtitle="">
-                    <BarChart data={normaData} palette={PALETTES.clasif} maxBars={6} />
-                </ChartCard>
-                <ChartCard title="Producción por Responsable" subtitle="">
-                    <BarChart data={respData} palette={PALETTES.indust} maxBars={6} />
-                </ChartCard>
-            </div>
-
-            {/* Gobierno Corporativo juntas table */}
-            {totalJuntas > 0 && (
-                <ChartCard title="🏛️ Registro de Juntas — Gobierno Corporativo" subtitle={`${totalJuntas} asistencias a junta registradas`}>
-                    <RankTable
-                        headers={['Código', 'Industria', 'Fecha', 'Hora', 'Entidad', 'Responsable', 'Tipo / Nombre de Junta']}
-                        rows={notas.flatMap(n => (n.juntas || []).map(j => [
-                            <span key="c" className="font-black text-amber-700 text-[9px]">{n.codigo}</span>,
-                            j.industria || '—',
-                            j.fechaCelebracion || '—',
-                            j.hora || '—',
-                            <span key="e" className="font-bold">{j.entidad}</span>,
-                            (j.responsable || '').split(' ').slice(0, 2).join(' ') || '—',
-                            <span key="t" className="font-bold text-amber-700">{j.tipoJunta}</span>,
-                        ]))}
-                    />
-                </ChartCard>
+            {period !== 'all' && (
+                <select
+                    value={values.year}
+                    onChange={(e) => setValues({ ...values, year: e.target.value })}
+                    className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+                >
+                    {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
             )}
+
+            {period === 'month' && (
+                <select
+                    value={values.month}
+                    onChange={(e) => setValues({ ...values, month: e.target.value })}
+                    className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+                >
+                    {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                </select>
+            )}
+
+            {period === 'quarter' && (
+                <select
+                    value={values.quarter}
+                    onChange={(e) => setValues({ ...values, quarter: e.target.value })}
+                    className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+                >
+                    <option value="1">1er Trimestre</option>
+                    <option value="2">2do Trimestre</option>
+                    <option value="3">3er Trimestre</option>
+                    <option value="4">4to Trimestre</option>
+                </select>
+            )}
+
+            {period === 'semester' && (
+                <select
+                    value={values.semester}
+                    onChange={(e) => setValues({ ...values, semester: e.target.value })}
+                    className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+                >
+                    <option value="1">1er Semestre</option>
+                    <option value="2">2do Semestre</option>
+                </select>
+            )}
+        </div>
+    );
+}
+
+// ─── Tab Components ───────────────────────────────────────────────────────
+
+function TabResumen({ observaciones, correlativos, notas, period, values, years }) {
+    const obsFiltered = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
+    const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
+    const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
+
+    const total = obsFiltered.length + corrFiltered.length + notasFiltered.length;
+
+    const barData = useMemo(() => [
+        { name: 'Observaciones', value: obsFiltered.length },
+        { name: 'Informes', value: corrFiltered.length },
+        { name: 'Notas', value: notasFiltered.length },
+    ], [obsFiltered, corrFiltered, notasFiltered]);
+
+    const pieData = useMemo(() => toChartData({
+        Observaciones: obsFiltered.length,
+        Informes: corrFiltered.length,
+        Notas: notasFiltered.length
+    }), [obsFiltered, corrFiltered, notasFiltered]);
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPI label="Observaciones" value={obsFiltered.length} icon={AlertCircle} colorClass="bg-indigo-600" />
+                <KPI label="Informes" value={corrFiltered.length} icon={FileText} colorClass="bg-slate-900" />
+                <KPI label="Notas" value={notasFiltered.length} icon={Download} colorClass="bg-amber-600" />
+                <KPI label="Consolidado Total" value={total} icon={Activity} colorClass="bg-emerald-600" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ChartCard title="Distribución por Módulo" subtitle="Comparativo de registros procesados">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={pieData}
+                                innerRadius={80}
+                                outerRadius={120}
+                                paddingAngle={5}
+                                dataKey="value"
+                                stroke="none"
+                            >
+                                <Cell fill="#6366f1" />
+                                <Cell fill="#0f172a" />
+                                <Cell fill="#d97706" />
+                            </Pie>
+                            <Tooltip />
+                            <RechartsLegend verticalAlign="bottom" height={36} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Carga de Trabajo Global" subtitle="Registros por módulo">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={barData} layout="vertical">
+                            <XAxis type="number" hide />
+                            <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#6366f1" radius={[0, 10, 10, 0]} barSize={40} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            </div>
+        </div>
+    );
+}
+
+function TabCorrelativos({ correlativos, period, values }) {
+    const data = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
+
+    const stats = useMemo(() => {
+        const uds = data.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0);
+        const inSitu = data.filter(c => c.accionSupervision === 'In Situ').length;
+        const extraSitio = data.filter(c => c.accionSupervision === 'Extra Sitio').length;
+        const descript = data.filter(c => !!c.descripcionAccion).length;
+
+        return {
+            total: data.length,
+            unidades: uds,
+            visitas: inSitu,
+            remoto: extraSitio,
+            conDesc: descript,
+            tipoData: toChartData(countBy(data, 'tipoInforme')),
+            clasifData: toChartData(countBy(data, 'clasificacion')),
+            industriaData: toChartData(countBy(data, 'industria')),
+            accionData: toChartData(countBy(data, 'accionSupervision')),
+            respData: toChartData(countBy(data, 'responsable')).slice(0, 8),
+            normaData: toChartData(countByMulti(data, 'normas')).slice(0, 10),
+            entidadData: toChartData(countBy(data, 'entidad')).slice(0, 8),
+        };
+    }, [data]);
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPI label="Total Correlativos" value={stats.total} icon={FileText} colorClass="bg-slate-900" />
+                <KPI label="Total Unidades" value={stats.unidades} icon={Award} colorClass="bg-indigo-600" />
+                <KPI label="In Situ" value={stats.visitas} icon={Globe} colorClass="bg-blue-600" />
+                <KPI label="Extra Sitio" value={stats.remoto} icon={Activity} colorClass="bg-violet-600" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <ChartCard title="Por Clasificación" subtitle="Categoría del informe">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={stats.clasifData}
+                                innerRadius={60}
+                                outerRadius={90}
+                                dataKey="value"
+                                stroke="none"
+                            >
+                                {stats.clasifData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={PALETTES.clasif[index % PALETTES.clasif.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <RechartsLegend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Por Industria" subtitle="Sector supervisado">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={stats.industriaData}
+                                innerRadius={60}
+                                outerRadius={90}
+                                dataKey="value"
+                                stroke="none"
+                            >
+                                {stats.industriaData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={PALETTES.indust[index % PALETTES.indust.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <RechartsLegend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Tipo de Informe" subtitle="Informes vs Memorandos">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={stats.tipoData}
+                                innerRadius={60}
+                                outerRadius={90}
+                                dataKey="value"
+                                stroke="none"
+                            >
+                                {stats.tipoData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={PALETTES.tipo[index % PALETTES.tipo.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <RechartsLegend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ChartCard title="Normativas más Aplicadas" subtitle="Frecuencia de base legal utilizada">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={stats.normaData}>
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 900 }} interval={0} angle={-25} textAnchor="end" height={60} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Entidades Frecuentes" subtitle="Distribución por sujeto supervisado">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={stats.entidadData}>
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 900 }} interval={0} angle={-25} textAnchor="end" height={60} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <ChartCard title="Desempeño por Responsable" subtitle="Correlativos emitidos">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={stats.respData} layout="vertical">
+                            <XAxis type="number" hide />
+                            <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={stats.accionData}>
+                            <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#4f46e5" radius={[6, 6, 0, 0]} barSize={50} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Métricas de Detalle" subtitle="Calidad de la información">
+                    <div className="flex flex-col items-center justify-center gap-6 h-full">
+                        <div className="text-center">
+                            <p className="text-4xl font-black text-slate-800">{Math.round((stats.conDesc / (stats.total || 1)) * 100)}%</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Con Descripción de Acción</p>
+                        </div>
+                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(stats.conDesc / (stats.total || 1)) * 100}%` }} />
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                <span className="text-[10px] font-bold text-slate-600">{stats.conDesc} Con registros</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-slate-300" />
+                                <span className="text-[10px] font-bold text-slate-600">{stats.total - stats.conDesc} Sin registros</span>
+                            </div>
+                        </div>
+                    </div>
+                </ChartCard>
+            </div>
+        </div>
+    );
+}
+
+function TabSeguimiento({ observaciones, period, values }) {
+    const data = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
+
+    const stats = useMemo(() => ({
+        total: data.length,
+        criticas: data.filter(o => o.nivelRiesgo === 'Crítico').length,
+        pendientes: data.filter(o => o.estado === 'Pendiente').length,
+        subsanadas: data.filter(o => o.estado === 'Subsanada').length,
+        nivelData: toChartData(countBy(data, 'nivelRiesgo')),
+        estadoData: toChartData(countBy(data, 'estado')),
+        responsableData: toChartData(countBy(data, 'responsable')).slice(0, 8),
+    }), [data]);
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPI label="Total Hallazgos" value={stats.total} icon={Shield} colorClass="bg-indigo-600" />
+                <KPI label="Críticos" value={stats.criticas} icon={AlertCircle} colorClass="bg-red-600" />
+                <KPI label="Pendientes" value={stats.pendientes} icon={Calendar} colorClass="bg-amber-600" />
+                <KPI label="Subsanadas" value={stats.subsanadas} icon={CheckCircle} colorClass="bg-emerald-600" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ChartCard title="Riesgo vs Estado" subtitle="Distribución cualitativa">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie data={stats.nivelData} innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" stroke="none">
+                                {stats.nivelData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={PALETTES.riesgo[index % PALETTES.riesgo.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <RechartsLegend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Carga por Responsable" subtitle="Seguimiento de hallazgos">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={stats.responsableData} layout="vertical">
+                            <XAxis type="number" hide />
+                            <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#6366f1" radius={[0, 6, 6, 0]} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            </div>
         </div>
     );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────
 const TABS = [
-    { id: 'resumen', label: 'Resumen General', icon: '📊' },
-    { id: 'observaciones', label: 'Observaciones', icon: '🔍' },
-    { id: 'correlativos', label: 'Correlativos Informes', icon: '📄' },
-    { id: 'notas', label: 'Correspondencia', icon: '📬' },
-    { id: 'generador', label: 'Generador de Informes', icon: '📑' },
+    { id: 'resumen', label: 'Resumen General', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'correlativos', label: 'Correlativos Informes', icon: <FileText className="w-4 h-4" /> },
+    { id: 'hallazgos', label: 'Analítica de Seguimiento', icon: <Shield className="w-4 h-4" /> },
+    { id: 'correspondencia', label: 'Correspondencia', icon: <Download className="w-4 h-4" /> },
+    { id: 'informes', label: 'Generador', icon: <Award className="w-4 h-4" /> },
 ];
 
 export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos }) {
     const [activeTab, setActiveTab] = useState('resumen');
 
-    return (
-        <div className="max-w-[1800px] mx-auto space-y-5 animate-fade-in">
+    // Time filtering state
+    const [period, setPeriod] = useState('all');
+    const [filterValues, setFilterValues] = useState({
+        year: new Date().getFullYear().toString(),
+        month: new Date().getMonth().toString(),
+        quarter: '1',
+        semester: '1'
+    });
 
-            {/* ── Page header ── */}
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 shadow-xl flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+    const years = useMemo(() => {
+        const set = new Set([
+            ...observaciones.map(o => (o.fechaInicio || '').substring(0, 4)),
+            ...correlativos.map(c => c.año?.toString()),
+            ...notas.map(n => n.año?.toString()),
+            new Date().getFullYear().toString()
+        ]);
+        return [...set].filter(Boolean).sort().reverse();
+    }, [observaciones, correlativos, notas]);
+
+    return (
+        <div className="max-w-[1700px] mx-auto space-y-8 animate-fade-in pb-20">
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
+                <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-600 to-violet-800 shadow-2xl shadow-indigo-500/20 flex items-center justify-center shrink-0">
+                        <Activity className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Power Reporter — Analítica DSFIT</h2>
+                        <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Inteligencia de Datos v4.0
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Informes y Analítica — DSFIT</h2>
-                    <p className="text-xs font-medium text-slate-400">Estadísticas consolidadas de los tres módulos del sistema de control</p>
-                </div>
-                <div className="ml-auto hidden lg:flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Datos en tiempo real
-                </div>
+
+                <PeriodFilters
+                    period={period}
+                    setPeriod={setPeriod}
+                    values={filterValues}
+                    setValues={setFilterValues}
+                    availableYears={years}
+                />
             </div>
 
-            {/* ── Tabs ── */}
-            <div className="flex gap-1 bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5 overflow-x-auto">
+            <div className="flex gap-2 bg-slate-100/50 p-2 rounded-[2rem] border border-slate-200/50 backdrop-blur-xl overflow-x-auto no-scrollbar">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 cursor-pointer flex-1 justify-center
+                        className={`flex items-center gap-3 px-6 py-3.5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 cursor-pointer flex-1 justify-center
                             ${activeTab === tab.id
-                                ? 'bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-lg shadow-indigo-500/20'
-                                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                                ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 border border-indigo-100'
+                                : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                             }`}
                     >
-                        <span className="text-base">{tab.icon}</span>
+                        {tab.icon}
                         {tab.label}
                     </button>
                 ))}
             </div>
 
-            {/* ── Tab content ── */}
-            {activeTab === 'resumen' && <TabResumen observaciones={observaciones} correlativos={correlativos} notas={notas} />}
-            {activeTab === 'observaciones' && <TabObservaciones observaciones={observaciones} />}
-            {activeTab === 'correlativos' && <TabCorrelativos correlativos={correlativos} />}
-            {activeTab === 'notas' && <TabNotas notas={notas} />}
-            {activeTab === 'generador' && (
-                <div className="pt-2">
+            <div className="animate-fade-in">
+                {activeTab === 'resumen' && (
+                    <TabResumen observaciones={observaciones} correlativos={correlativos} notas={notas} period={period} values={filterValues} years={years} />
+                )}
+                {activeTab === 'correlativos' && (
+                    <TabCorrelativos correlativos={correlativos} period={period} values={filterValues} />
+                )}
+                {activeTab === 'hallazgos' && (
+                    <TabSeguimiento observaciones={observaciones} period={period} values={filterValues} />
+                )}
+                {activeTab === 'correspondencia' && (
+                    <div className="py-20 text-center bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                        <Download className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Analítica de Correspondencia</p>
+                        <p className="text-xs text-slate-300 mt-2 font-medium">Próximamente métricas de flujo documental</p>
+                    </div>
+                )}
+                {activeTab === 'informes' && (
                     <Informes
                         observaciones={observaciones}
                         filtrar={filtrar}
@@ -579,8 +585,14 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                         editarObservacion={editarObservacion}
                         catalogos={catalogos}
                     />
-                </div>
-            )}
+                )}
+            </div>
+
+            <div className="text-center pt-8 border-t border-slate-100">
+                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">
+                    AuditFlow Intelligence Engine • {new Date().getFullYear()}
+                </p>
+            </div>
         </div>
     );
 }
