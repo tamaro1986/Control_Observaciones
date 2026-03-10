@@ -147,7 +147,7 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
     if (useBar) {
         return (
             <ResponsiveContainer width="99.9%" height="100%">
-                <RechartsBarChart data={data} layout="vertical" margin={{ left: 10, right: 50, top: 10, bottom: 5 }} barCategoryGap="20%">
+                <RechartsBarChart data={data} layout="vertical" margin={{ left: 10, right: 60, top: 10, bottom: 5 }} barCategoryGap="20%">
                     <XAxis type="number" hide />
                     <YAxis
                         dataKey="name"
@@ -161,7 +161,26 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                     <Tooltip cursor={{ fill: 'transparent' }} />
                     <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={28}>
                         {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
-                        <LabelList dataKey="value" position="right" fontSize={10} fontWeight={900} fill="#1e293b" offset={10} />
+                        <LabelList
+                            dataKey="value"
+                            position="right"
+                            content={(props) => {
+                                const { x, y, width, value } = props;
+                                return (
+                                    <text
+                                        x={x + width + 12}
+                                        y={y + 18}
+                                        fill="#4f46e5"
+                                        fontSize={11}
+                                        fontWeight={900}
+                                        textAnchor="start"
+                                        className="drop-shadow-sm font-sans"
+                                    >
+                                        {value}
+                                    </text>
+                                );
+                            }}
+                        />
                     </Bar>
                 </RechartsBarChart>
             </ResponsiveContainer>
@@ -181,13 +200,15 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                     dataKey="value"
                     nameKey="name"
                     stroke="none"
-                    label={({ name, value }) => `${name}: ${value}`}
+                    label={({ name, value, percent }) => {
+                        return `${name} (${value})`;
+                    }}
                     labelLine={false}
                 >
                     {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
                 </Pie>
                 <Tooltip />
-                <RechartsLegend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                <RechartsLegend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }} />
             </PieChart>
         </ResponsiveContainer>
     );
