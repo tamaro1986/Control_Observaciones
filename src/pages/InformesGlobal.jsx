@@ -171,7 +171,7 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                                     const { x, y, width, value } = props;
                                     return (
                                         <text
-                                            x={x + width + 12}
+                                            x={x}
                                             y={y + 18}
                                             fill="#4f46e5"
                                             fontSize={11}
@@ -326,9 +326,9 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
         return () => clearTimeout(timer);
     }, []);
 
-    const obsFiltered = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
-    const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
-    const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
+    const obsFiltered = useMemo(() => filterByPeriod(observaciones.filter(o => !o.anulado), 'fechaInicio', period, values), [observaciones, period, values]);
+    const corrFiltered = useMemo(() => filterByPeriod(correlativos.filter(c => !c.anulado), 'fecha', period, values), [correlativos, period, values]);
+    const notasFiltered = useMemo(() => filterByPeriod(notas.filter(n => !n.anulado), 'fecha', period, values), [notas, period, values]);
 
     const total = obsFiltered.length + corrFiltered.length + notasFiltered.length;
 
@@ -373,8 +373,8 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
         return () => clearTimeout(timer);
     }, []);
 
-    const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
-    const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
+    const corrFiltered = useMemo(() => filterByPeriod(correlativos.filter(c => !c.anulado), 'fecha', period, values), [correlativos, period, values]);
+    const notasFiltered = useMemo(() => filterByPeriod(notas.filter(n => !n.anulado), 'fecha', period, values), [notas, period, values]);
 
     const data = useMemo(() => {
         // Marcamos las notas con un tipo genérico si no lo tienen para que aparezcan en el gráfico de tipos
@@ -483,7 +483,7 @@ function TabSeguimiento({ observaciones, period, values }) {
         const timer = setTimeout(() => setIsReady(true), 500);
         return () => clearTimeout(timer);
     }, []);
-    const data = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
+    const data = useMemo(() => filterByPeriod(observaciones.filter(o => !o.anulado), 'fechaInicio', period, values), [observaciones, period, values]);
 
     const stats = useMemo(() => ({
         total: data.length,

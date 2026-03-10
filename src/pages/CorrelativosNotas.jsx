@@ -38,6 +38,7 @@ const emptyForm = {
     vinculado: '',
     vieneDeInforme: 'NO',
     juntas: [],
+    anulado: false,
 };
 
 const INPUT = 'w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-500 bg-slate-50';
@@ -454,8 +455,9 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                         </td>
                                         <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <div className="flex items-center gap-1.5">
-                                                <span className="text-[11px] font-black text-slate-900 tracking-tight">{n.codigo}</span>
-                                                {n.juntas?.length > 0 && (
+                                                <span className={`text-[11px] font-black tracking-tight ${n.anulado ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{n.codigo}</span>
+                                                {n.anulado && <span className="bg-rose-50 text-rose-500 text-[8px] font-black px-1 rounded uppercase tracking-tighter ring-1 ring-rose-100">Anulado</span>}
+                                                {n.juntas?.length > 0 && !n.anulado && (
                                                     <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded-full ring-1 ring-amber-200" title={`${n.juntas.length} junta(s)`}>
                                                         🏛️ {n.juntas.length}
                                                     </span>
@@ -623,6 +625,20 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                            {/* Estado Anulado toggle */}
+                            <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100 flex items-center justify-between mb-4">
+                                <div>
+                                    <p className="text-[11px] font-black text-rose-600 uppercase tracking-widest">Anular Documento</p>
+                                    <p className="text-[9px] font-medium text-rose-400 uppercase tracking-tighter">No aparecerá en dashboard ni analítica</p>
+                                </div>
+                                <button
+                                    onClick={() => handleField('anulado', !form.anulado)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.anulado ? 'bg-rose-500' : 'bg-slate-200'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.anulado ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={LABEL}>Fecha *</label>

@@ -39,6 +39,7 @@ const emptyForm = {
     responsable: '',
     asunto: '',
     entidad: '',
+    anulado: false,
 };
 
 export default function Correlativos({ correlativos, onAgregarCorrelativo, onEliminarCorrelativo, onEditarCorrelativo, catalogos }) {
@@ -305,7 +306,10 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                             </span>
                                         </td>
                                         <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
-                                            <span className="text-xs font-black text-slate-900 tracking-tight">{c.codigo}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-black tracking-tight ${c.anulado ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{c.codigo}</span>
+                                                {c.anulado && <span className="bg-rose-50 text-rose-500 text-[8px] font-black px-1 rounded uppercase tracking-tighter ring-1 ring-rose-100">Anulado</span>}
+                                            </div>
                                             {c.blfOtro && <div className="text-[9px] text-slate-400 font-medium">{c.blfOtro}</div>}
                                         </td>
                                         <td className="py-2 px-3 align-middle whitespace-nowrap" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
@@ -496,6 +500,20 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         ))}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Estado Anulado toggle */}
+                            <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100 flex items-center justify-between mb-4">
+                                <div>
+                                    <p className="text-[11px] font-black text-rose-600 uppercase tracking-widest">Anular Registro</p>
+                                    <p className="text-[9px] font-medium text-rose-400 uppercase tracking-tighter">El registro no se contará en estadísticas globales</p>
+                                </div>
+                                <button
+                                    onClick={() => handleField('anulado', !form.anulado)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.anulado ? 'bg-rose-500' : 'bg-slate-200'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.anulado ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
                             </div>
 
                             {/* Row 3 */}
