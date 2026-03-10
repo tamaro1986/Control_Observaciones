@@ -133,6 +133,63 @@ function KPI({ label, value, icon: Icon, colorClass, subText }) {
     );
 }
 
+function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady }) {
+    if (!isReady || !data || data.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-full text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                Esperando datos...
+            </div>
+        );
+    }
+
+    const useBar = data.length > 4;
+
+    if (useBar) {
+        return (
+            <ResponsiveContainer width="99.9%" height="100%">
+                <RechartsBarChart data={data} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }} barCategoryGap="20%">
+                    <XAxis type="number" hide />
+                    <YAxis
+                        dataKey="name"
+                        type="category"
+                        tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                        width={120}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(val) => val.length > 35 ? val.substring(0, 35) + '...' : val}
+                    />
+                    <Tooltip cursor={{ fill: 'transparent' }} />
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={28}>
+                        {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
+                    </Bar>
+                </RechartsBarChart>
+            </ResponsiveContainer>
+        );
+    }
+
+    return (
+        <ResponsiveContainer width="99.9%" height="100%">
+            <PieChart>
+                <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={height * 0.25}
+                    outerRadius={height * 0.35}
+                    paddingAngle={5}
+                    dataKey="value"
+                    nameKey="name"
+                    stroke="none"
+                >
+                    {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
+                </Pie>
+                <Tooltip />
+                <RechartsLegend verticalAlign="bottom" height={36} />
+            </PieChart>
+        </ResponsiveContainer>
+    );
+}
+
 function PeriodFilters({ period, setPeriod, values, setValues, availableYears }) {
     const months = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -242,43 +299,12 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Distribución por Módulo" subtitle="Comparativo de registros procesados">
-                    {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
-                            <PieChart>
-                                <Pie
-                                    data={pieData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={80}
-                                    outerRadius={120}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    stroke="none"
-                                >
-                                    <Cell fill="#6366f1" />
-                                    <Cell fill="#0f172a" />
-                                    <Cell fill="#d97706" />
-                                </Pie>
-                                <Tooltip />
-                                <RechartsLegend verticalAlign="bottom" height={36} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Distribución por Módulo" subtitle="Saturación de registros">
+                    <SmartChart data={pieData} palette={PALETTES.clasif} isReady={isReady} height={250} />
                 </ChartCard>
 
-                <ChartCard title="Carga de Trabajo Global" subtitle="Registros por módulo">
-                    {isReady && (
-                        <ResponsiveContainer width="99%" height="100%" minHeight={250}>
-                            <RechartsBarChart data={barData} layout="vertical">
-                                <XAxis type="number" hide />
-                                <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#6366f1" radius={[0, 10, 10, 0]} barSize={40} />
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Carga por Categoría" subtitle="Resumen volumétrico">
+                    <SmartChart data={barData} barColor="#6366f1" isReady={isReady} height={250} />
                 </ChartCard>
             </div>
         </div>
@@ -346,190 +372,50 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Por Clasificación" subtitle="Categoría del informe">
-                    {isReady && (
-                        <ResponsiveContainer width="100%" height={260} minHeight={260}>
-                            <PieChart>
-                                <Pie
-                                    data={stats.clasifData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={90}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    stroke="none"
-                                >
-                                    {stats.clasifData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={PALETTES.clasif[index % PALETTES.clasif.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <RechartsLegend verticalAlign="bottom" height={36} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Tipo de Informe" subtitle="Tipología predominante">
+                    <SmartChart data={stats.tipoData} palette={PALETTES.tipo} isReady={isReady} height={260} />
                 </ChartCard>
 
-                <ChartCard title="Tipo de Informe" subtitle="Informes vs Notas">
-                    {isReady && (
-                        <ResponsiveContainer width="100%" height={260} minHeight={260}>
-                            <PieChart>
-                                <Pie
-                                    data={stats.tipoData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={90}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    stroke="none"
-                                >
-                                    {stats.tipoData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={PALETTES.tipo[index % PALETTES.tipo.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <RechartsLegend verticalAlign="bottom" height={36} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Por Clasificación" subtitle="Ejes temáticos">
+                    <SmartChart data={stats.clasifData} palette={PALETTES.clasif} isReady={isReady} height={260} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
                 <ChartCard title="Por Industria" subtitle="Sector supervisado" height={360}>
-                    {isReady && (
-                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
-                            <RechartsBarChart
-                                data={stats.industriaData}
-                                layout="vertical"
-                                margin={{ left: 40, right: 40, top: 10, bottom: 10 }}
-                                barCategoryGap="25%"
-                            >
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
-                                    width={180}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tickFormatter={(val) => val.length > 40 ? val.substring(0, 40) + '...' : val}
-                                />
-                                <Tooltip cursor={{ fill: 'transparent' }} />
-                                <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={32}>
-                                    {stats.industriaData.map((_, i) => <Cell key={i} fill={PALETTES.indust[i % PALETTES.indust.length]} />)}
-                                </Bar>
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                    <SmartChart data={stats.industriaData} palette={PALETTES.indust} isReady={isReady} height={360} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Normativas más Aplicadas" subtitle="Frecuencia de base legal utilizada" height={350}>
-                    {isReady && (
-                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
-                            <RechartsBarChart data={stats.normaData} layout="vertical" margin={{ left: 20, right: 30 }} barCategoryGap="20%">
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 900, fill: '#475569' }} width={100} axisLine={false} tickLine={false} />
-                                <Tooltip cursor={{ fill: 'transparent' }} />
-                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 8, 8, 0]} barSize={30} />
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Normativas Aplicadas" subtitle="Base legal (Top 10)" height={350}>
+                    <SmartChart data={stats.normaData} barColor="#8b5cf6" isReady={isReady} height={350} />
                 </ChartCard>
 
-                <ChartCard title="Entidades Frecuentes" subtitle="Distribución por sujeto supervisado" height={350}>
-                    {isReady && (
-                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
-                            <RechartsBarChart data={stats.entidadData} layout="vertical" margin={{ left: 20, right: 30 }} barCategoryGap="20%">
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#475569' }}
-                                    width={120}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tickFormatter={(val) => val.length > 25 ? val.substring(0, 25) + '...' : val}
-                                />
-                                <Tooltip cursor={{ fill: 'transparent' }} />
-                                <Bar dataKey="value" fill="#0ea5e9" radius={[0, 8, 8, 0]} barSize={30} />
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Sujetos Supervisados" subtitle="Entidades frecuentes" height={350}>
+                    <SmartChart data={stats.entidadData} barColor="#0ea5e9" isReady={isReady} height={350} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Desempeño por Responsable" subtitle="Correlativos emitidos" height={350}>
-                    {isReady && (
-                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
-                            <RechartsBarChart data={stats.respData} layout="vertical" margin={{ left: 20, right: 30 }} barCategoryGap="20%">
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 700, fill: '#475569' }} width={120} axisLine={false} tickLine={false} />
-                                <Tooltip cursor={{ fill: 'transparent' }} />
-                                <Bar dataKey="value" fill="#f59e0b" radius={[0, 8, 8, 0]} barSize={30} />
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Carga por Responsable" subtitle="Correlativos/Notas emitidos" height={350}>
+                    <SmartChart data={stats.respData} barColor="#f59e0b" isReady={isReady} height={350} />
                 </ChartCard>
 
                 <div className="grid grid-cols-1 gap-6">
                     <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada" height={160}>
-                        {isReady && (
-                            <ResponsiveContainer width="99.9%" height="100%" minHeight={120}>
-                                <RechartsBarChart data={stats.accionData} layout="vertical" margin={{ left: 10, right: 30 }}>
-                                    <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fontWeight: 900, fill: '#475569' }} width={80} axisLine={false} tickLine={false} />
-                                    <Tooltip cursor={{ fill: 'transparent' }} />
-                                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 8, 8, 0]} barSize={35} />
-                                </RechartsBarChart>
-                            </ResponsiveContainer>
-                        )}
+                        <SmartChart data={stats.accionData} barColor="#4f46e5" isReady={isReady} height={160} />
                     </ChartCard>
 
-                    <ChartCard title="Tipos de Correspondencia" subtitle="Flujo documental" height={160}>
-                        {isReady && (
-                            <ResponsiveContainer width="99.9%" height="100%" minHeight={120}>
-                                <RechartsBarChart data={stats.tipoCorrData} layout="vertical" margin={{ left: 10, right: 30 }}>
-                                    <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fontWeight: 900, fill: '#475569' }} width={80} axisLine={false} tickLine={false} />
-                                    <Tooltip cursor={{ fill: 'transparent' }} />
-                                    <Bar dataKey="value" fill="#06b6d4" radius={[0, 8, 8, 0]} barSize={35} />
-                                </RechartsBarChart>
-                            </ResponsiveContainer>
-                        )}
+                    <ChartCard title="Flujo Documental" subtitle="Tipo correspondencia" height={160}>
+                        <SmartChart data={stats.tipoCorrData} barColor="#06b6d4" isReady={isReady} height={160} />
                     </ChartCard>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                <ChartCard title="Descripciones de Acción" subtitle="Metodologías Detalladas (Top 5)" height={320}>
-                    {isReady && (
-                        <ResponsiveContainer width="99.9%" height="100%" minHeight={250}>
-                            <RechartsBarChart data={stats.descripcionData} layout="vertical" margin={{ left: 20, right: 40 }} barCategoryGap="25%">
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#475569' }}
-                                    width={180}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tickFormatter={(val) => val.length > 45 ? val.substring(0, 45) + '...' : val}
-                                />
-                                <Tooltip
-                                    contentStyle={{ fontSize: '10px', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                    formatter={(value) => [value + ' registros', 'Frecuencia']}
-                                    cursor={{ fill: 'transparent' }}
-                                />
-                                <Bar dataKey="value" fill="#ec4899" radius={[0, 8, 8, 0]} barSize={32} />
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Descripciones de Acción" subtitle="Top 5 metodologías" height={320}>
+                    <SmartChart data={stats.descripcionData} barColor="#ec4899" isReady={isReady} height={320} />
                 </ChartCard>
             </div>
         </div>
@@ -564,33 +450,12 @@ function TabSeguimiento({ observaciones, period, values }) {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Riesgo vs Estado" subtitle="Distribución cualitativa">
-                    {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
-                            <PieChart>
-                                <Pie data={stats.nivelData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" stroke="none">
-                                    {stats.nivelData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={PALETTES.riesgo[index % PALETTES.riesgo.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <RechartsLegend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    )}
+                <ChartCard title="Riesgo vs Estado" subtitle="Niveles de criticidad">
+                    <SmartChart data={stats.nivelData} palette={PALETTES.riesgo} isReady={isReady} height={250} />
                 </ChartCard>
 
                 <ChartCard title="Carga por Responsable" subtitle="Seguimiento de hallazgos">
-                    {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
-                            <RechartsBarChart data={stats.responsableData} layout="vertical">
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#6366f1" radius={[0, 6, 6, 0]} />
-                            </RechartsBarChart>
-                        </ResponsiveContainer>
-                    )}
+                    <SmartChart data={stats.responsableData} palette={PALETTES.clasif} isReady={isReady} height={250} />
                 </ChartCard>
             </div>
         </div>
