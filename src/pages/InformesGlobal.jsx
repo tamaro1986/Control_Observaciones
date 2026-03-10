@@ -345,153 +345,179 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
                 <KPI label="Extra Sitio" value={stats.remoto} icon={Activity} colorClass="bg-violet-600" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Por Clasificación" subtitle="Categoría del informe">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <PieChart>
-                            <Pie
-                                data={stats.clasifData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={90}
-                                dataKey="value"
-                                nameKey="name"
-                                stroke="none"
-                            >
-                                {stats.clasifData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={PALETTES.clasif[index % PALETTES.clasif.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <RechartsLegend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height={260} minHeight={260}>
+                            <PieChart>
+                                <Pie
+                                    data={stats.clasifData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={90}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    stroke="none"
+                                >
+                                    {stats.clasifData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={PALETTES.clasif[index % PALETTES.clasif.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <RechartsLegend verticalAlign="bottom" height={36} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
 
-                <ChartCard title="Por Industria" subtitle="Sector supervisado">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <PieChart>
-                            <Pie
-                                data={stats.industriaData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={90}
-                                dataKey="value"
-                                nameKey="name"
-                                stroke="none"
-                            >
-                                {stats.industriaData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={PALETTES.indust[index % PALETTES.indust.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <RechartsLegend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Tipo de Informe" subtitle="Informes vs Notas">
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height={260} minHeight={260}>
+                            <PieChart>
+                                <Pie
+                                    data={stats.tipoData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={90}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    stroke="none"
+                                >
+                                    {stats.tipoData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={PALETTES.tipo[index % PALETTES.tipo.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <RechartsLegend verticalAlign="bottom" height={36} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
+            </div>
 
-                <ChartCard title="Tipo de Informe" subtitle="Informes vs Memorandos">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <PieChart>
-                            <Pie
-                                data={stats.tipoData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={90}
-                                dataKey="value"
-                                nameKey="name"
-                                stroke="none"
-                            >
-                                {stats.tipoData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={PALETTES.tipo[index % PALETTES.tipo.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <RechartsLegend />
-                        </PieChart>
-                    </ResponsiveContainer>
+            <div className="grid grid-cols-1 gap-6">
+                <ChartCard title="Por Industria" subtitle="Sector supervisado" height={400}>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={350}>
+                            <RechartsBarChart data={stats.industriaData} layout="vertical" margin={{ left: 40, right: 30 }}>
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    tick={{ fontSize: 9, fontWeight: 700 }}
+                                    width={180}
+                                    tickFormatter={(val) => val.length > 40 ? val.substring(0, 40) + '...' : val}
+                                />
+                                <Tooltip />
+                                <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={20}>
+                                    {stats.industriaData.map((_, i) => <Cell key={i} fill={PALETTES.indust[i % PALETTES.indust.length]} />)}
+                                </Bar>
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Normativas más Aplicadas" subtitle="Frecuencia de base legal utilizada">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.normaData}>
-                            <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 900 }} interval={0} angle={-25} textAnchor="end" height={60} />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Normativas más Aplicadas" subtitle="Frecuencia de base legal utilizada" height={350}>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                            <RechartsBarChart data={stats.normaData} layout="vertical" margin={{ left: 20 }}>
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 9, fontWeight: 900 }} width={100} />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={25} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
 
-                <ChartCard title="Entidades Frecuentes" subtitle="Distribución por sujeto supervisado">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.entidadData}>
-                            <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 900 }} interval={0} angle={-25} textAnchor="end" height={60} />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Entidades Frecuentes" subtitle="Distribución por sujeto supervisado" height={350}>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                            <RechartsBarChart data={stats.entidadData} layout="vertical" margin={{ left: 20 }}>
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    tick={{ fontSize: 9, fontWeight: 700 }}
+                                    width={120}
+                                    tickFormatter={(val) => val.length > 25 ? val.substring(0, 25) + '...' : val}
+                                />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#0ea5e9" radius={[0, 6, 6, 0]} barSize={25} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <ChartCard title="Desempeño por Responsable" subtitle="Correlativos emitidos">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.respData} layout="vertical">
-                            <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ChartCard title="Desempeño por Responsable" subtitle="Correlativos emitidos" height={350}>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                            <RechartsBarChart data={stats.respData} layout="vertical" margin={{ left: 20 }}>
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 9, fontWeight: 700 }} width={120} />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} barSize={25} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
 
-                <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.accionData}>
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#4f46e5" radius={[6, 6, 0, 0]} barSize={50} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                <div className="grid grid-cols-1 gap-6">
+                    <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada" height={160}>
+                        {isReady && (
+                            <ResponsiveContainer width="100%" height="100%" minHeight={120}>
+                                <RechartsBarChart data={stats.accionData} layout="vertical">
+                                    <XAxis type="number" hide />
+                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 900 }} width={80} />
+                                    <Tooltip />
+                                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 6, 6, 0]} barSize={20} />
+                                </RechartsBarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </ChartCard>
 
-                <ChartCard title="Tipos de Correspondencia" subtitle="Cartas vs Memorandos">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.tipoCorrData}>
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#06b6d4" radius={[6, 6, 0, 0]} barSize={50} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                    <ChartCard title="Tipos de Correspondencia" subtitle="Flujo documental" height={160}>
+                        {isReady && (
+                            <ResponsiveContainer width="100%" height="100%" minHeight={120}>
+                                <RechartsBarChart data={stats.tipoCorrData} layout="vertical">
+                                    <XAxis type="number" hide />
+                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 900 }} width={80} />
+                                    <Tooltip />
+                                    <Bar dataKey="value" fill="#06b6d4" radius={[0, 6, 6, 0]} barSize={20} />
+                                </RechartsBarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </ChartCard>
+                </div>
+            </div>
 
-                <ChartCard title="Descripciones de Acción" subtitle="Top 5 acciones más frecuentes" height={320}>
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.descripcionData} layout="vertical">
-                            <XAxis type="number" hide />
-                            <YAxis
-                                dataKey="name"
-                                type="category"
-                                tick={{ fontSize: 9, fontWeight: 700 }}
-                                width={120}
-                                tickFormatter={(val) => val.length > 35 ? val.substring(0, 35) + '...' : val}
-                            />
-                            <Tooltip
-                                contentStyle={{ fontSize: '10px', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                formatter={(value, name, props) => [value + ' registros', 'Frecuencia']}
-                            />
-                            <Bar dataKey="value" fill="#ec4899" radius={[0, 6, 6, 0]} barSize={25} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
+            <div className="grid grid-cols-1 gap-6">
+                <ChartCard title="Descripciones de Acción" subtitle="Metodologías Detalladas (Top 5)" height={320}>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                            <RechartsBarChart data={stats.descripcionData} layout="vertical" margin={{ left: 20 }}>
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    tick={{ fontSize: 9, fontWeight: 700 }}
+                                    width={180}
+                                    tickFormatter={(val) => val.length > 45 ? val.substring(0, 45) + '...' : val}
+                                />
+                                <Tooltip
+                                    contentStyle={{ fontSize: '10px', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                    formatter={(value) => [value + ' registros', 'Frecuencia']}
+                                />
+                                <Bar dataKey="value" fill="#ec4899" radius={[0, 6, 6, 0]} barSize={25} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
             </div>
         </div>
