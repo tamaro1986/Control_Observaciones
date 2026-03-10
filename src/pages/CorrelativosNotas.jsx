@@ -23,9 +23,11 @@ const emptyJunta = {
 
 const emptyForm = {
     fecha: new Date().toISOString().slice(0, 10),
+    normas: [],
     codigoNorma: '',
     nombreNorma: '',
     clasificacion: '',
+    tipoCorrespondencia: '',
     cantidadUnidades: 1,
     industria: '',
     accionSupervision: 'Extra Sitio',
@@ -210,7 +212,8 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                 n.codigo.toLowerCase().includes(q) ||
                 n.entidad.toLowerCase().includes(q) ||
                 n.responsable.toLowerCase().includes(q) ||
-                n.codigoNorma.toLowerCase().includes(q) ||
+                (n.normas && n.normas.some(norm => norm.codigo.toLowerCase().includes(q) || norm.nombre.toLowerCase().includes(q))) ||
+                (n.codigoNorma && n.codigoNorma.toLowerCase().includes(q)) ||
                 n.asunto.toLowerCase().includes(q);
             return matchQ
                 && (!filterClasif || n.clasificacion === filterClasif)
@@ -250,7 +253,10 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
     }
 
     function handleOpenEdit(nota) {
-        setForm({ ...nota });
+        setForm({
+            ...nota,
+            normas: nota.normas || (nota.codigoNorma ? [{ codigo: nota.codigoNorma, nombre: nota.nombreNorma }] : [])
+        });
         setEditingId(nota.id);
         setShowForm(true);
     }
@@ -430,7 +436,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                     <table className="w-full border-collapse text-left">
                         <thead>
                             <tr>
-                                {['#', 'Código Despacho', 'Fecha', 'Norma', 'Clasificación', 'Uds.', 'Industria', 'Acción', 'Responsable', 'Entidad', 'Acciones'].map(h => (
+                                {['#', 'Código Despacho', 'Fecha', 'Tipo', 'Norma', 'Clasificación', 'Uds.', 'Industria', 'Acción', 'Responsable', 'Entidad', 'Acciones'].map(h => (
                                     <th key={h} className={`py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap ${h === 'Acciones' ? 'text-center' : ''}`}>{h}</th>
                                 ))}
                             </tr>
@@ -460,8 +466,24 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                             <span className="text-[10px] font-bold text-text-secondary">{formatDate(n.fecha)}</span>
                                         </td>
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
-                                            <span className="text-[10px] font-black text-text-primary">{n.codigoNorma}</span>
-                                            <p className="text-[9px] text-slate-400 max-w-[110px] truncate">{n.nombreNorma}</p>
+                                            <span className="text-[10px] font-bold text-text-secondary">{n.tipoCorrespondencia || 'Nota'}</span>
+                                        </td>
+                                        <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
+                                            {n.normas && n.normas.length > 0 ? (
+                                                <div className="space-y-1.5">
+                                                    {n.normas.map((norm, i) => (
+                                                        <div key={i}>
+                                                            <span className="text-[10px] font-black text-text-primary">{norm.codigo}</span>
+                                                            <p className="text-[9px] text-slate-400 max-w-[110px] truncate" title={norm.nombre}>{norm.nombre}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <span className="text-[10px] font-black text-text-primary">{n.codigoNorma || '—'}</span>
+                                                    <p className="text-[9px] text-slate-400 max-w-[110px] truncate">{n.nombreNorma || ''}</p>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-bold text-text-secondary">{n.clasificacion}</span>
@@ -612,20 +634,43 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1">
-                                <div>
-                                    <label className={LABEL}>Código de Norma</label>
-                                    <select value={form.codigoNorma} onChange={e => handleField('codigoNorma', e.target.value)} className={SELECT}>
-                                        <option value="">— Seleccionar —</option>
-                                        {TODAS_NORMAS.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo}</option>)}
-                                    </select>
-                                </div>
-                            </div>
+                            <div className="space-y-2">
+                                <label className={LABEL}>Normativas Aplicables (Puede agregar múltiples) *</label>
+                                <select
+                                    className={SELECT}
+                                    value=""
+                                    onChange={(e) => {
+                                        const code = e.target.value;
+                                        if (!code) return;
+                                        const norma = TODAS_NORMAS.find(n => n.codigo === code);
+                                        if (norma && (!form.normas || !form.normas.find(n => n.codigo === code))) {
+                                            setForm(f => ({ ...f, normas: [...(f.normas || []), norma] }));
+                                        }
+                                    }}
+                                >
+                                    <option value="">— Agregar norma... —</option>
+                                    {TODAS_NORMAS.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo} - {n.nombre.substring(0, 60)}{n.nombre.length > 60 ? '...' : ''}</option>)}
+                                </select>
 
-                            <div>
-                                <label className={LABEL}>Nombre de la Norma</label>
-                                <input type="text" value={form.nombreNorma} onChange={e => handleField('nombreNorma', e.target.value)}
-                                    placeholder="Se rellena automáticamente al elegir código…" className={INPUT} />
+                                {form.normas && form.normas.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2 p-2 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        {form.normas.map(n => (
+                                            <div key={n.codigo} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-slate-700 leading-none">{n.codigo}</span>
+                                                    <span className="text-[9px] font-medium text-slate-500 max-w-[200px] truncate mt-0.5">{n.nombre}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setForm(f => ({ ...f, normas: f.normas.filter(x => x.codigo !== n.codigo) }))}
+                                                    className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors ml-1 cursor-pointer"
+                                                    title="Remover norma"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -636,6 +681,16 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                         {catalogos.clasificaciones.map(c => <option key={c}>{c}</option>)}
                                     </select>
                                 </div>
+                                <div>
+                                    <label className={LABEL}>Tipo Correspondencia *</label>
+                                    <select value={form.tipoCorrespondencia} onChange={e => handleField('tipoCorrespondencia', e.target.value)} className={SELECT}>
+                                        <option value="">— Seleccionar —</option>
+                                        {catalogos.tiposCorrespondencia.map(t => <option key={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1">
                                 <div>
                                     <label className={LABEL}>Industria *</label>
                                     <select value={form.industria} onChange={e => handleField('industria', e.target.value)} className={SELECT}>

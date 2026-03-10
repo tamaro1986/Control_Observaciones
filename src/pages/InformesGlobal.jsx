@@ -34,10 +34,21 @@ function countBy(arr, key) {
     }, {});
 }
 
-function countByMulti(arr, key) {
+function countByMulti(arr, key, fallbackKey) {
     return arr.reduce((acc, item) => {
-        const vals = item[key] || [];
-        if (vals.length === 0) {
+        let vals = item[key];
+
+        // Handle fallback if main key is empty and fallback is provided
+        if ((!vals || vals.length === 0) && fallbackKey) {
+            vals = item[fallbackKey];
+        }
+
+        // Convert single value to array if needed
+        if (vals && !Array.isArray(vals)) {
+            vals = [vals];
+        }
+
+        if (!vals || vals.length === 0) {
             acc['N/A'] = (acc['N/A'] || 0) + 1;
         } else {
             vals.forEach(v => {
@@ -226,14 +237,17 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Distribución por Módulo" subtitle="Comparativo de registros procesados">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <PieChart>
                             <Pie
                                 data={pieData}
+                                cx="50%"
+                                cy="50%"
                                 innerRadius={80}
                                 outerRadius={120}
                                 paddingAngle={5}
                                 dataKey="value"
+                                nameKey="name"
                                 stroke="none"
                             >
                                 <Cell fill="#6366f1" />
@@ -247,7 +261,7 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
                 </ChartCard>
 
                 <ChartCard title="Carga de Trabajo Global" subtitle="Registros por módulo">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <RechartsBarChart data={barData} layout="vertical">
                             <XAxis type="number" hide />
                             <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
@@ -261,8 +275,18 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
     );
 }
 
-function TabCorrelativos({ correlativos, period, values }) {
-    const data = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
+function TabCorrelativos({ correlativos, notas = [], period, values }) {
+    const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
+    const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
+
+    const data = useMemo(() => {
+        // Marcamos las notas con un tipo genérico si no lo tienen para que aparezcan en el gráfico de tipos
+        const normalizedNotas = notasFiltered.map(n => ({
+            ...n,
+            tipoInforme: n.tipoInforme || 'Nota / Carta'
+        }));
+        return [...corrFiltered, ...normalizedNotas];
+    }, [corrFiltered, notasFiltered]);
 
     const stats = useMemo(() => {
         const uds = data.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0);
@@ -280,9 +304,19 @@ function TabCorrelativos({ correlativos, period, values }) {
             clasifData: toChartData(countBy(data, 'clasificacion')),
             industriaData: toChartData(countBy(data, 'industria')),
             accionData: toChartData(countBy(data, 'accionSupervision')),
+            tipoCorrData: toChartData(countBy(data, 'tipoCorrespondencia')),
             respData: toChartData(countBy(data, 'responsable')).slice(0, 8),
-            normaData: toChartData(countByMulti(data, 'normas')).slice(0, 10),
+            normaData: toChartData(countByMulti(data, 'normas', 'codigoNorma')).slice(0, 10),
             entidadData: toChartData(countBy(data, 'entidad')).slice(0, 8),
+            descripcionData: useMemo(() => {
+                const filtered = data.filter(c => !!c.descripcionAccion);
+                const counts = filtered.reduce((acc, curr) => {
+                    const desc = curr.descripcionAccion;
+                    acc[desc] = (acc[desc] || 0) + 1;
+                    return acc;
+                }, {});
+                return toChartData(counts).slice(0, 5);
+            }, [data])
         };
     }, [data]);
 
@@ -297,13 +331,16 @@ function TabCorrelativos({ correlativos, period, values }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <ChartCard title="Por Clasificación" subtitle="Categoría del informe">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <PieChart>
                             <Pie
                                 data={stats.clasifData}
+                                cx="50%"
+                                cy="50%"
                                 innerRadius={60}
                                 outerRadius={90}
                                 dataKey="value"
+                                nameKey="name"
                                 stroke="none"
                             >
                                 {stats.clasifData.map((entry, index) => (
@@ -317,13 +354,16 @@ function TabCorrelativos({ correlativos, period, values }) {
                 </ChartCard>
 
                 <ChartCard title="Por Industria" subtitle="Sector supervisado">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <PieChart>
                             <Pie
                                 data={stats.industriaData}
+                                cx="50%"
+                                cy="50%"
                                 innerRadius={60}
                                 outerRadius={90}
                                 dataKey="value"
+                                nameKey="name"
                                 stroke="none"
                             >
                                 {stats.industriaData.map((entry, index) => (
@@ -337,13 +377,16 @@ function TabCorrelativos({ correlativos, period, values }) {
                 </ChartCard>
 
                 <ChartCard title="Tipo de Informe" subtitle="Informes vs Memorandos">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <PieChart>
                             <Pie
                                 data={stats.tipoData}
+                                cx="50%"
+                                cy="50%"
                                 innerRadius={60}
                                 outerRadius={90}
                                 dataKey="value"
+                                nameKey="name"
                                 stroke="none"
                             >
                                 {stats.tipoData.map((entry, index) => (
@@ -359,7 +402,7 @@ function TabCorrelativos({ correlativos, period, values }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Normativas más Aplicadas" subtitle="Frecuencia de base legal utilizada">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <RechartsBarChart data={stats.normaData}>
                             <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 900 }} interval={0} angle={-25} textAnchor="end" height={60} />
                             <YAxis />
@@ -370,7 +413,7 @@ function TabCorrelativos({ correlativos, period, values }) {
                 </ChartCard>
 
                 <ChartCard title="Entidades Frecuentes" subtitle="Distribución por sujeto supervisado">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <RechartsBarChart data={stats.entidadData}>
                             <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 900 }} interval={0} angle={-25} textAnchor="end" height={60} />
                             <YAxis />
@@ -383,7 +426,7 @@ function TabCorrelativos({ correlativos, period, values }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <ChartCard title="Desempeño por Responsable" subtitle="Correlativos emitidos">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <RechartsBarChart data={stats.respData} layout="vertical">
                             <XAxis type="number" hide />
                             <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
@@ -394,7 +437,7 @@ function TabCorrelativos({ correlativos, period, values }) {
                 </ChartCard>
 
                 <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <RechartsBarChart data={stats.accionData}>
                             <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} />
                             <YAxis />
@@ -404,26 +447,35 @@ function TabCorrelativos({ correlativos, period, values }) {
                     </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title="Métricas de Detalle" subtitle="Calidad de la información">
-                    <div className="flex flex-col items-center justify-center gap-6 h-full">
-                        <div className="text-center">
-                            <p className="text-4xl font-black text-slate-800">{Math.round((stats.conDesc / (stats.total || 1)) * 100)}%</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Con Descripción de Acción</p>
-                        </div>
-                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(stats.conDesc / (stats.total || 1)) * 100}%` }} />
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                <span className="text-[10px] font-bold text-slate-600">{stats.conDesc} Con registros</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 text-slate-300" />
-                                <span className="text-[10px] font-bold text-slate-600">{stats.total - stats.conDesc} Sin registros</span>
-                            </div>
-                        </div>
-                    </div>
+                <ChartCard title="Tipos de Correspondencia" subtitle="Cartas vs Memorandos">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                        <RechartsBarChart data={stats.tipoCorrData}>
+                            <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#06b6d4" radius={[6, 6, 0, 0]} barSize={50} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard title="Descripciones de Acción" subtitle="Top 5 acciones más frecuentes" height={320}>
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                        <RechartsBarChart data={stats.descripcionData} layout="vertical">
+                            <XAxis type="number" hide />
+                            <YAxis
+                                dataKey="name"
+                                type="category"
+                                tick={{ fontSize: 9, fontWeight: 700 }}
+                                width={120}
+                                tickFormatter={(val) => val.length > 35 ? val.substring(0, 35) + '...' : val}
+                            />
+                            <Tooltip
+                                contentStyle={{ fontSize: '10px', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                formatter={(value, name, props) => [value + ' registros', 'Frecuencia']}
+                            />
+                            <Bar dataKey="value" fill="#ec4899" radius={[0, 6, 6, 0]} barSize={25} />
+                        </RechartsBarChart>
+                    </ResponsiveContainer>
                 </ChartCard>
             </div>
         </div>
@@ -454,9 +506,9 @@ function TabSeguimiento({ observaciones, period, values }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Riesgo vs Estado" subtitle="Distribución cualitativa">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <PieChart>
-                            <Pie data={stats.nivelData} innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" stroke="none">
+                            <Pie data={stats.nivelData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" stroke="none">
                                 {stats.nivelData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={PALETTES.riesgo[index % PALETTES.riesgo.length]} />
                                 ))}
@@ -468,7 +520,7 @@ function TabSeguimiento({ observaciones, period, values }) {
                 </ChartCard>
 
                 <ChartCard title="Carga por Responsable" subtitle="Seguimiento de hallazgos">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
                         <RechartsBarChart data={stats.responsableData} layout="vertical">
                             <XAxis type="number" hide />
                             <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
@@ -563,7 +615,7 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                     <TabResumen observaciones={observaciones} correlativos={correlativos} notas={notas} period={period} values={filterValues} years={years} />
                 )}
                 {activeTab === 'correlativos' && (
-                    <TabCorrelativos correlativos={correlativos} period={period} values={filterValues} />
+                    <TabCorrelativos correlativos={correlativos} notas={notas} period={period} values={filterValues} />
                 )}
                 {activeTab === 'hallazgos' && (
                     <TabSeguimiento observaciones={observaciones} period={period} values={filterValues} />
