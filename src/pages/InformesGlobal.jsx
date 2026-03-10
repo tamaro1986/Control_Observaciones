@@ -108,7 +108,7 @@ function ChartCard({ title, subtitle, children, className = '', height = 300 }) 
                 <p className="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-1">{title}</p>
                 {subtitle && <p className="text-[10px] text-slate-400 font-semibold tracking-wide">{subtitle}</p>}
             </div>
-            <div style={{ height }} className="flex-1 w-full">
+            <div style={{ height }} className="flex-1 w-full min-h-[250px] relative">
                 {children}
             </div>
         </div>
@@ -208,6 +208,9 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
 // ─── Tab Components ───────────────────────────────────────────────────────
 
 function TabResumen({ observaciones, correlativos, notas, period, values, years }) {
+    const [isReady, setIsReady] = React.useState(false);
+    React.useEffect(() => { setIsReady(true); }, []);
+
     const obsFiltered = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
     const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
     const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
@@ -237,38 +240,42 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Distribución por Módulo" subtitle="Comparativo de registros procesados">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <PieChart>
-                            <Pie
-                                data={pieData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={80}
-                                outerRadius={120}
-                                paddingAngle={5}
-                                dataKey="value"
-                                nameKey="name"
-                                stroke="none"
-                            >
-                                <Cell fill="#6366f1" />
-                                <Cell fill="#0f172a" />
-                                <Cell fill="#d97706" />
-                            </Pie>
-                            <Tooltip />
-                            <RechartsLegend verticalAlign="bottom" height={36} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={80}
+                                    outerRadius={120}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    stroke="none"
+                                >
+                                    <Cell fill="#6366f1" />
+                                    <Cell fill="#0f172a" />
+                                    <Cell fill="#d97706" />
+                                </Pie>
+                                <Tooltip />
+                                <RechartsLegend verticalAlign="bottom" height={36} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
 
                 <ChartCard title="Carga de Trabajo Global" subtitle="Registros por módulo">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={barData} layout="vertical">
-                            <XAxis type="number" hide />
-                            <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#6366f1" radius={[0, 10, 10, 0]} barSize={40} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RechartsBarChart data={barData} layout="vertical">
+                                <XAxis type="number" hide />
+                                <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#6366f1" radius={[0, 10, 10, 0]} barSize={40} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
             </div>
         </div>
@@ -276,6 +283,9 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 }
 
 function TabCorrelativos({ correlativos, notas = [], period, values }) {
+    const [isReady, setIsReady] = React.useState(false);
+    React.useEffect(() => { setIsReady(true); }, []);
+
     const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
     const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
 
