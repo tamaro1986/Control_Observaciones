@@ -398,20 +398,27 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                <ChartCard title="Por Industria" subtitle="Sector supervisado" height={400}>
+                <ChartCard title="Por Industria" subtitle="Sector supervisado" height={360}>
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={350}>
-                            <RechartsBarChart data={stats.industriaData} layout="vertical" margin={{ left: 40, right: 30 }}>
+                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
+                            <RechartsBarChart
+                                data={stats.industriaData}
+                                layout="vertical"
+                                margin={{ left: 40, right: 40, top: 10, bottom: 10 }}
+                                barCategoryGap="25%"
+                            >
                                 <XAxis type="number" hide />
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    tick={{ fontSize: 9, fontWeight: 700 }}
+                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
                                     width={180}
+                                    axisLine={false}
+                                    tickLine={false}
                                     tickFormatter={(val) => val.length > 40 ? val.substring(0, 40) + '...' : val}
                                 />
-                                <Tooltip />
-                                <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={20}>
+                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={32}>
                                     {stats.industriaData.map((_, i) => <Cell key={i} fill={PALETTES.indust[i % PALETTES.indust.length]} />)}
                                 </Bar>
                             </RechartsBarChart>
@@ -423,12 +430,12 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Normativas más Aplicadas" subtitle="Frecuencia de base legal utilizada" height={350}>
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                            <RechartsBarChart data={stats.normaData} layout="vertical" margin={{ left: 20 }}>
+                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
+                            <RechartsBarChart data={stats.normaData} layout="vertical" margin={{ left: 20, right: 30 }} barCategoryGap="20%">
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 9, fontWeight: 900 }} width={100} />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={25} />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 900, fill: '#475569' }} width={100} axisLine={false} tickLine={false} />
+                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 8, 8, 0]} barSize={30} />
                             </RechartsBarChart>
                         </ResponsiveContainer>
                     )}
@@ -436,18 +443,20 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
 
                 <ChartCard title="Entidades Frecuentes" subtitle="Distribución por sujeto supervisado" height={350}>
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                            <RechartsBarChart data={stats.entidadData} layout="vertical" margin={{ left: 20 }}>
+                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
+                            <RechartsBarChart data={stats.entidadData} layout="vertical" margin={{ left: 20, right: 30 }} barCategoryGap="20%">
                                 <XAxis type="number" hide />
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    tick={{ fontSize: 9, fontWeight: 700 }}
+                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#475569' }}
                                     width={120}
+                                    axisLine={false}
+                                    tickLine={false}
                                     tickFormatter={(val) => val.length > 25 ? val.substring(0, 25) + '...' : val}
                                 />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#0ea5e9" radius={[0, 6, 6, 0]} barSize={25} />
+                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Bar dataKey="value" fill="#0ea5e9" radius={[0, 8, 8, 0]} barSize={30} />
                             </RechartsBarChart>
                         </ResponsiveContainer>
                     )}
@@ -457,12 +466,12 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Desempeño por Responsable" subtitle="Correlativos emitidos" height={350}>
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                            <RechartsBarChart data={stats.respData} layout="vertical" margin={{ left: 20 }}>
+                        <ResponsiveContainer width="99.9%" height="100%" minHeight={300}>
+                            <RechartsBarChart data={stats.respData} layout="vertical" margin={{ left: 20, right: 30 }} barCategoryGap="20%">
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 9, fontWeight: 700 }} width={120} />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} barSize={25} />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 700, fill: '#475569' }} width={120} axisLine={false} tickLine={false} />
+                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Bar dataKey="value" fill="#f59e0b" radius={[0, 8, 8, 0]} barSize={30} />
                             </RechartsBarChart>
                         </ResponsiveContainer>
                     )}
@@ -471,12 +480,12 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
                 <div className="grid grid-cols-1 gap-6">
                     <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada" height={160}>
                         {isReady && (
-                            <ResponsiveContainer width="100%" height="100%" minHeight={120}>
-                                <RechartsBarChart data={stats.accionData} layout="vertical">
+                            <ResponsiveContainer width="99.9%" height="100%" minHeight={120}>
+                                <RechartsBarChart data={stats.accionData} layout="vertical" margin={{ left: 10, right: 30 }}>
                                     <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 900 }} width={80} />
-                                    <Tooltip />
-                                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 6, 6, 0]} barSize={20} />
+                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fontWeight: 900, fill: '#475569' }} width={80} axisLine={false} tickLine={false} />
+                                    <Tooltip cursor={{ fill: 'transparent' }} />
+                                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 8, 8, 0]} barSize={35} />
                                 </RechartsBarChart>
                             </ResponsiveContainer>
                         )}
@@ -484,12 +493,12 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
 
                     <ChartCard title="Tipos de Correspondencia" subtitle="Flujo documental" height={160}>
                         {isReady && (
-                            <ResponsiveContainer width="100%" height="100%" minHeight={120}>
-                                <RechartsBarChart data={stats.tipoCorrData} layout="vertical">
+                            <ResponsiveContainer width="99.9%" height="100%" minHeight={120}>
+                                <RechartsBarChart data={stats.tipoCorrData} layout="vertical" margin={{ left: 10, right: 30 }}>
                                     <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fontWeight: 900 }} width={80} />
-                                    <Tooltip />
-                                    <Bar dataKey="value" fill="#06b6d4" radius={[0, 6, 6, 0]} barSize={20} />
+                                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fontWeight: 900, fill: '#475569' }} width={80} axisLine={false} tickLine={false} />
+                                    <Tooltip cursor={{ fill: 'transparent' }} />
+                                    <Bar dataKey="value" fill="#06b6d4" radius={[0, 8, 8, 0]} barSize={35} />
                                 </RechartsBarChart>
                             </ResponsiveContainer>
                         )}
@@ -500,21 +509,24 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
             <div className="grid grid-cols-1 gap-6">
                 <ChartCard title="Descripciones de Acción" subtitle="Metodologías Detalladas (Top 5)" height={320}>
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
-                            <RechartsBarChart data={stats.descripcionData} layout="vertical" margin={{ left: 20 }}>
+                        <ResponsiveContainer width="99.9%" height="100%" minHeight={250}>
+                            <RechartsBarChart data={stats.descripcionData} layout="vertical" margin={{ left: 20, right: 40 }} barCategoryGap="25%">
                                 <XAxis type="number" hide />
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    tick={{ fontSize: 9, fontWeight: 700 }}
+                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#475569' }}
                                     width={180}
+                                    axisLine={false}
+                                    tickLine={false}
                                     tickFormatter={(val) => val.length > 45 ? val.substring(0, 45) + '...' : val}
                                 />
                                 <Tooltip
                                     contentStyle={{ fontSize: '10px', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                     formatter={(value) => [value + ' registros', 'Frecuencia']}
+                                    cursor={{ fill: 'transparent' }}
                                 />
-                                <Bar dataKey="value" fill="#ec4899" radius={[0, 6, 6, 0]} barSize={25} />
+                                <Bar dataKey="value" fill="#ec4899" radius={[0, 8, 8, 0]} barSize={32} />
                             </RechartsBarChart>
                         </ResponsiveContainer>
                     )}
