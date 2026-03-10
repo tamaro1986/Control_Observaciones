@@ -318,7 +318,7 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
             respData: toChartData(countBy(data, 'responsable')).slice(0, 8),
             normaData: toChartData(countByMulti(data, 'normas', 'codigoNorma')).slice(0, 10),
             entidadData: toChartData(countBy(data, 'entidad')).slice(0, 8),
-            descripcionData: useMemo(() => {
+            descripcionData: (() => {
                 const filtered = data.filter(c => !!c.descripcionAccion);
                 const counts = filtered.reduce((acc, curr) => {
                     const desc = curr.descripcionAccion;
@@ -326,7 +326,7 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
                     return acc;
                 }, {});
                 return toChartData(counts).slice(0, 5);
-            }, [data])
+            })()
         };
     }, [data]);
 
