@@ -4,7 +4,7 @@ import Informes from './Informes';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
     BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid,
-    Legend as RechartsLegend, AreaChart, Area
+    Legend as RechartsLegend, AreaChart, Area, LabelList
 } from 'recharts';
 import {
     Calendar, Users, FileText, Activity, Shield,
@@ -147,7 +147,7 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
     if (useBar) {
         return (
             <ResponsiveContainer width="99.9%" height="100%">
-                <RechartsBarChart data={data} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }} barCategoryGap="20%">
+                <RechartsBarChart data={data} layout="vertical" margin={{ left: 10, right: 50, top: 10, bottom: 5 }} barCategoryGap="20%">
                     <XAxis type="number" hide />
                     <YAxis
                         dataKey="name"
@@ -161,6 +161,7 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                     <Tooltip cursor={{ fill: 'transparent' }} />
                     <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={28}>
                         {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
+                        <LabelList dataKey="value" position="right" fontSize={10} fontWeight={900} fill="#1e293b" offset={10} />
                     </Bar>
                 </RechartsBarChart>
             </ResponsiveContainer>
@@ -174,17 +175,19 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                     data={data}
                     cx="50%"
                     cy="50%"
-                    innerRadius={height * 0.25}
-                    outerRadius={height * 0.35}
+                    innerRadius={height * 0.22}
+                    outerRadius={height * 0.32}
                     paddingAngle={5}
                     dataKey="value"
                     nameKey="name"
                     stroke="none"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={false}
                 >
                     {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
                 </Pie>
                 <Tooltip />
-                <RechartsLegend verticalAlign="bottom" height={36} />
+                <RechartsLegend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
             </PieChart>
         </ResponsiveContainer>
     );
