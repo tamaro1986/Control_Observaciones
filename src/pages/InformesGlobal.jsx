@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ENTIDADES } from '../data/data.js';
 import Informes from './Informes';
 import {
@@ -208,8 +208,8 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
 // ─── Tab Components ───────────────────────────────────────────────────────
 
 function TabResumen({ observaciones, correlativos, notas, period, values, years }) {
-    const [isReady, setIsReady] = React.useState(false);
-    React.useEffect(() => { setIsReady(true); }, []);
+    const [isReady, setIsReady] = useState(false);
+    useEffect(() => { setIsReady(true); }, []);
 
     const obsFiltered = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
     const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
@@ -283,8 +283,8 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 }
 
 function TabCorrelativos({ correlativos, notas = [], period, values }) {
-    const [isReady, setIsReady] = React.useState(false);
-    React.useEffect(() => { setIsReady(true); }, []);
+    const [isReady, setIsReady] = useState(false);
+    useEffect(() => { setIsReady(true); }, []);
 
     const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
     const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
