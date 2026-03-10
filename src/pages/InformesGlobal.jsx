@@ -209,7 +209,10 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
 
 function TabResumen({ observaciones, correlativos, notas, period, values, years }) {
     const [isReady, setIsReady] = useState(false);
-    useEffect(() => { setIsReady(true); }, []);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsReady(true), 150);
+        return () => clearTimeout(timer);
+    }, []);
 
     const obsFiltered = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
     const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
@@ -241,7 +244,7 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Distribución por Módulo" subtitle="Comparativo de registros procesados">
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                             <PieChart>
                                 <Pie
                                     data={pieData}
@@ -267,7 +270,7 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 
                 <ChartCard title="Carga de Trabajo Global" subtitle="Registros por módulo">
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                             <RechartsBarChart data={barData} layout="vertical">
                                 <XAxis type="number" hide />
                                 <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
@@ -284,7 +287,10 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 
 function TabCorrelativos({ correlativos, notas = [], period, values }) {
     const [isReady, setIsReady] = useState(false);
-    useEffect(() => { setIsReady(true); }, []);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsReady(true), 200);
+        return () => clearTimeout(timer);
+    }, []);
 
     const corrFiltered = useMemo(() => filterByPeriod(correlativos, 'fecha', period, values), [correlativos, period, values]);
     const notasFiltered = useMemo(() => filterByPeriod(notas, 'fecha', period, values), [notas, period, values]);
@@ -493,6 +499,11 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
 }
 
 function TabSeguimiento({ observaciones, period, values }) {
+    const [isReady, setIsReady] = useState(false);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsReady(true), 250);
+        return () => clearTimeout(timer);
+    }, []);
     const data = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
 
     const stats = useMemo(() => ({
@@ -516,28 +527,32 @@ function TabSeguimiento({ observaciones, period, values }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartCard title="Riesgo vs Estado" subtitle="Distribución cualitativa">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <PieChart>
-                            <Pie data={stats.nivelData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" stroke="none">
-                                {stats.nivelData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={PALETTES.riesgo[index % PALETTES.riesgo.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <RechartsLegend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                            <PieChart>
+                                <Pie data={stats.nivelData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" stroke="none">
+                                    {stats.nivelData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={PALETTES.riesgo[index % PALETTES.riesgo.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <RechartsLegend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
 
                 <ChartCard title="Carga por Responsable" subtitle="Seguimiento de hallazgos">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                        <RechartsBarChart data={stats.responsableData} layout="vertical">
-                            <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#6366f1" radius={[0, 6, 6, 0]} />
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
+                    {isReady && (
+                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                            <RechartsBarChart data={stats.responsableData} layout="vertical">
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 8, fontWeight: 700 }} width={80} />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#6366f1" radius={[0, 6, 6, 0]} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    )}
                 </ChartCard>
             </div>
         </div>
