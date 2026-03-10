@@ -28,7 +28,9 @@ const PALETTES = {
 // ─── Utility ───────────────────────────────────────────────────────────────
 function countBy(arr, key) {
     return arr.reduce((acc, item) => {
-        const v = item[key] || 'Sin datos';
+        let v = item[key] ? String(item[key]).trim() : 'Sin datos';
+        // Normalize to Title Case for better aesthetics
+        v = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
         acc[v] = (acc[v] || 0) + 1;
         return acc;
     }, {});
@@ -196,15 +198,29 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                     <Pie
                         data={data}
                         cx="50%"
-                        cy="42%"
-                        innerRadius={height * 0.20}
-                        outerRadius={height * 0.30}
+                        cy="45%"
+                        innerRadius={height * 0.22}
+                        outerRadius={height * 0.35}
                         paddingAngle={5}
                         dataKey="value"
                         nameKey="name"
                         stroke="none"
-                        label={({ name, value }) => `${name} (${value})`}
-                        labelLine={true}
+                        label={({ name, value, x, y, cx }) => {
+                            return (
+                                <text
+                                    x={x}
+                                    y={y}
+                                    fill="#475569"
+                                    fontSize={10}
+                                    fontWeight={900}
+                                    textAnchor={x > cx ? 'start' : 'end'}
+                                    dominantBaseline="central"
+                                >
+                                    {`${name} (${value})`}
+                                </text>
+                            );
+                        }}
+                        labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                     >
                         {data.map((_, i) => <Cell key={i} fill={palette ? palette[i % palette.length] : barColor} />)}
                     </Pie>
@@ -213,14 +229,14 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
                         verticalAlign="bottom"
                         align="center"
                         iconType="circle"
-                        height={40}
+                        height={30}
                         wrapperStyle={{
-                            fontSize: '10px',
+                            fontSize: '9px',
                             fontWeight: '900',
                             color: '#64748b',
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
-                            paddingTop: '10px'
+                            paddingTop: '20px'
                         }}
                     />
                 </PieChart>
@@ -442,12 +458,12 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
                 </ChartCard>
 
                 <div className="grid grid-cols-1 gap-6">
-                    <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada" height={160}>
-                        <SmartChart data={stats.accionData} barColor="#4f46e5" isReady={isReady} height={160} />
+                    <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada" height={250}>
+                        <SmartChart data={stats.accionData} barColor="#4f46e5" isReady={isReady} height={250} />
                     </ChartCard>
 
-                    <ChartCard title="Flujo Documental" subtitle="Tipo correspondencia" height={160}>
-                        <SmartChart data={stats.tipoCorrData} barColor="#06b6d4" isReady={isReady} height={160} />
+                    <ChartCard title="Flujo Documental" subtitle="Tipo correspondencia" height={250}>
+                        <SmartChart data={stats.tipoCorrData} barColor="#06b6d4" isReady={isReady} height={250} />
                     </ChartCard>
                 </div>
             </div>
