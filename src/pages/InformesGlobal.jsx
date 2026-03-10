@@ -108,7 +108,7 @@ function ChartCard({ title, subtitle, children, className = '', height = 300 }) 
                 <p className="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-1">{title}</p>
                 {subtitle && <p className="text-[10px] text-slate-400 font-semibold tracking-wide">{subtitle}</p>}
             </div>
-            <div style={{ height }} className="flex-1 w-full min-h-[250px] relative">
+            <div style={{ height: `${height}px`, minHeight: `${height}px` }} className="flex-1 w-full relative overflow-hidden">
                 {children}
             </div>
         </div>
@@ -210,7 +210,7 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
 function TabResumen({ observaciones, correlativos, notas, period, values, years }) {
     const [isReady, setIsReady] = useState(false);
     useEffect(() => {
-        const timer = setTimeout(() => setIsReady(true), 150);
+        const timer = setTimeout(() => setIsReady(true), 500);
         return () => clearTimeout(timer);
     }, []);
 
@@ -270,7 +270,7 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 
                 <ChartCard title="Carga de Trabajo Global" subtitle="Registros por módulo">
                     {isReady && (
-                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                        <ResponsiveContainer width="99%" height="100%" minHeight={250}>
                             <RechartsBarChart data={barData} layout="vertical">
                                 <XAxis type="number" hide />
                                 <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 900 }} />
@@ -288,7 +288,7 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
 function TabCorrelativos({ correlativos, notas = [], period, values }) {
     const [isReady, setIsReady] = useState(false);
     useEffect(() => {
-        const timer = setTimeout(() => setIsReady(true), 200);
+        const timer = setTimeout(() => setIsReady(true), 500);
         return () => clearTimeout(timer);
     }, []);
 
@@ -527,7 +527,7 @@ function TabCorrelativos({ correlativos, notas = [], period, values }) {
 function TabSeguimiento({ observaciones, period, values }) {
     const [isReady, setIsReady] = useState(false);
     useEffect(() => {
-        const timer = setTimeout(() => setIsReady(true), 250);
+        const timer = setTimeout(() => setIsReady(true), 500);
         return () => clearTimeout(timer);
     }, []);
     const data = useMemo(() => filterByPeriod(observaciones, 'fechaInicio', period, values), [observaciones, period, values]);
