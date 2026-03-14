@@ -70,6 +70,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
             entidadId,
             tipoVisita,
             nroInforme,
+            esInformeManual,
             fechaApertura,
             fechaCierre,
             fechaEvalInicio,

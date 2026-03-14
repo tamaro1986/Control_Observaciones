@@ -15,7 +15,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
         const criticos = obs.filter(o => o.nivelRiesgo === 'Crítico').length;
         const altos = obs.filter(o => o.nivelRiesgo === 'Alto').length;
 
-        const riesgosAbiertos = pendientes + vencidas;
+        const riesgosAbiertos = total - subsanadas;
 
         let status = 'ok';
         if (vencidas > 0 || criticos > 0) status = 'critical';
