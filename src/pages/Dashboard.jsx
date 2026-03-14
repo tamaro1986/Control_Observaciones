@@ -141,7 +141,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                                 {/* Footer button */}
                                 <div className="mt-4 pt-3 border-t border-border/60 z-10 relative">
                                     <button
-                                        onClick={() => onNavigate('informes')}
+                                        onClick={() => onNavigate(ent.riesgosAbiertos > 0 ? 'seguimiento' : 'informes')}
                                         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', background: 'rgba(11,115,218,0.08)', color: '#0b73da', fontWeight: 700, fontSize: '12px', padding: '7px 0', borderRadius: '7px', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#0b73da'; e.currentTarget.style.color = 'white'; }}
                                         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(11,115,218,0.08)'; e.currentTarget.style.color = '#0b73da'; }}
