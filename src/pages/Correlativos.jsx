@@ -27,6 +27,7 @@ const getCategoryStyle = (text) => {
 };
 
 const emptyForm = {
+    esInterno: false,
     blfOtro: '',
     fecha: new Date().toISOString().slice(0, 10),
     normas: [],
@@ -96,9 +97,18 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
     }
 
     function handleGuardar() {
-        if (!form.fecha || !form.clasificacion || !form.industria || !form.tipoInforme || !form.responsable || !form.entidad) {
-            alert('Por favor complete los campos obligatorios marcados con *.');
-            return;
+        if (!form.anulado) {
+            if (form.esInterno) {
+                if (!form.fecha || !form.tipoInforme || !form.responsable || !form.asunto) {
+                    alert('Por favor complete los campos obligatorios para el informe interno (Fecha, Tipo, Responsable, Asunto).');
+                    return;
+                }
+            } else {
+                if (!form.fecha || !form.clasificacion || !form.industria || !form.tipoInforme || !form.responsable || !form.entidad) {
+                    alert('Por favor complete los campos obligatorios marcados con *.');
+                    return;
+                }
+            }
         }
 
         if (editingId) {
@@ -116,6 +126,8 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
     }
 
     const stats = useMemo(() => {
+        const statsCorrelativos = correlativos.filter(c => !c.esInterno && !c.anulado);
+
         const getTop = (arr, key, limit = 5) => {
             const counts = arr.reduce((acc, curr) => {
                 const val = curr[key] || 'N/A';
@@ -147,11 +159,12 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
         };
 
         return {
-            total: correlativos.length,
-            esteAño: correlativos.filter(c => c.año === new Date().getFullYear()).length,
-            porTipo: getTop(correlativos, 'tipoInforme'),
-            porNorma: getTopNormas(correlativos),
-            porResponsable: getTop(correlativos, 'responsable'),
+            total: statsCorrelativos.length,
+            esteAño: statsCorrelativos.filter(c => c.año === new Date().getFullYear()).length,
+            porTipo: getTop(statsCorrelativos, 'tipoInforme'),
+            porNorma: getTopNormas(statsCorrelativos),
+            porResponsable: getTop(statsCorrelativos, 'responsable'),
+            totalUnidades: statsCorrelativos.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0),
         };
     }, [correlativos]);
 
@@ -233,7 +246,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Distribución Unidades</p>
                     <div className="flex flex-col items-center justify-center flex-1">
                         <p className="text-3xl font-black text-slate-800">
-                            {correlativos.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0)}
+                            {stats.totalUnidades}
                         </p>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Unidades Auditadas</p>
                     </div>
@@ -346,7 +359,10 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                             </span>
                                         </td>
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
-                                            <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">{c.tipoInforme}</span>
+                                            <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">
+                                                {c.tipoInforme}
+                                                {c.esInterno && <span className="ml-1.5 bg-indigo-50 text-indigo-500 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ring-1 ring-indigo-100">Interno</span>}
+                                            </span>
                                         </td>
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${ACCION_COLOR[c.accionSupervision] || 'bg-slate-100 text-slate-600'}`}>
@@ -360,7 +376,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                             </div>
                                         </td>
                                         <td className="py-2 px-3 align-middle max-w-[180px]" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
-                                            <span className="text-[10px] font-bold text-text-primary line-clamp-2">{c.entidad}</span>
+                                            <span className="text-[10px] font-bold text-text-primary line-clamp-2">{c.esInterno ? '—' : c.entidad}</span>
                                         </td>
                                         <td className="py-2 px-3 align-middle">
                                             <div className="flex items-center justify-center gap-1">
@@ -443,64 +459,94 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                         {/* Scrollable form body */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
+                            {/* Toggle Es Interno */}
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Procedencia del Registro</p>
+                                    <p className="text-[9px] font-medium text-slate-500 uppercase tracking-tighter">
+                                        {form.esInterno ? 'Registro Interno (No se contemplará en las estadísticas globales)' : 'Entidades / Externo (Registro de supervisión regular)'}
+                                    </p>
+                                </div>
+                                <div className="flex bg-slate-200/50 p-1 rounded-lg shrink-0">
+                                    <button
+                                        onClick={() => handleField('esInterno', false)}
+                                        className={`px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${!form.esInterno ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Entidades
+                                    </button>
+                                    <button
+                                        onClick={() => handleField('esInterno', true)}
+                                        className={`px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${form.esInterno ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Uso Interno
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Row 1 */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className={`grid gap-4 ${form.esInterno ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-3'}`}>
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Fecha *</label>
                                     <input type="date" value={form.fecha} onChange={e => handleField('fecha', e.target.value)}
                                         className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">BLF / Informe Otro</label>
-                                    <input type="text" placeholder="ej. 10/02/2026" value={form.blfOtro} onChange={e => handleField('blfOtro', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Cat. Unidades</label>
-                                    <input type="number" min="1" value={form.cantidadUnidades} onChange={e => handleField('cantidadUnidades', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
-                                </div>
+                                {!form.esInterno && (
+                                    <>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">BLF / Informe Otro</label>
+                                            <input type="text" placeholder="ej. 10/02/2026" value={form.blfOtro} onChange={e => handleField('blfOtro', e.target.value)}
+                                                className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Cat. Unidades</label>
+                                            <input type="number" min="1" value={form.cantidadUnidades} onChange={e => handleField('cantidadUnidades', e.target.value)}
+                                                className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50" />
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             {/* Row 2 — Normas Multi-Select */}
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Normativas Aplicables (Puede agregar múltiples) *</label>
-                                <select
-                                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer"
-                                    value=""
-                                    onChange={(e) => {
-                                        const code = e.target.value;
-                                        if (!code) return;
-                                        const norma = catalogos.normas.find(n => n.codigo === code);
-                                        if (norma && (!form.normas || !form.normas.find(n => n.codigo === code))) {
-                                            setForm(f => ({ ...f, normas: [...(f.normas || []), norma] }));
-                                        }
-                                    }}
-                                >
-                                    <option value="">— Agregar norma... —</option>
-                                    {catalogos.normas.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo} - {n.nombre.substring(0, 60)}{n.nombre.length > 60 ? '...' : ''}</option>)}
-                                </select>
+                            {!form.esInterno && (
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Normativas Aplicables (Puede agregar múltiples) *</label>
+                                    <select
+                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer"
+                                        value=""
+                                        onChange={(e) => {
+                                            const code = e.target.value;
+                                            if (!code) return;
+                                            const norma = catalogos.normas.find(n => n.codigo === code);
+                                            if (norma && (!form.normas || !form.normas.find(n => n.codigo === code))) {
+                                                setForm(f => ({ ...f, normas: [...(f.normas || []), norma] }));
+                                            }
+                                        }}
+                                    >
+                                        <option value="">— Agregar norma... —</option>
+                                        {catalogos.normas.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo} - {n.nombre.substring(0, 60)}{n.nombre.length > 60 ? '...' : ''}</option>)}
+                                    </select>
 
-                                {form.normas && form.normas.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2 p-2 bg-slate-50/50 rounded-xl border border-slate-100">
-                                        {form.normas.map(n => (
-                                            <div key={n.codigo} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] font-black text-slate-700 leading-none">{n.codigo}</span>
-                                                    <span className="text-[9px] font-medium text-slate-500 max-w-[200px] truncate mt-0.5">{n.nombre}</span>
+                                    {form.normas && form.normas.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2 p-2 bg-slate-50/50 rounded-xl border border-slate-100">
+                                            {form.normas.map(n => (
+                                                <div key={n.codigo} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] font-black text-slate-700 leading-none">{n.codigo}</span>
+                                                        <span className="text-[9px] font-medium text-slate-500 max-w-[200px] truncate mt-0.5">{n.nombre}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setForm(f => ({ ...f, normas: f.normas.filter(x => x.codigo !== n.codigo) }))}
+                                                        className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors ml-1 cursor-pointer"
+                                                        title="Remover norma"
+                                                    >
+                                                        ✕
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={() => setForm(f => ({ ...f, normas: f.normas.filter(x => x.codigo !== n.codigo) }))}
-                                                    className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors ml-1 cursor-pointer"
-                                                    title="Remover norma"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Estado Anulado toggle */}
                             <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100 flex items-center justify-between mb-4">
@@ -517,27 +563,29 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                             </div>
 
                             {/* Row 3 */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Clasificación *</label>
-                                    <select value={form.clasificacion} onChange={e => handleField('clasificacion', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                        <option value="">— Seleccionar —</option>
-                                        {catalogos.clasificaciones.map(c => <option key={c}>{c}</option>)}
-                                    </select>
+                            {!form.esInterno && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Clasificación *</label>
+                                        <select value={form.clasificacion} onChange={e => handleField('clasificacion', e.target.value)}
+                                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
+                                            <option value="">— Seleccionar —</option>
+                                            {catalogos.clasificaciones.map(c => <option key={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Industria *</label>
+                                        <select value={form.industria} onChange={e => handleField('industria', e.target.value)}
+                                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
+                                            <option value="">— Seleccionar —</option>
+                                            {catalogos.industrias.map(i => <option key={i}>{i}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Industria *</label>
-                                    <select value={form.industria} onChange={e => handleField('industria', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                        <option value="">— Seleccionar —</option>
-                                        {catalogos.industrias.map(i => <option key={i}>{i}</option>)}
-                                    </select>
-                                </div>
-                            </div>
+                            )}
 
                             {/* Row 4 */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className={`grid gap-4 ${form.esInterno ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2'}`}>
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Tipo de Informe/Memo *</label>
                                     <select value={form.tipoInforme} onChange={e => handleField('tipoInforme', e.target.value)}
@@ -546,17 +594,19 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         {catalogos.tiposInforme.map(t => <option key={t}>{t}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Acción de Supervisión *</label>
-                                    <select value={form.accionSupervision} onChange={e => handleField('accionSupervision', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                        {catalogos.accionesSupervision.map(a => <option key={a}>{a}</option>)}
-                                    </select>
-                                </div>
+                                {!form.esInterno && (
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Acción de Supervisión *</label>
+                                        <select value={form.accionSupervision} onChange={e => handleField('accionSupervision', e.target.value)}
+                                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
+                                            {catalogos.accionesSupervision.map(a => <option key={a}>{a}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Row 5 */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className={`grid gap-4 ${form.esInterno ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2'}`}>
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Responsable *</label>
                                     <select value={form.responsable} onChange={e => handleField('responsable', e.target.value)}
@@ -565,38 +615,42 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         {catalogos.responsables.map(r => <option key={r}>{r}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Entidad *</label>
-                                    <select value={form.entidad} onChange={e => handleField('entidad', e.target.value)}
-                                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                        <option value="">— Seleccionar —</option>
-                                        {catalogos.entidades.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
-                                    </select>
-                                </div>
+                                {!form.esInterno && (
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Entidad *</label>
+                                        <select value={form.entidad} onChange={e => handleField('entidad', e.target.value)}
+                                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
+                                            <option value="">— Seleccionar —</option>
+                                            {catalogos.entidades.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Descripción acción */}
-                            <div>
-                                <div className="flex justify-between items-center mb-1.5">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Descripción de la Acción de Supervisión</label>
-                                    <select
-                                        onChange={e => e.target.value && handleField('descripcionAccion', e.target.value)}
-                                        className="text-[9px] font-black uppercase text-primary bg-primary/5 px-2 py-0.5 rounded cursor-pointer border-none outline-none"
-                                    >
-                                        <option value="">— Cargar Plantilla —</option>
-                                        {catalogos.descripcionesAccion.map((d, i) => (
-                                            <option key={i} value={d}>{d.substring(0, 40)}...</option>
-                                        ))}
-                                    </select>
+                            {!form.esInterno && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-1.5">
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Descripción de la Acción de Supervisión</label>
+                                        <select
+                                            onChange={e => e.target.value && handleField('descripcionAccion', e.target.value)}
+                                            className="text-[9px] font-black uppercase text-primary bg-primary/5 px-2 py-0.5 rounded cursor-pointer border-none outline-none"
+                                        >
+                                            <option value="">— Cargar Plantilla —</option>
+                                            {catalogos.descripcionesAccion.map((d, i) => (
+                                                <option key={i} value={d}>{d.substring(0, 40)}...</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <textarea rows={2} placeholder="Describa brevemente la acción supervisora realizada…"
+                                        value={form.descripcionAccion} onChange={e => handleField('descripcionAccion', e.target.value)}
+                                        className="w-full p-3 rounded-lg border border-slate-200 text-xs font-medium text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 resize-none" />
                                 </div>
-                                <textarea rows={2} placeholder="Describa brevemente la acción supervisora realizada…"
-                                    value={form.descripcionAccion} onChange={e => handleField('descripcionAccion', e.target.value)}
-                                    className="w-full p-3 rounded-lg border border-slate-200 text-xs font-medium text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 resize-none" />
-                            </div>
+                            )}
 
                             {/* Asunto */}
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Asunto del Informe / Memo</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Asunto del Informe / Memo {form.esInterno && '*'}</label>
                                 <textarea rows={4} placeholder="Redacte el asunto completo del informe o memorándum…"
                                     value={form.asunto} onChange={e => handleField('asunto', e.target.value)}
                                     className="w-full p-3 rounded-lg border border-slate-200 text-xs font-medium text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 resize-none" />
