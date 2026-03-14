@@ -195,6 +195,7 @@ export default function App() {
                         getEstadisticas={getEstadisticas}
                         onNavigate={handleNavigate}
                         onSelectObservacion={handleSelectObservacion}
+                        catalogos={sortedCatalogos}
                     />
                 );
             case 'nuevo':

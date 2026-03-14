@@ -1,10 +1,12 @@
-import { ENTIDADES, getEntidadById, daysUntil } from '../data/data';
+import { daysUntil } from '../data/data';
 import { RiskBadge, Avatar } from '../components/SharedComponents';
 
-export default function Dashboard({ observaciones, getEstadisticas, onNavigate, onSelectObservacion }) {
+export default function Dashboard({ observaciones, getEstadisticas, onNavigate, onSelectObservacion, catalogos }) {
     const stats = getEstadisticas();
 
-    const entidadCards = ENTIDADES.map(ent => {
+    const entidadesDisponibles = catalogos?.entidades || [];
+
+    const entidadCards = entidadesDisponibles.map(ent => {
         const obs = observaciones.filter(o => o.entidadId === ent.id);
         const total = obs.length;
         const subsanadas = obs.filter(o => o.estado === 'Subsanada').length;
@@ -201,7 +203,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
                                     {a.titulo}
                                 </h4>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
-                                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#60758a', textTransform: 'uppercase' }}>{getEntidadById(a.entidadId)?.nombre.split(',')[0]}</span>
+                                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#60758a', textTransform: 'uppercase' }}>{(entidadesDisponibles.find(e => e.id === a.entidadId)?.nombre || 'Entidad Desconocida').split(',')[0]}</span>
                                     <RiskBadge nivel={a.nivelRiesgo} />
                                 </div>
                             </div>
