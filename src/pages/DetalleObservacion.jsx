@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getEntidadById, formatDate, ESTADOS, RESPONSABLES } from '../data/data';
+import { formatDate, ESTADOS, RESPONSABLES, TIPOS_VISITA, NIVELES_RIESGO, TIPOS_RIESGO } from '../data/data';
 import { RiskBadge, EstadoBadge, Avatar, SuccessToast, Card } from '../components/SharedComponents';
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
@@ -33,13 +33,31 @@ function inputCls() {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function DetalleObservacion({ observacion, cambiarEstado, eliminarObservacion, onBack, catalogos }) {
-    const ent = getEntidadById(observacion.entidadId);
+export default function DetalleObservacion({ observacion, cambiarEstado, eliminarObservacion, editarObservacion, onBack, catalogos }) {
+    const entidades = catalogos?.entidades || [];
+    const ent = entidades.find(e => Number(e.id) === Number(observacion.entidadId));
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({ ...observacion });
 
     const handleEliminar = () => {
-        if (eliminarObservacion(observacion.id)) {
-            onBack();
+        if (window.confirm('¿Está seguro de eliminar esta observación permanentemente?')) {
+            if (eliminarObservacion(observacion.id)) {
+                onBack();
+            }
         }
+    };
+
+    const handleSaveEdit = () => {
+        editarObservacion(observacion.id, editData);
+        setIsEditing(false);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+    };
+
+    const handleCancelEdit = () => {
+        setEditData({ ...observacion });
+        setIsEditing(false);
     };
 
 
@@ -60,10 +78,10 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
 
     const [showToast, setShowToast] = useState(false);
 
-    const handleGuardar = () => {
+    const handleGuardarCiclo = () => {
         cambiarEstado(observacion.id, {
             nuevoEstado,
-            nroInforme,
+            nroInforme: isEditing ? editData.nroInforme : nroInforme,
             nota,
             respuestaEntidad,
             fechaRespuesta,
@@ -81,13 +99,18 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     };
 
     const estados = catalogos?.estados || ESTADOS.map(e => e.value);
+    const responsables = catalogos?.responsables || RESPONSABLES;
+    const tiposVisita = catalogos?.tiposVisita || TIPOS_VISITA;
+    const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO;
+    const tiposRiesgo = catalogos?.tiposRiesgo || TIPOS_RIESGO;
+    const normas = catalogos?.normas || [];
 
     return (
-        <div className="max-w-6xl mx-auto animate-fade-in space-y-4 pb-6">
+        <div className="max-w-6xl mx-auto animate-fade-in space-y-4 pb-6 px-4">
 
             {/* ── Header ──────────────────────────────────────────────────── */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col gap-2 flex-grow">
                     <button
                         onClick={onBack}
                         className="group flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-primary transition-all cursor-pointer w-fit"
@@ -101,28 +124,76 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200">
                             <span className="text-sm font-black text-white">#{observacion.id.split('-').pop()}</span>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-black text-text-primary tracking-tight leading-tight">{observacion.titulo}</h2>
+                        <div className="flex-grow">
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    value={editData.titulo}
+                                    onChange={e => setEditData({ ...editData, titulo: e.target.value })}
+                                    className="text-xl font-black text-text-primary tracking-tight leading-tight w-full bg-slate-100 px-2 py-1 rounded-lg border-none focus:ring-2 focus:ring-primary/20"
+                                />
+                            ) : (
+                                <h2 className="text-xl font-black text-text-primary tracking-tight leading-tight">{observacion.titulo}</h2>
+                            )}
                             <div className="flex items-center gap-3 mt-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <span>Expediente {observacion.nroInforme}</span>
+                                {isEditing ? (
+                                    <div className="flex items-center gap-2">
+                                        <span>Expediente:</span>
+                                        <input
+                                            type="text"
+                                            value={editData.nroInforme}
+                                            onChange={e => setEditData({ ...editData, nroInforme: e.target.value })}
+                                            className="bg-slate-100 p-1 rounded font-black text-slate-600 focus:outline-none"
+                                        />
+                                    </div>
+                                ) : (
+                                    <span>Expediente {observacion.nroInforme}</span>
+                                )}
                                 <div className="w-1 h-1 rounded-full bg-slate-200" />
                                 <span>{ent?.nombre.split(',')[0]}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={handleEliminar}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-colors cursor-pointer border border-rose-100"
-                        title="Eliminar observación permanentemente"
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Eliminar
-                    </button>
-                    <RiskBadge nivel={observacion.nivelRiesgo} />
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    {isEditing ? (
+                        <>
+                            <button
+                                onClick={handleCancelEdit}
+                                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                className="px-4 py-2 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all cursor-pointer"
+                            >
+                                Guardar Cambios
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors cursor-pointer border border-slate-200"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Editar
+                            </button>
+                            <button
+                                onClick={handleEliminar}
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-colors cursor-pointer border border-rose-100"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Eliminar
+                            </button>
+                        </>
+                    )}
+                    <RiskBadge nivel={isEditing ? editData.nivelRiesgo : observacion.nivelRiesgo} />
                     <EstadoBadge estado={observacion.estado} />
                 </div>
             </div>
@@ -136,9 +207,19 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         <div className="bg-slate-900 p-4">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Información de Atribución</h3>
                             <div className="flex items-center gap-4">
-                                <Avatar nombre={observacion.responsable} size="lg" className="ring-4 ring-white/10" />
-                                <div>
-                                    <p className="text-white font-black text-lg leading-none">{observacion.responsable}</p>
+                                <Avatar nombre={isEditing ? editData.responsable : observacion.responsable} size="lg" className="ring-4 ring-white/10" />
+                                <div className="flex-grow">
+                                    {isEditing ? (
+                                        <select
+                                            value={editData.responsable}
+                                            onChange={e => setEditData({ ...editData, responsable: e.target.value })}
+                                            className="w-full bg-slate-800 text-white font-black text-sm p-1.5 rounded-lg border-none focus:ring-2 focus:ring-primary/40 uppercase"
+                                        >
+                                            {responsables.map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
+                                    ) : (
+                                        <p className="text-white font-black text-lg leading-none">{observacion.responsable}</p>
+                                    )}
                                     <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">Auditor Responsable</p>
                                 </div>
                             </div>
@@ -147,27 +228,75 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tipo de Visita</span>
-                                    <p className="text-sm font-bold text-text-primary uppercase">{observacion.tipoVisita}</p>
+                                    {isEditing ? (
+                                        <select
+                                            value={editData.tipoVisita}
+                                            onChange={e => setEditData({ ...editData, tipoVisita: e.target.value })}
+                                            className="text-xs font-bold text-text-primary uppercase w-full bg-slate-50 border-none rounded p-1"
+                                        >
+                                            {tiposVisita.map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
+                                    ) : (
+                                        <p className="text-sm font-bold text-text-primary uppercase">{observacion.tipoVisita}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-1">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nivel Riesgo</span>
-                                    <p className="text-sm font-bold text-text-primary uppercase">{observacion.nivelRiesgo}</p>
+                                    {isEditing ? (
+                                        <select
+                                            value={editData.nivelRiesgo}
+                                            onChange={e => setEditData({ ...editData, nivelRiesgo: e.target.value })}
+                                            className="text-xs font-bold text-text-primary uppercase w-full bg-slate-50 border-none rounded p-1"
+                                        >
+                                            {nivelesRiesgo.map(n => <option key={n} value={n}>{n}</option>)}
+                                        </select>
+                                    ) : (
+                                        <p className="text-sm font-bold text-text-primary uppercase">{observacion.nivelRiesgo}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-1">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Normativa Ref.</span>
-                                    <p className="text-sm font-bold text-text-primary">{observacion.normativa || 'No Declarada'}</p>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={editData.normativa}
+                                            onChange={e => setEditData({ ...editData, normativa: e.target.value })}
+                                            className="text-xs font-bold text-text-primary w-full bg-slate-50 border-none rounded p-1"
+                                        />
+                                    ) : (
+                                        <p className="text-sm font-bold text-text-primary">{observacion.normativa || 'No Declarada'}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-1">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tipo de Riesgo</span>
-                                    <p className="text-sm font-bold text-text-primary uppercase">{observacion.tipoRiesgo}</p>
+                                    {isEditing ? (
+                                        <select
+                                            value={editData.tipoRiesgo}
+                                            onChange={e => setEditData({ ...editData, tipoRiesgo: e.target.value })}
+                                            className="text-xs font-bold text-text-primary uppercase w-full bg-slate-50 border-none rounded p-1"
+                                        >
+                                            {tiposRiesgo.map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
+                                    ) : (
+                                        <p className="text-sm font-bold text-text-primary uppercase">{observacion.tipoRiesgo}</p>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="pt-4 border-t border-slate-50 space-y-2">
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Descripción del Caso</span>
-                                <p className="text-sm font-medium text-text-secondary leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
-                                    "{observacion.descripcion}"
-                                </p>
+                                {isEditing ? (
+                                    <textarea
+                                        value={editData.descripcion}
+                                        onChange={e => setEditData({ ...editData, descripcion: e.target.value })}
+                                        className="text-sm font-medium text-text-secondary leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 italic w-full focus:outline-none focus:ring-2 focus:ring-primary/10 resize-none"
+                                        rows={5}
+                                    />
+                                ) : (
+                                    <p className="text-sm font-medium text-text-secondary leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
+                                        "{observacion.descripcion}"
+                                    </p>
+                                )}
                             </div>
 
                             <div className="flex flex-col gap-3">
@@ -175,12 +304,30 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                 <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
                                     <div className="flex flex-col items-center">
                                         <span className="text-[8px] font-black text-slate-400 uppercase">Inicio</span>
-                                        <span className="text-xs font-black text-text-primary">{formatDate(observacion.fechaInicio)}</span>
+                                        {isEditing ? (
+                                            <input
+                                                type="date"
+                                                value={editData.fechaInicio}
+                                                onChange={e => setEditData({ ...editData, fechaInicio: e.target.value })}
+                                                className="text-[10px] font-black text-text-primary bg-transparent border-none focus:ring-0 p-0"
+                                            />
+                                        ) : (
+                                            <span className="text-xs font-black text-text-primary">{formatDate(observacion.fechaInicio)}</span>
+                                        )}
                                     </div>
                                     <div className="w-8 h-px bg-slate-200" />
                                     <div className="flex flex-col items-center">
                                         <span className="text-[8px] font-black text-slate-400 uppercase">Fin</span>
-                                        <span className="text-xs font-black text-text-primary">{formatDate(observacion.fechaFin)}</span>
+                                        {isEditing ? (
+                                            <input
+                                                type="date"
+                                                value={editData.fechaFin}
+                                                onChange={e => setEditData({ ...editData, fechaFin: e.target.value })}
+                                                className="text-[10px] font-black text-text-primary bg-transparent border-none focus:ring-0 p-0"
+                                            />
+                                        ) : (
+                                            <span className="text-xs font-black text-text-primary">{formatDate(observacion.fechaFin)}</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -291,7 +438,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                 * Al registrar se completará el ciclo de gestión y se actualizará la bitácora histórica.
                             </p>
                             <button
-                                onClick={handleGuardar}
+                                onClick={handleGuardarCiclo}
                                 className="px-6 py-2.5 rounded-xl bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -343,22 +490,6 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">REF:</span>
                                                         <span className="text-[11px] font-black text-text-primary leading-none">{h.nroInforme} {h.nota && `• ${h.nota}`}</span>
                                                     </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            if (window.confirm('¿Eliminar este registro historial?')) {
-                                                                const updatedHistorial = observacion.historialEstados.filter((_, idx) => (observacion.historialEstados.length - 1 - idx) !== i);
-                                                                // Note: 'i' is from reversed map, so we calculate original index
-                                                                // Actually, better to just pass a function to App to handle this correctly.
-                                                                alert('Solicitud de eliminación de evento enviada al sistema...');
-                                                            }
-                                                        }}
-                                                        className="w-6 h-6 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover:opacity-100"
-                                                        title="Eliminar evento del historial"
-                                                    >
-                                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -421,7 +552,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
 
             {showToast && (
                 <SuccessToast
-                    message="Ciclo de gestión registrado exitosamente en la bitácora histórica."
+                    message={isEditing ? "Los datos de la observación han sido actualizados." : "Ciclo de gestión registrado exitosamente."}
                     onClose={() => setShowToast(false)}
                 />
             )}

@@ -9,6 +9,8 @@ import CorrelativosNotas from './pages/CorrelativosNotas';
 import InformesGlobal from './pages/InformesGlobal';
 import DetalleObservacion from './pages/DetalleObservacion';
 import useObservaciones from './hooks/useObservaciones';
+import Login from './pages/Login';
+import { useAuth } from './context/AuthContext';
 import {
     MOCK_OBSERVACIONES, MOCK_CORRELATIVOS, MOCK_CORRELATIVOS_NOTAS,
     CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
@@ -19,9 +21,13 @@ import {
 import Configuracion from './pages/Configuracion.jsx';
 
 export default function App() {
+    const { user, loading } = useAuth();
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedObsId, setSelectedObsId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    if (loading) return null;
+    if (!user) return <Login />;
 
     // Hook logic - Unified state
     const {
@@ -40,8 +46,15 @@ export default function App() {
         getEstadisticas,
         editarObservacion,
         eliminarObservacion,
+        agregarCorrelativo,
+        editarCorrelativo,
+        eliminarCorrelativo,
+        agregarNota,
+        editarNota,
+        eliminarNota,
         exportData,
         importData,
+        loading: observationsLoading
     } = useObservaciones();
 
     // --- Alphabetic Sorting Logic for UI ---
@@ -103,32 +116,32 @@ export default function App() {
     }, []);
 
     // Handlers for Correlativos
-    const handleAgregarCorrelativo = useCallback((nuevo) => {
-        setCorrelativos(prev => [nuevo, ...prev]);
-    }, [setCorrelativos]);
+    const handleAgregarCorrelativo = useCallback(async (nuevo) => {
+        await agregarCorrelativo(nuevo);
+    }, [agregarCorrelativo]);
 
-    const handleEliminarCorrelativo = useCallback((id) => {
+    const handleEliminarCorrelativo = useCallback(async (id) => {
         if (!window.confirm('¿Está seguro de eliminar este correlativo?')) return;
-        setCorrelativos(prev => prev.filter(c => c.id !== id));
-    }, [setCorrelativos]);
+        await eliminarCorrelativo(id);
+    }, [eliminarCorrelativo]);
 
-    const handleEditarCorrelativo = useCallback((updated) => {
-        setCorrelativos(prev => prev.map(c => c.id === updated.id ? updated : c));
-    }, [setCorrelativos]);
+    const handleEditarCorrelativo = useCallback(async (updated) => {
+        await editarCorrelativo(updated.id, updated);
+    }, [editarCorrelativo]);
 
     // Handlers for Notas
-    const handleAgregarNota = useCallback((nuevo) => {
-        setNotas(prev => [nuevo, ...prev]);
-    }, [setNotas]);
+    const handleAgregarNota = useCallback(async (nuevo) => {
+        await agregarNota(nuevo);
+    }, [agregarNota]);
 
-    const handleEliminarNota = useCallback((id) => {
+    const handleEliminarNota = useCallback(async (id) => {
         if (!window.confirm('¿Está seguro de eliminar esta nota?')) return;
-        setNotas(prev => prev.filter(n => n.id !== id));
-    }, [setNotas]);
+        await eliminarNota(id);
+    }, [eliminarNota]);
 
-    const handleEditarNota = useCallback((updated) => {
-        setNotas(prev => prev.map(n => n.id === updated.id ? updated : n));
-    }, [setNotas]);
+    const handleEditarNota = useCallback(async (updated) => {
+        await editarNota(updated.id, updated);
+    }, [editarNota]);
 
     const selectedObs = selectedObsId ? getObservacion(selectedObsId) : null;
 
@@ -288,7 +301,15 @@ export default function App() {
                 </header>
 
                 {/* Main Content */}
-                <main className="p-4 flex-1 overflow-auto">
+                <main className="p-4 flex-1 overflow-auto relative">
+                    {observationsLoading && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Sincronizando...</span>
+                            </div>
+                        </div>
+                    )}
                     {renderContent()}
                 </main>
             </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { 
     MOCK_OBSERVACIONES, MOCK_CORRELATIVOS, MOCK_CORRELATIVOS_NOTAS,
     CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
@@ -7,79 +8,124 @@ import {
     NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA
 } from '../data/data';
 
-const STORAGE_KEY = 'auditflow_observaciones_v1';
-const CATALOGOS_KEY = 'auditflow_catalogos';
-const CORRELATIVOS_KEY = 'auditflow_correlativos_v1';
-const NOTAS_KEY = 'auditflow_notas_v1';
-const COUNTER_KEY = 'auditflow_next_id_v1';
-
-function loadFromStorage(key, defaultValue) {
-    try {
-        const saved = localStorage.getItem(key);
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            return parsed;
-        }
-    } catch (e) {
-        console.error('Error loading data:', e);
-    }
-    return defaultValue;
-}
-
 export default function useObservaciones() {
-    // 1. Observations State
-    const [observaciones, setObservaciones] = useState(() => {
-        const data = loadFromStorage(STORAGE_KEY, MOCK_OBSERVACIONES);
-        return Array.isArray(data) ? data : MOCK_OBSERVACIONES;
+    // 1. Core States
+    const [observaciones, setObservaciones] = useState([]);
+    const [correlativos, setCorrelativos] = useState([]);
+    const [notas, setNotas] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const [catalogos, setCatalogos] = useState({
+        clasificaciones: CLASIFICACIONES_CORR,
+        industrias: INDUSTRIAS_CORR,
+        tiposInforme: TIPOS_INFORME_CORR,
+        accionesSupervision: ACCIONES_SUPERVISION,
+        normas: NORMAS_CORR,
+        responsables: RESPONSABLES,
+        entidades: ENTIDADES,
+        tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
+        normasExtra: NORMAS_NOTAS_EXTRA,
+        nivelesRiesgo: NIVELES_RIESGO,
+        estados: ESTADOS,
+        tiposRiesgo: TIPOS_RIESGO,
+        tiposVisita: TIPOS_VISITA,
+        descripcionesAccion: [
+            'Visita de supervisión focalizada en controles de seguridad de la información.',
+            'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
+            'Visita de supervisión focalizada en accesos y ciberseguridad.',
+            'Análisis técnico sobre resultados de estados financieros y uso de plataformas.',
+            'Elaboración de informe técnico para Junta General Ordinaria y Extraordinaria.',
+            'Seguimiento a revisión de la implementación del sistema contable.',
+            'Atención a Junta General de Accionistas y Asambleas de Partícipes.',
+            'Respuesta a solicitud de prórroga de envío de seguimiento a plan de acción.',
+        ],
     });
 
-    // 2. Catalogos State
-    const [catalogos, setCatalogos] = useState(() => {
-        const defaultCats = {
-            clasificaciones: CLASIFICACIONES_CORR,
-            industrias: INDUSTRIAS_CORR,
-            tiposInforme: TIPOS_INFORME_CORR,
-            accionesSupervision: ACCIONES_SUPERVISION,
-            normas: NORMAS_CORR,
-            responsables: RESPONSABLES,
-            entidades: ENTIDADES,
-            tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
-            normasExtra: NORMAS_NOTAS_EXTRA,
-            nivelesRiesgo: NIVELES_RIESGO,
-            estados: ESTADOS,
-            tiposRiesgo: TIPOS_RIESGO,
-            tiposVisita: TIPOS_VISITA,
-            descripcionesAccion: [
-                'Visita de supervisión focalizada en controles de seguridad de la información.',
-                'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
-                'Visita de supervisión focalizada en accesos y ciberseguridad.',
-                'Análisis técnico sobre resultados de estados financieros y uso de plataformas.',
-                'Elaboración de informe técnico para Junta General Ordinaria y Extraordinaria.',
-                'Seguimiento a revisión de la implementación del sistema contable.',
-                'Atención a Junta General de Accionistas y Asambleas de Partícipes.',
-                'Respuesta a solicitud de prórroga de envío de seguimiento a plan de acción.',
-            ],
+    // --- Mapping Helpers ---
+    const mapFromDB = (item) => {
+        if (!item) return null;
+        return {
+            ...item,
+            entidadId: item.entidad_id,
+            tipoVisita: item.tipo_visita,
+            fechaApertura: item.fecha_apertura,
+            fechaCierre: item.fecha_cierre,
+            fechaEvalInicio: item.fecha_eval_inicio,
+            fechaEvalFinal: item.fecha_eval_final,
+            nroInforme: item.nro_informe,
+            nivelRiesgo: item.nivel_riesgo,
+            tipoRiesgo: item.tipo_riesgo,
+            fechaPlanAccion: item.fecha_plan_accion,
+            respuestaEntidad: item.respuesta_entidad,
+            fechaRespuesta: item.fecha_respuesta,
+            historialEstados: item.historial_estados || []
         };
-        return loadFromStorage(CATALOGOS_KEY, defaultCats);
-    });
+    };
 
-    // 3. Correlativos & Notas State
-    const [correlativos, setCorrelativos] = useState(() => loadFromStorage(CORRELATIVOS_KEY, MOCK_CORRELATIVOS));
-    const [notas, setNotas] = useState(() => loadFromStorage(NOTAS_KEY, MOCK_CORRELATIVOS_NOTAS));
+    const mapToDB = (item) => {
+        if (!item) return null;
+        const mapped = {};
+        if (item.entidadId !== undefined) mapped.entidad_id = item.entidadId;
+        if (item.tipoVisita !== undefined) mapped.tipo_visita = item.tipoVisita;
+        if (item.fechaApertura !== undefined) mapped.fecha_apertura = item.fechaApertura;
+        if (item.fechaCierre !== undefined) mapped.fecha_cierre = item.fechaCierre;
+        if (item.fechaEvalInicio !== undefined) mapped.fecha_eval_inicio = item.fechaEvalInicio;
+        if (item.fechaEvalFinal !== undefined) mapped.fecha_eval_final = item.fechaEvalFinal;
+        if (item.nroInforme !== undefined) mapped.nro_informe = item.nroInforme;
+        if (item.nivelRiesgo !== undefined) mapped.nivel_riesgo = item.nivelRiesgo;
+        if (item.tipoRiesgo !== undefined) mapped.tipo_riesgo = item.tipoRiesgo;
+        if (item.fechaPlanAccion !== undefined) mapped.fecha_plan_accion = item.fechaPlanAccion;
+        if (item.respuestaEntidad !== undefined) mapped.respuesta_entidad = item.respuestaEntidad;
+        if (item.fechaRespuesta !== undefined) mapped.fecha_respuesta = item.fechaRespuesta;
+        if (item.historialEstados !== undefined) mapped.historial_estados = item.historialEstados;
+        if (item.estado !== undefined) mapped.estado = item.estado;
+        if (item.titulo !== undefined) mapped.titulo = item.titulo;
+        if (item.descripcion !== undefined) mapped.descripcion = item.descripcion;
+        if (item.normativa !== undefined) mapped.normativa = item.normativa;
+        if (item.nota !== undefined) mapped.nota = item.nota;
+        if (item.responsable !== undefined) mapped.responsable = item.responsable;
+        return mapped;
+    };
 
-    // 4. ID Control
-    const [nextId, setNextId] = useState(() => {
-        const saved = localStorage.getItem(COUNTER_KEY);
-        if (saved) return parseInt(saved, 10);
-        return observaciones.length === 0 ? 1000 : Math.max(...observaciones.map(o => o.id), 999) + 1;
-    });
+    // 2. Fetch Initial Data
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            
+            // Parallel fetch of all transactional data and entities
+            const [obsRes, corrRes, notasRes, entitiesRes] = await Promise.all([
+                supabase.from('observaciones').select('*').order('creado_at', { ascending: false }),
+                supabase.from('correlativos').select('*').order('creado_at', { ascending: false }),
+                supabase.from('correlativos_notas').select('*').order('creado_at', { ascending: false }),
+                supabase.from('entidades').select('*')
+            ]);
 
-    // Persistence Effects
-    useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(observaciones)); }, [observaciones]);
-    useEffect(() => { localStorage.setItem(CATALOGOS_KEY, JSON.stringify(catalogos)); }, [catalogos]);
-    useEffect(() => { localStorage.setItem(CORRELATIVOS_KEY, JSON.stringify(correlativos)); }, [correlativos]);
-    useEffect(() => { localStorage.setItem(NOTAS_KEY, JSON.stringify(notas)); }, [notas]);
-    useEffect(() => { localStorage.setItem(COUNTER_KEY, String(nextId)); }, [nextId]);
+            if (obsRes.data) setObservaciones(obsRes.data.map(mapFromDB));
+            if (corrRes.data) setCorrelativos(corrRes.data);
+            if (notasRes.data) setNotas(notasRes.data);
+            if (entitiesRes.data && entitiesRes.data.length > 0) {
+                setCatalogos(prev => ({ ...prev, entidades: entitiesRes.data }));
+            }
+
+        } catch (error) {
+            console.error('Error fetching data from Supabase:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+        
+        // Subscription for Realtime
+        const channel = supabase.channel('schema-db-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'observaciones' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos_notas' }, () => fetchData())
+            .subscribe();
+
+        return () => supabase.removeChannel(channel);
+    }, [fetchData]);
 
     // Helpers
     const getEntidadById = useCallback((id) => {
@@ -88,98 +134,128 @@ export default function useObservaciones() {
 
     // --- Actions ---
 
-    const crearAuditoria = useCallback(({
-        entidadId,
-        tipoVisita,
-        fechaApertura,
-        fechaCierre,
-        fechaEvalInicio,
-        fechaEvalFinal,
-        nroInforme,
-        tarjetas
-    }) => {
-        const nuevas = tarjetas.map((t, idx) => {
-            const id = nextId + idx;
-            return {
-                id,
-                entidadId: parseInt(entidadId),
-                tipoVisita,
-                fechaApertura,
-                fechaCierre,
-                fechaEvalInicio,
-                fechaEvalFinal,
-                nroInforme: nroInforme || t.nroInforme || '',
-                titulo: t.titulo,
-                descripcion: t.descripcion,
-                nivelRiesgo: t.nivelRiesgo,
-                tipoRiesgo: t.tipoRiesgo || 'Operacional',
-                estado: t.estado || 'Pendiente',
-                normativa: t.normativa || '',
-                nota: t.nota || '',
-                responsable: t.responsable || '',
-                fechaPlanAccion: t.fechaPlanAccion || '',
-                respuestaEntidad: t.respuestaEntidad || '',
-                fechaRespuesta: t.fechaRespuesta || '',
-                historialEstados: [
-                    {
-                        fecha: new Date().toISOString().split('T')[0],
-                        estadoAnterior: null,
-                        estadoNuevo: t.estado || 'Pendiente',
-                        nroInforme: nroInforme || t.nroInforme || '',
-                        nota: t.nota || '',
-                        respuestaEntidad: t.respuestaEntidad || '',
-                        fechaRespuesta: t.fechaRespuesta || '',
-                        analisisAuditor: t.comentarioAuditor || 'Hallazgo registrado.',
-                        planAccion: '',
-                        fechaPlanAccion: t.fechaPlanAccion || '',
-                    },
-                ],
-            };
+    const crearAuditoria = useCallback(async (form) => {
+        const { entidadId, tipoVisita, fechaApertura, fechaCierre, fechaEvalInicio, fechaEvalFinal, nroInforme, tarjetas } = form;
+        
+        const nuevas = tarjetas.map((t) => mapToDB({
+            entidadId: parseInt(entidadId),
+            tipoVisita,
+            fechaApertura,
+            fechaCierre,
+            fechaEvalInicio,
+            fechaEvalFinal,
+            nroInforme: nroInforme || t.nroInforme || '',
+            titulo: t.titulo,
+            descripcion: t.descripcion,
+            nivelRiesgo: t.nivelRiesgo,
+            tipoRiesgo: t.tipoRiesgo || 'Operacional',
+            estado: t.estado || 'Pendiente',
+            normativa: t.normativa || '',
+            nota: t.nota || '',
+            responsable: t.responsable || '',
+            fechaPlanAccion: t.fechaPlanAccion || '',
+            respuestaEntidad: t.respuestaEntidad || '',
+            fechaRespuesta: t.fechaRespuesta || '',
+            historialEstados: [
+                {
+                    fecha: new Date().toISOString().split('T')[0],
+                    estadoAnterior: null,
+                    estadoNuevo: t.estado || 'Pendiente',
+                    nroInforme: nroInforme || t.nroInforme || '',
+                    nota: t.nota || '',
+                    respuestaEntidad: t.respuestaEntidad || '',
+                    fechaRespuesta: t.fechaRespuesta || '',
+                    analisisAuditor: t.comentarioAuditor || 'Hallazgo registrado.',
+                    planAccion: '',
+                    fechaPlanAccion: t.fechaPlanAccion || '',
+                },
+            ],
+        }));
+
+        const { data, error } = await supabase.from('observaciones').insert(nuevas).select();
+        if (error) throw error;
+        return data.map(n => n.id);
+    }, []);
+
+    const cambiarEstado = useCallback(async (id, cambio) => {
+        const obs = observaciones.find(o => o.id === id);
+        if (!obs) return;
+
+        const nuevoHistorial = {
+            fecha: new Date().toISOString().split('T')[0],
+            estadoAnterior: obs.estado,
+            estadoNuevo: cambio.nuevoEstado,
+            nroInforme: cambio.nroInforme || obs.nroInforme,
+            nota: cambio.nota || '',
+            respuestaEntidad: cambio.respuestaEntidad || '',
+            fechaRespuesta: cambio.fechaRespuesta || '',
+            analisisAuditor: cambio.analisisAuditor || '',
+            planAccion: cambio.planAccion || '',
+            fechaPlanAccion: cambio.fechaPlanAccion || '',
+        };
+
+        const updateData = mapToDB({
+            estado: cambio.nuevoEstado,
+            nroInforme: cambio.nroInforme || obs.nroInforme,
+            nota: cambio.nota || obs.nota,
+            fechaPlanAccion: cambio.fechaPlanAccion || obs.fechaPlanAccion,
+            historialEstados: [...(obs.historialEstados || []), nuevoHistorial],
         });
 
-        setObservaciones(prev => [...prev, ...nuevas]);
-        setNextId(prev => prev + tarjetas.length);
-        return nuevas.map(n => n.id);
-    }, [nextId]);
+        const { error } = await supabase.from('observaciones')
+            .update(updateData)
+            .eq('id', id);
+        
+        if (error) console.error('Error updating state:', error);
+    }, [observaciones]);
 
-    const cambiarEstado = useCallback((id, cambio) => {
-        setObservaciones(prev =>
-            prev.map(obs => {
-                if (obs.id !== id) return obs;
-                const nuevoHistorial = {
-                    fecha: new Date().toISOString().split('T')[0],
-                    estadoAnterior: obs.estado,
-                    estadoNuevo: cambio.nuevoEstado,
-                    nroInforme: cambio.nroInforme || obs.nroInforme,
-                    nota: cambio.nota || '',
-                    respuestaEntidad: cambio.respuestaEntidad || '',
-                    fechaRespuesta: cambio.fechaRespuesta || '',
-                    analisisAuditor: cambio.analisisAuditor || '',
-                    planAccion: cambio.planAccion || '',
-                    fechaPlanAccion: cambio.fechaPlanAccion || '',
-                };
-                return {
-                    ...obs,
-                    estado: cambio.nuevoEstado,
-                    nroInforme: cambio.nroInforme || obs.nroInforme,
-                    nota: cambio.nota || obs.nota,
-                    fechaPlanAccion: cambio.fechaPlanAccion || obs.fechaPlanAccion,
-                    historialEstados: [...obs.historialEstados, nuevoHistorial],
-                };
-            })
-        );
+    const editarObservacion = useCallback(async (id, data) => {
+        const { error } = await supabase.from('observaciones')
+            .update(mapToDB(data))
+            .eq('id', id);
+        if (error) console.error('Error editing observation:', error);
     }, []);
 
-    const editarObservacion = useCallback((id, data) => {
-        setObservaciones(prev => prev.map(obs => {
-            if (obs.id !== id) return obs;
-            return { ...obs, ...data };
-        }));
-    }, []);
-
-    const eliminarObservacion = useCallback((id) => {
+    const eliminarObservacion = useCallback(async (id) => {
         if (!window.confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.')) return;
-        setObservaciones(prev => prev.filter(obs => obs.id !== id));
+        const { error } = await supabase.from('observaciones')
+            .delete()
+            .eq('id', id);
+        if (error) console.error('Error deleting observation:', error);
+    }, []);
+
+    // --- Correlativos Actions ---
+    const agregarCorrelativo = useCallback(async (nuevo) => {
+        const { data, error } = await supabase.from('correlativos').insert([nuevo]).select();
+        if (error) console.error('Error adding correlativo:', error);
+        return data ? data[0] : null;
+    }, []);
+
+    const editarCorrelativo = useCallback(async (id, data) => {
+        const { error } = await supabase.from('correlativos').update(data).eq('id', id);
+        if (error) console.error('Error editing correlativo:', error);
+    }, []);
+
+    const eliminarCorrelativo = useCallback(async (id) => {
+        const { error } = await supabase.from('correlativos').delete().eq('id', id);
+        if (error) console.error('Error deleting correlativo:', error);
+    }, []);
+
+    // --- Notas Actions ---
+    const agregarNota = useCallback(async (nuevo) => {
+        const { data, error } = await supabase.from('correlativos_notas').insert([nuevo]).select();
+        if (error) console.error('Error adding nota:', error);
+        return data ? data[0] : null;
+    }, []);
+
+    const editarNota = useCallback(async (id, data) => {
+        const { error } = await supabase.from('correlativos_notas').update(data).eq('id', id);
+        if (error) console.error('Error editing nota:', error);
+    }, []);
+
+    const eliminarNota = useCallback(async (id) => {
+        const { error } = await supabase.from('correlativos_notas').delete().eq('id', id);
+        if (error) console.error('Error deleting nota:', error);
     }, []);
 
     const getObservacion = useCallback((id) => {
@@ -238,42 +314,12 @@ export default function useObservaciones() {
         return { total, porEstado, porEntidad, porRiesgo, cumplimientoGlobal };
     }, [observaciones]);
 
-    // --- Data Management (Export/Import) ---
     const exportData = useCallback(() => {
-        try {
-            const data = {
-                observaciones,
-                nextId,
-                correlativos,
-                notas,
-                catalogos,
-                fechaRespaldo: new Date().toISOString(),
-                version: "1.1"
-            };
-            return data;
-        } catch (e) {
-            console.error("Error exporting data:", e);
-            return null;
-        }
-    }, [observaciones, nextId, correlativos, notas, catalogos]);
+        return { message: "Función migrada a Supabase. Use el dashboard de Supabase para backups." };
+    }, []);
 
-    const importData = useCallback((data) => {
-        try {
-            if (!data.observaciones || !data.catalogos) {
-                throw new Error("Formato de archivo no válido");
-            }
-
-            setObservaciones(data.observaciones);
-            setNextId(data.nextId || 1000);
-            setCorrelativos(data.correlativos || []);
-            setNotas(data.notas || []);
-            setCatalogos(data.catalogos);
-            
-            return true;
-        } catch (e) {
-            console.error("Error importing data:", e);
-            return false;
-        }
+    const importData = useCallback(() => {
+        return false;
     }, []);
 
     return {
@@ -292,7 +338,14 @@ export default function useObservaciones() {
         getEstadisticas,
         editarObservacion,
         eliminarObservacion,
+        agregarCorrelativo,
+        editarCorrelativo,
+        eliminarCorrelativo,
+        agregarNota,
+        editarNota,
+        eliminarNota,
         exportData,
         importData,
+        loading
     };
 }
