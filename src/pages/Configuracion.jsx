@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from '../components/SharedComponents';
 
-export default function Configuracion({ catalogos, setCatalogos, exportData, importData }) {
+export default function Configuracion({ catalogos, setCatalogos, exportData, importData, updateConfig }) {
     const [activeSubTab, setActiveSubTab] = useState('correlativos');
     const [editingList, setEditingList] = useState(null); // { key: string, label: string }
     const [newItem, setNewItem] = useState('');
@@ -31,33 +31,55 @@ export default function Configuracion({ catalogos, setCatalogos, exportData, imp
         { key: 'tiposVisita', label: 'Tipos de Visita' },
     ];
 
-    function handleAdd(key, isComplex) {
+    async function handleAdd(key, isComplex) {
         if (!newItem.trim()) return;
-        setCatalogos(prev => {
-            const list = [...(prev[key] || [])];
-            if (isComplex) {
-                if (key === 'normas') {
-                    const [codigo, ...rest] = newItem.split('|').map(s => s.trim());
-                    list.push({ codigo, nombre: rest.join(' ') });
-                } else if (key === 'entidades') {
-                    const [nombre, tipo, categoria] = newItem.split('|').map(s => s.trim());
-                    list.push({ id: Date.now(), nombre, tipo: tipo || 'Banco', categoria: categoria || 'General' });
-                }
-            } else {
-                list.push(newItem.trim());
+        
+        const list = [...(catalogos[key] || [])];
+        if (isComplex) {
+            if (key === 'normas') {
+                const [codigo, ...rest] = newItem.split('|').map(s => s.trim());
+                list.push({ codigo, nombre: rest.join(' ') });
+            } else if (key === 'entidades') {
+                const [nombre, tipo, categoria] = newItem.split('|').map(s => s.trim());
+                list.push({ id: Date.now(), nombre, tipo: tipo || 'Banco', categoria: categoria || 'General' });
             }
-            return { ...prev, [key]: list };
-        });
+        } else {
+            list.push(newItem.trim());
+        }
+
+        // Actualización local para respuesta inmediata
+        setCatalogos(prev => ({ ...prev, [key]: list }));
         setNewItem('');
+
+        // Persistencia en Supabase
+        if (updateConfig) {
+            try {
+                await updateConfig(key, list);
+            } catch (err) {
+                console.error("Error al guardar configuración:", err);
+                alert("Error al guardar en la base de datos");
+            }
+        }
     }
 
-    function handleDelete(key, index) {
+    async function handleDelete(key, index) {
         if (!window.confirm('¿Eliminar este elemento?')) return;
-        setCatalogos(prev => {
-            const list = [...(prev[key] || [])];
-            list.splice(index, 1);
-            return { ...prev, [key]: list };
-        });
+
+        const list = [...(catalogos[key] || [])];
+        list.splice(index, 1);
+
+        // Actualización local
+        setCatalogos(prev => ({ ...prev, [key]: list }));
+
+        // Persistencia en Supabase
+        if (updateConfig) {
+            try {
+                await updateConfig(key, list);
+            } catch (err) {
+                console.error("Error al eliminar de configuración:", err);
+                alert("Error al actualizar la base de datos");
+            }
+        }
     }
 
     const exportarDatos = async () => {

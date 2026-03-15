@@ -14,6 +14,7 @@ export default function useObservaciones() {
     const [correlativos, setCorrelativos] = useState([]);
     const [notas, setNotas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [catalogos, setCatalogos] = useState({
         clasificaciones: CLASIFICACIONES_CORR,
@@ -42,23 +43,53 @@ export default function useObservaciones() {
     });
 
     // --- Mapping Helpers ---
+    const ensureString = (val) => {
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'object') {
+            console.warn('[AuditFlow] Unexpected object in string field:', val);
+            return JSON.stringify(val);
+        }
+        return String(val);
+    };
+
     const mapFromDB = (item) => {
         if (!item) return null;
         return {
             ...item,
+            titulo: ensureString(item.titulo),
+            descripcion: ensureString(item.descripcion),
+            normativa: ensureString(item.normativa),
+            responsable: ensureString(item.responsable),
             entidadId: item.entidad_id,
             tipoVisita: item.tipo_visita,
             fechaApertura: item.fecha_apertura,
             fechaCierre: item.fecha_cierre,
             fechaEvalInicio: item.fecha_eval_inicio,
             fechaEvalFinal: item.fecha_eval_final,
-            nroInforme: item.nro_informe,
+            nroInforme: ensureString(item.nro_informe),
             nivelRiesgo: item.nivel_riesgo,
             tipoRiesgo: item.tipo_riesgo,
             fechaPlanAccion: item.fecha_plan_accion,
-            respuestaEntidad: item.respuesta_entidad,
+            respuestaEntidad: ensureString(item.respuesta_entidad),
             fechaRespuesta: item.fecha_respuesta,
             historialEstados: item.historial_estados || []
+        };
+    };
+
+    const mapCorrelativoFromDB = (item) => {
+        if (!item) return null;
+        return {
+            ...item,
+            codigo: ensureString(item.codigo),
+            asunto: ensureString(item.asunto),
+            responsable: ensureString(item.responsable),
+            entidad: ensureString(item.entidad),
+            tipoInforme: ensureString(item.tipo_informe || item.tipoInforme),
+            clasificacion: ensureString(item.clasificacion),
+            industria: ensureString(item.industria),
+            accionSupervision: ensureString(item.accion_supervision || item.accionSupervision),
+            descripcionAccion: ensureString(item.descripcion_accion || item.descripcionAccion),
+            nota: ensureString(item.nota)
         };
     };
 
@@ -107,6 +138,7 @@ export default function useObservaciones() {
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             
             // Parallel fetch — each query is resilient; a missing table won't crash the app
             const [obsRes, corrRes, notasRes, entitiesRes, settingsRes] = await Promise.all([
@@ -117,9 +149,20 @@ export default function useObservaciones() {
                 safeFetch(supabase.from('settings').select('*')),
             ]);
 
+            // Detect Schema Errors
+            const errors = [obsRes, corrRes, notasRes, entitiesRes, settingsRes].filter(r => r.error);
+            if (errors.length > 0) {
+                const msg = errors.map(e => e.error.message).join(' ');
+                if (msg.includes('does not exist')) {
+                    setError('La base de datos no está inicializada (faltan tablas).');
+                } else if (msg.includes('column')) {
+                    setError('Esquema desactualizado (faltan columnas). Por favor aplique el SQL de migración.');
+                }
+            }
+
             if (obsRes.data.length > 0 || !obsRes.error) setObservaciones(obsRes.data.map(mapFromDB));
-            if (corrRes.data.length > 0 || !corrRes.error) setCorrelativos(corrRes.data);
-            if (notasRes.data.length > 0 || !notasRes.error) setNotas(notasRes.data);
+            if (corrRes.data.length > 0 || !corrRes.error) setCorrelativos(corrRes.data.map(mapCorrelativoFromDB));
+            if (notasRes.data.length > 0 || !notasRes.error) setNotas(notasRes.data.map(ensureString));
             if (entitiesRes.data.length > 0) {
                 setCatalogos(prev => ({ ...prev, entidades: entitiesRes.data }));
             }
@@ -135,6 +178,7 @@ export default function useObservaciones() {
 
         } catch (error) {
             console.error('Error in fetchData:', error);
+            setError('Error de conexión o configuración.');
         } finally {
             setLoading(false);
         }
@@ -202,8 +246,10 @@ export default function useObservaciones() {
 
         const { data, error } = await supabase.from('observaciones').insert(nuevas).select();
         if (error) throw error;
+        
+        await fetchData(); // Refrescar para ver los nuevos registros
         return data.map(n => n.id);
-    }, []);
+    }, [fetchData]);
 
     const cambiarEstado = useCallback(async (id, cambio) => {
         const obs = observaciones.find(o => o.id === id);
@@ -447,13 +493,19 @@ export default function useObservaciones() {
                             categoria: e.categoria || 'General',
                         })).filter(e => e.nombre);
                         const { error: entErr } = await supabase.from('entidades').upsert(entPayload, { onConflict: 'id', ignoreDuplicates: false });
-                        if (entErr) console.warn('[Import] Entidades:', entErr.message);
+                        if (entErr) {
+                            console.error('[Import] Entidades:', entErr);
+                            throw new Error(`Error en Entidades: ${entErr.message}`);
+                        }
                     }
                     const otherCats = Object.entries(catLS).filter(([k]) => k !== 'entidades');
                     if (otherCats.length > 0) {
                         const settingsPayload = otherCats.map(([key, value]) => ({ key, value }));
                         const { error: setErr } = await supabase.from('settings').upsert(settingsPayload, { onConflict: 'key' });
-                        if (setErr) console.warn('[Import] Settings:', setErr.message);
+                        if (setErr) {
+                            console.error('[Import] Settings:', setErr);
+                            throw new Error(`Error en Configuración/Catálogos: ${setErr.message}`);
+                        }
                     }
                 }
 
@@ -480,7 +532,11 @@ export default function useObservaciones() {
                         anulado: c.anulado || false,
                     }));
                     const { error: corrErr } = await supabase.from('correlativos').upsert(corrPayload, { onConflict: 'codigo', ignoreDuplicates: true });
-                    if (corrErr) console.warn('[Import] Correlativos:', corrErr.message);
+                    if (corrErr) {
+                        console.error('[Import] Correlativos:', corrErr);
+                        const detail = corrErr.message.includes('column') ? `Falta una columna en la tabla 'correlativos'. Por favor ejecute el SQL de migración.` : corrErr.message;
+                        throw new Error(`Error en Correlativos: ${detail}`);
+                    }
                 }
 
                 // 3. Observaciones — map to DB schema, insert fresh (no local IDs)
@@ -507,7 +563,11 @@ export default function useObservaciones() {
                         historial_estados: o.historialEstados || o.historial_estados || [],
                     }));
                     const { error: obsErr } = await supabase.from('observaciones').insert(obsPayload);
-                    if (obsErr) console.warn('[Import] Observaciones:', obsErr.message);
+                    if (obsErr) {
+                        console.error('[Import] Observaciones:', obsErr);
+                        const detail = obsErr.message.includes('column') ? `Falta una columna en la tabla 'observaciones'. Por favor ejecute el SQL de migración.` : obsErr.message;
+                        throw new Error(`Error en Observaciones: ${detail}`);
+                    }
                 }
 
                 console.log(`[Import] localStorage backup OK: ${corrLS.length} correlativos, ${obsLS.length} observaciones.`);
@@ -545,6 +605,18 @@ export default function useObservaciones() {
         }
     }, [fetchData]);
 
+    const updateConfig = useCallback(async (key, value) => {
+        const { error } = await supabase
+            .from('settings')
+            .upsert({ key, value }, { onConflict: 'key' });
+        
+        if (error) {
+            console.error(`Error actualizando configuracion [${key}]:`, error);
+            throw error;
+        }
+        await fetchData();
+    }, [fetchData]);
+
     return {
         observaciones,
         setObservaciones,
@@ -570,6 +642,9 @@ export default function useObservaciones() {
         eliminarNota,
         exportData,
         importData,
+        updateConfig,
+        error,
+        setError,
         loading
     };
 }

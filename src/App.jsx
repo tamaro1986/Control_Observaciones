@@ -51,6 +51,8 @@ export default function App() {
         eliminarNota,
         exportData,
         importData,
+        error,
+        setError,
         loading: observationsLoading
     } = useObservaciones();
 
@@ -223,6 +225,7 @@ export default function App() {
                         setCatalogos={setCatalogos}
                         exportData={exportData}
                         importData={importData}
+                        updateConfig={updateConfig}
                     />
                 );
             case 'reportes':
@@ -285,35 +288,35 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-surface-hover/50 rounded-xl border border-border/40 backdrop-blur-sm">
-                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                {new Date().toLocaleDateString('es-SV', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                        </div>
-
-                        <button className="relative w-9 h-9 rounded-xl hover:bg-surface-hover flex items-center justify-center transition-colors cursor-pointer group">
-                            <svg className="w-4.5 h-4.5 text-slate-500 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white" />
-                        </button>
+                        {/* Aquí irían las acciones globales si hubiera */}
                     </div>
                 </header>
 
-                {/* Main Content */}
-                <main className="p-4 flex-1 overflow-auto relative">
-                    {observationsLoading && (
-                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Sincronizando...</span>
+                {error && (
+                    <div className="m-4 p-4 bg-red-50 border-l-4 border-red-500 rounded flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center gap-3">
+                            <i className="ri-error-warning-fill text-red-500 text-xl"></i>
+                            <div>
+                                <p className="text-red-800 font-bold text-sm">Problema con la Base de Datos</p>
+                                <p className="text-red-600 text-xs">{error}</p>
                             </div>
                         </div>
-                    )}
-                    {renderContent()}
+                        <button 
+                            onClick={() => setError(null)}
+                            className="p-1 hover:bg-red-100 rounded text-red-400 transition-colors"
+                        >
+                            <i className="ri-close-line"></i>
+                        </button>
+                    </div>
+                )}
+
+                <main className="flex-1 p-8 overflow-y-auto">
+                    {observationsLoading ? (
+                        <div className="h-full flex flex-col items-center justify-center space-y-4 animate-pulse">
+                             <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sincronizando con Supabase...</p>
+                        </div>
+                    ) : renderContent()}
                 </main>
             </div>
         </div>
