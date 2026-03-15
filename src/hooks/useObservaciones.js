@@ -1,58 +1,93 @@
 import { useState, useCallback, useEffect } from 'react';
-import { MOCK_OBSERVACIONES } from '../data/data';
+import { 
+    MOCK_OBSERVACIONES, MOCK_CORRELATIVOS, MOCK_CORRELATIVOS_NOTAS,
+    CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
+    ACCIONES_SUPERVISION, NORMAS_CORR, RESPONSABLES, ENTIDADES,
+    TIPOS_CORRESPONDENCIA, NORMAS_NOTAS_EXTRA,
+    NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA
+} from '../data/data';
+
 const STORAGE_KEY = 'auditflow_observaciones_v1';
+const CATALOGOS_KEY = 'auditflow_catalogos';
+const CORRELATIVOS_KEY = 'auditflow_correlativos_v1';
+const NOTAS_KEY = 'auditflow_notas_v1';
 const COUNTER_KEY = 'auditflow_next_id_v1';
 
-function loadFromStorage() {
+function loadFromStorage(key, defaultValue) {
     try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const saved = localStorage.getItem(key);
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            return parsed;
         }
     } catch (e) {
         console.error('Error loading data:', e);
     }
-    // Seed initial data if nothing found or empty
-    return MOCK_OBSERVACIONES;
-}
-
-function saveToStorage(data) {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-        console.error('Error saving data:', e);
-    }
-}
-
-function loadNextId(observaciones) {
-    try {
-        const saved = localStorage.getItem(COUNTER_KEY);
-        if (saved) return parseInt(saved, 10);
-    } catch (e) { /* ignore */ }
-    if (observaciones.length === 0) return 1000;
-    return Math.max(...observaciones.map(o => o.id), 999) + 1;
-}
-
-function saveNextId(id) {
-    try {
-        localStorage.setItem(COUNTER_KEY, String(id));
-    } catch (e) { /* ignore */ }
+    return defaultValue;
 }
 
 export default function useObservaciones() {
-    const [observaciones, setObservaciones] = useState(() => loadFromStorage());
-    const [nextId, setNextId] = useState(() => loadNextId(loadFromStorage()));
+    // 1. Observations State
+    const [observaciones, setObservaciones] = useState(() => {
+        const data = loadFromStorage(STORAGE_KEY, MOCK_OBSERVACIONES);
+        return Array.isArray(data) ? data : MOCK_OBSERVACIONES;
+    });
 
-    useEffect(() => {
-        saveToStorage(observaciones);
-    }, [observaciones]);
+    // 2. Catalogos State
+    const [catalogos, setCatalogos] = useState(() => {
+        const defaultCats = {
+            clasificaciones: CLASIFICACIONES_CORR,
+            industrias: INDUSTRIAS_CORR,
+            tiposInforme: TIPOS_INFORME_CORR,
+            accionesSupervision: ACCIONES_SUPERVISION,
+            normas: NORMAS_CORR,
+            responsables: RESPONSABLES,
+            entidades: ENTIDADES,
+            tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
+            normasExtra: NORMAS_NOTAS_EXTRA,
+            nivelesRiesgo: NIVELES_RIESGO,
+            estados: ESTADOS,
+            tiposRiesgo: TIPOS_RIESGO,
+            tiposVisita: TIPOS_VISITA,
+            descripcionesAccion: [
+                'Visita de supervisión focalizada en controles de seguridad de la información.',
+                'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
+                'Visita de supervisión focalizada en accesos y ciberseguridad.',
+                'Análisis técnico sobre resultados de estados financieros y uso de plataformas.',
+                'Elaboración de informe técnico para Junta General Ordinaria y Extraordinaria.',
+                'Seguimiento a revisión de la implementación del sistema contable.',
+                'Atención a Junta General de Accionistas y Asambleas de Partícipes.',
+                'Respuesta a solicitud de prórroga de envío de seguimiento a plan de acción.',
+            ],
+        };
+        return loadFromStorage(CATALOGOS_KEY, defaultCats);
+    });
 
-    useEffect(() => {
-        saveNextId(nextId);
-    }, [nextId]);
+    // 3. Correlativos & Notas State
+    const [correlativos, setCorrelativos] = useState(() => loadFromStorage(CORRELATIVOS_KEY, MOCK_CORRELATIVOS));
+    const [notas, setNotas] = useState(() => loadFromStorage(NOTAS_KEY, MOCK_CORRELATIVOS_NOTAS));
 
-    // Create a new audit with multiple observations
+    // 4. ID Control
+    const [nextId, setNextId] = useState(() => {
+        const saved = localStorage.getItem(COUNTER_KEY);
+        if (saved) return parseInt(saved, 10);
+        return observaciones.length === 0 ? 1000 : Math.max(...observaciones.map(o => o.id), 999) + 1;
+    });
+
+    // Persistence Effects
+    useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(observaciones)); }, [observaciones]);
+    useEffect(() => { localStorage.setItem(CATALOGOS_KEY, JSON.stringify(catalogos)); }, [catalogos]);
+    useEffect(() => { localStorage.setItem(CORRELATIVOS_KEY, JSON.stringify(correlativos)); }, [correlativos]);
+    useEffect(() => { localStorage.setItem(NOTAS_KEY, JSON.stringify(notas)); }, [notas]);
+    useEffect(() => { localStorage.setItem(COUNTER_KEY, String(nextId)); }, [nextId]);
+
+    // Helpers
+    const getEntidadById = useCallback((id) => {
+        return catalogos.entidades.find(e => String(e.id) === String(id)) || null;
+    }, [catalogos.entidades]);
+
+    // --- Actions ---
+
     const crearAuditoria = useCallback(({
         entidadId,
         tipoVisita,
@@ -73,7 +108,7 @@ export default function useObservaciones() {
                 fechaCierre,
                 fechaEvalInicio,
                 fechaEvalFinal,
-                nroInforme: nroInforme || t.nroInforme || '', // Header takes precedence
+                nroInforme: nroInforme || t.nroInforme || '',
                 titulo: t.titulo,
                 descripcion: t.descripcion,
                 nivelRiesgo: t.nivelRiesgo,
@@ -83,7 +118,6 @@ export default function useObservaciones() {
                 nota: t.nota || '',
                 responsable: t.responsable || '',
                 fechaPlanAccion: t.fechaPlanAccion || '',
-                // Cycle finishing details (Sections 3 & 4)
                 respuestaEntidad: t.respuestaEntidad || '',
                 fechaRespuesta: t.fechaRespuesta || '',
                 historialEstados: [
@@ -108,7 +142,6 @@ export default function useObservaciones() {
         return nuevas.map(n => n.id);
     }, [nextId]);
 
-    // Update the state of an observation (unlimited modifications)
     const cambiarEstado = useCallback((id, cambio) => {
         setObservaciones(prev =>
             prev.map(obs => {
@@ -137,7 +170,6 @@ export default function useObservaciones() {
         );
     }, []);
 
-    // Edit an existing observation
     const editarObservacion = useCallback((id, data) => {
         setObservaciones(prev => prev.map(obs => {
             if (obs.id !== id) return obs;
@@ -145,18 +177,15 @@ export default function useObservaciones() {
         }));
     }, []);
 
-    // Delete an observation
     const eliminarObservacion = useCallback((id) => {
         if (!window.confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.')) return;
         setObservaciones(prev => prev.filter(obs => obs.id !== id));
     }, []);
 
-    // Get a single observation by id
     const getObservacion = useCallback((id) => {
         return observaciones.find(o => o.id === id) || null;
     }, [observaciones]);
 
-    // Filter observations
     const filtrar = useCallback((filtros = {}) => {
         let resultado = [...observaciones];
 
@@ -170,13 +199,10 @@ export default function useObservaciones() {
             resultado = resultado.filter(o => filtros.estados.includes(o.estado));
         }
         if (filtros.anio) {
-            resultado = resultado.filter(o => o.fechaInicio && o.fechaInicio.startsWith(String(filtros.anio)));
-        }
-        if (filtros.fechaDesde) {
-            resultado = resultado.filter(o => o.fechaInicio >= filtros.fechaDesde);
-        }
-        if (filtros.fechaHasta) {
-            resultado = resultado.filter(o => o.fechaFin <= filtros.fechaHasta);
+            resultado = resultado.filter(o => {
+                const year = o.fechaApertura ? o.fechaApertura.substring(0, 4) : '';
+                return year === String(filtros.anio);
+            });
         }
         if (filtros.keyword) {
             const kw = filtros.keyword.toLowerCase();
@@ -189,11 +215,9 @@ export default function useObservaciones() {
             );
         }
 
-        // Always sort results alphabetically by title
         return resultado.sort((a, b) => b.id - a.id);
     }, [observaciones]);
 
-    // Get stats
     const getEstadisticas = useCallback(() => {
         const total = observaciones.length;
         const porEstado = {};
@@ -214,8 +238,53 @@ export default function useObservaciones() {
         return { total, porEstado, porEntidad, porRiesgo, cumplimientoGlobal };
     }, [observaciones]);
 
+    // --- Data Management (Export/Import) ---
+    const exportData = useCallback(() => {
+        try {
+            const data = {
+                observaciones,
+                nextId,
+                correlativos,
+                notas,
+                catalogos,
+                fechaRespaldo: new Date().toISOString(),
+                version: "1.1"
+            };
+            return data;
+        } catch (e) {
+            console.error("Error exporting data:", e);
+            return null;
+        }
+    }, [observaciones, nextId, correlativos, notas, catalogos]);
+
+    const importData = useCallback((data) => {
+        try {
+            if (!data.observaciones || !data.catalogos) {
+                throw new Error("Formato de archivo no válido");
+            }
+
+            setObservaciones(data.observaciones);
+            setNextId(data.nextId || 1000);
+            setCorrelativos(data.correlativos || []);
+            setNotas(data.notas || []);
+            setCatalogos(data.catalogos);
+            
+            return true;
+        } catch (e) {
+            console.error("Error importing data:", e);
+            return false;
+        }
+    }, []);
+
     return {
-        observaciones: [...observaciones].sort((a, b) => b.id - a.id),
+        observaciones: [...observaciones],
+        catalogos,
+        setCatalogos,
+        correlativos,
+        setCorrelativos,
+        notas,
+        setNotas,
+        getEntidadById,
         crearAuditoria,
         cambiarEstado,
         getObservacion,
@@ -223,5 +292,7 @@ export default function useObservaciones() {
         getEstadisticas,
         editarObservacion,
         eliminarObservacion,
+        exportData,
+        importData,
     };
 }

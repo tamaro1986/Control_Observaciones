@@ -23,71 +23,16 @@ export default function App() {
     const [selectedObsId, setSelectedObsId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-    // Correlativos Persistence
-    const [correlativos, setCorrelativos] = useState(() => {
-        try {
-            const saved = localStorage.getItem('auditflow_correlativos_v1');
-            return saved ? JSON.parse(saved) : MOCK_CORRELATIVOS;
-        } catch (e) { return MOCK_CORRELATIVOS; }
-    });
-
-    // Notas Persistence
-    const [notas, setNotas] = useState(() => {
-        try {
-            const saved = localStorage.getItem('auditflow_notas_v1');
-            return saved ? JSON.parse(saved) : MOCK_CORRELATIVOS_NOTAS;
-        } catch (e) { return MOCK_CORRELATIVOS_NOTAS; }
-    });
-
-    // Catalogos Persistence
-    const [catalogos, setCatalogos] = useState(() => {
-        const defaultCats = {
-            clasificaciones: CLASIFICACIONES_CORR,
-            industrias: INDUSTRIAS_CORR,
-            tiposInforme: TIPOS_INFORME_CORR,
-            accionesSupervision: ACCIONES_SUPERVISION,
-            normas: NORMAS_CORR,
-            responsables: RESPONSABLES,
-            entidades: ENTIDADES,
-            tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
-            normasExtra: NORMAS_NOTAS_EXTRA,
-            nivelesRiesgo: NIVELES_RIESGO.map(n => n.value),
-            estados: ESTADOS.map(e => e.value),
-            tiposRiesgo: TIPOS_RIESGO,
-            tiposVisita: TIPOS_VISITA,
-            descripcionesAccion: [
-                'Visita de supervisión focalizada en controles de seguridad de la información.',
-                'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
-                'Visita de supervisión focalizada en accesos y ciberseguridad.',
-                'Análisis técnico sobre resultados de estados financieros y uso de plataformas.',
-                'Elaboración de informe técnico para Junta General Ordinaria y Extraordinaria.',
-                'Seguimiento a revisión de la implementación del sistema contable.',
-                'Atención a Junta General de Accionistas y Asambleas de Partícipes.',
-                'Respuesta a solicitud de prórroga de envío de seguimiento a plan de acción.',
-            ],
-        };
-        try {
-            const saved = localStorage.getItem('auditflow_catalogos');
-            return saved ? JSON.parse(saved) : defaultCats;
-        } catch (e) { return defaultCats; }
-    });
-
-    // Persistent storage effects
-    useEffect(() => {
-        localStorage.setItem('auditflow_correlativos_v1', JSON.stringify(correlativos));
-    }, [correlativos]);
-
-    useEffect(() => {
-        localStorage.setItem('auditflow_notas_v1', JSON.stringify(notas));
-    }, [notas]);
-
-    useEffect(() => {
-        localStorage.setItem('auditflow_catalogos', JSON.stringify(catalogos));
-    }, [catalogos]);
-
-    // Hook logic
+    // Hook logic - Unified state
     const {
         observaciones,
+        catalogos,
+        setCatalogos,
+        correlativos,
+        setCorrelativos,
+        notas,
+        setNotas,
+        getEntidadById,
         crearAuditoria,
         cambiarEstado,
         getObservacion,
@@ -95,9 +40,11 @@ export default function App() {
         getEstadisticas,
         editarObservacion,
         eliminarObservacion,
+        exportData,
+        importData,
     } = useObservaciones();
 
-    // --- Alphabetic Sorting Logic ---
+    // --- Alphabetic Sorting Logic for UI ---
     const sortedCorrelativos = useMemo(() => {
         return [...correlativos].sort((a, b) => {
             if (b.año !== a.año) return b.año - a.año;
@@ -120,6 +67,13 @@ export default function App() {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
                 } else if (key === 'entidades') {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+                } else if (key === 'nivelesRiesgo' || key === 'estados') {
+                    // Preservar orden si son objetos con value
+                    sorted[key] = [...sorted[key]].sort((a, b) => {
+                        const valA = typeof a === 'object' ? a.value : a;
+                        const valB = typeof b === 'object' ? b.value : b;
+                        return String(valA).localeCompare(String(valB));
+                    });
                 } else {
                     sorted[key] = [...sorted[key]].sort((a, b) => String(a).localeCompare(String(b)));
                 }
@@ -127,7 +81,6 @@ export default function App() {
         });
         return sorted;
     }, [catalogos]);
-
 
     const handleSelectObservacion = useCallback((id, view = 'detalle') => {
         setSelectedObsId(id);
@@ -152,30 +105,30 @@ export default function App() {
     // Handlers for Correlativos
     const handleAgregarCorrelativo = useCallback((nuevo) => {
         setCorrelativos(prev => [nuevo, ...prev]);
-    }, []);
+    }, [setCorrelativos]);
 
     const handleEliminarCorrelativo = useCallback((id) => {
         if (!window.confirm('¿Está seguro de eliminar este correlativo?')) return;
         setCorrelativos(prev => prev.filter(c => c.id !== id));
-    }, []);
+    }, [setCorrelativos]);
 
     const handleEditarCorrelativo = useCallback((updated) => {
         setCorrelativos(prev => prev.map(c => c.id === updated.id ? updated : c));
-    }, []);
+    }, [setCorrelativos]);
 
     // Handlers for Notas
     const handleAgregarNota = useCallback((nuevo) => {
         setNotas(prev => [nuevo, ...prev]);
-    }, []);
+    }, [setNotas]);
 
     const handleEliminarNota = useCallback((id) => {
         if (!window.confirm('¿Está seguro de eliminar esta nota?')) return;
         setNotas(prev => prev.filter(n => n.id !== id));
-    }, []);
+    }, [setNotas]);
 
     const handleEditarNota = useCallback((updated) => {
         setNotas(prev => prev.map(n => n.id === updated.id ? updated : n));
-    }, []);
+    }, [setNotas]);
 
     const selectedObs = selectedObsId ? getObservacion(selectedObsId) : null;
 
@@ -252,6 +205,8 @@ export default function App() {
                     <Configuracion
                         catalogos={sortedCatalogos}
                         setCatalogos={setCatalogos}
+                        exportData={exportData}
+                        importData={importData}
                     />
                 );
             case 'reportes':

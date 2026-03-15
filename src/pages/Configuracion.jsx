@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from '../components/SharedComponents';
 
-export default function Configuracion({ catalogos, setCatalogos }) {
+export default function Configuracion({ catalogos, setCatalogos, exportData, importData }) {
     const [activeSubTab, setActiveSubTab] = useState('correlativos');
     const [editingList, setEditingList] = useState(null); // { key: string, label: string }
     const [newItem, setNewItem] = useState('');
@@ -34,10 +34,8 @@ export default function Configuracion({ catalogos, setCatalogos }) {
     function handleAdd(key, isComplex) {
         if (!newItem.trim()) return;
         setCatalogos(prev => {
-            const list = [...prev[key]];
+            const list = [...(prev[key] || [])];
             if (isComplex) {
-                // For Normas: item is "CODE | Name"
-                // For Entidades: item is "Name | Type | Cat"
                 if (key === 'normas') {
                     const [codigo, ...rest] = newItem.split('|').map(s => s.trim());
                     list.push({ codigo, nombre: rest.join(' ') });
@@ -56,26 +54,15 @@ export default function Configuracion({ catalogos, setCatalogos }) {
     function handleDelete(key, index) {
         if (!window.confirm('¿Eliminar este elemento?')) return;
         setCatalogos(prev => {
-            const list = [...prev[key]];
+            const list = [...(prev[key] || [])];
             list.splice(index, 1);
             return { ...prev, [key]: list };
         });
     }
 
     const exportarDatos = () => {
-        // Obtenemos todos los datos (el hook useObservaciones ya guarda en localStorage)
-        const obsSaved = localStorage.getItem('auditflow_observaciones_v1');
-        const nextIdSaved = localStorage.getItem('auditflow_next_id_v1');
-
-        const data = {
-            observaciones: obsSaved ? JSON.parse(obsSaved) : [],
-            nextId: nextIdSaved ? parseInt(nextIdSaved) : 1000,
-            correlativos: JSON.parse(localStorage.getItem('auditflow_correlativos_v1')) || [],
-            notas: JSON.parse(localStorage.getItem('auditflow_notas_v1')) || [],
-            catalogos: catalogos,
-            fechaRespaldo: new Date().toISOString(),
-            version: "1.0"
-        };
+        const data = exportData();
+        if (!data) return;
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -95,23 +82,13 @@ export default function Configuracion({ catalogos, setCatalogos }) {
         reader.onload = (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                if (!data.observaciones || !data.catalogos) {
-                    throw new Error("Formato de archivo no válido");
-                }
-
-                if (window.confirm("¿Está seguro de importar los datos? Se reemplazará toda la información actual por el contenido del archivo.")) {
-                    // Guardar en localStorage para que App.jsx y useObservaciones lo tomen al recargar
-                    localStorage.setItem('auditflow_observaciones_v1', JSON.stringify(data.observaciones));
-                    localStorage.setItem('auditflow_next_id_v1', String(data.nextId || 1000));
-                    localStorage.setItem('auditflow_correlativos_v1', JSON.stringify(data.correlativos || []));
-                    localStorage.setItem('auditflow_notas_v1', JSON.stringify(data.notas || []));
-                    localStorage.setItem('auditflow_catalogos', JSON.stringify(data.catalogos));
-
-                    alert("Importación exitosa. La aplicación se recargará para aplicar los cambios.");
-                    window.location.reload();
+                if (importData(data)) {
+                    alert("Importación exitosa. Los cambios se han aplicado.");
+                } else {
+                    throw new Error("Error en la importación");
                 }
             } catch (err) {
-                alert("Error al importar: El archivo no tiene el formato correcto.");
+                alert("Error al importar: " + err.message);
             }
         };
         reader.readAsText(file);
