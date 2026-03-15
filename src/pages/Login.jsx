@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Lock, Mail, Loader2, Sparkles } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { Shield, Lock, Mail, Loader2, Sparkles, Key } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [accessCode, setAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -17,14 +19,47 @@ export default function Login() {
     setError(null);
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        // 1. Validar código de invitación
+        if (!accessCode) throw new Error('Se requiere un código de acceso para registrarse.');
+        
+        const { data: codeData, error: codeErr } = await supabase
+          .from('codigos_registro')
+          .select('*')
+          .eq('codigo', accessCode.trim())
+          .eq('is_used', false)
+          .single();
+
+        if (codeErr || !codeData) {
+          throw new Error('El código de acceso no es válido o ya ha sido utilizado.');
+        }
+
+        // 2. Intentar registrar al usuario
+        const signupData = await signUp(email, password, { 
+          invitation_code: accessCode.trim() 
+        });
+
+        const userId = signupData?.user?.id;
+
+        // 3. Marcar código como usado si el registro fue exitoso
+        if (userId) {
+          await supabase
+            .from('codigos_registro')
+            .update({ 
+              is_used: true, 
+              used_by: userId, 
+              used_at: new Date().toISOString() 
+            })
+            .eq('id', codeData.id);
+        }
+
         setError('¡Cuenta creada! Revisa tu correo o intenta ingresar.');
         setIsSignUp(false);
+        setAccessCode('');
       } else {
         await login(email, password);
       }
     } catch (err) {
-      setError(isSignUp ? 'Error al crear la cuenta. Intenta de nuevo.' : 'Credenciales incorrectas o problema de conexión.');
+      setError(err.message || (isSignUp ? 'Error al crear la cuenta.' : 'Credenciales incorrectas.'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -104,6 +139,28 @@ export default function Login() {
                 />
               </div>
             </div>
+
+            {isSignUp && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+              >
+                <label className="text-[10px] font-black text-amber-400 uppercase tracking-widest pl-1">Código de Acceso Pro</label>
+                <div className="relative group">
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 group-focus-within:text-emerald-400 transition-colors" size={18} />
+                  <input
+                    type="text"
+                    required={isSignUp}
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value)}
+                    className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all font-mono"
+                    placeholder="AUDIT-XXX-XXX"
+                  />
+                </div>
+                <p className="text-[9px] text-slate-500 pl-1">Este código es necesario para activar tu licencia profesional.</p>
+              </motion.div>
+            )}
 
             <button
               type="submit"
