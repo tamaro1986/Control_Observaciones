@@ -72,7 +72,8 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
     const getEntidadById = (id) => catalogos.entidades.find(e => String(e.id) === String(id));
 
     const [entidadSeleccionadas, setEntidadSeleccionadas] = useState([]);
-    const [anio, setAnio] = useState('');
+    const [fechaInicio, setFechaInicio] = useState('');
+    const [fechaFin, setFechaFin] = useState('');
     const [nivelesRiesgo, setNivelesRiesgo] = useState([]);
     const [estadosSeleccionados, setEstadosSeleccionados] = useState([]);
     const [keyword, setKeyword] = useState('');
@@ -84,15 +85,16 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
             entidadIds: entidadSeleccionadas.length > 0 ? entidadSeleccionadas : undefined,
             nivelRiesgo: nivelesRiesgo.length > 0 ? nivelesRiesgo : undefined,
             estados: estadosSeleccionados.length > 0 ? estadosSeleccionados : undefined,
-            anio: anio || undefined,
+            fechaInicio: fechaInicio || undefined,
+            fechaFin: fechaFin || undefined,
             keyword: keyword || undefined,
         });
-    }, [filtrar, entidadSeleccionadas, nivelesRiesgo, estadosSeleccionados, anio, keyword]);
+    }, [filtrar, entidadSeleccionadas, nivelesRiesgo, estadosSeleccionados, fechaInicio, fechaFin, keyword]);
 
     const totalPages = Math.ceil(resultados.length / ITEMS_PER_PAGE);
     const paginatedResults = resultados.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
     const stats = getEstadisticas();
-    const years = [...new Set(observaciones.map(o => o.fechaInicio?.substring(0, 4)).filter(Boolean))].sort().reverse();
+    const years = [...new Set(observaciones.map(o => o.fechaApertura?.substring(0, 4)).filter(Boolean))].sort().reverse();
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-4 animate-fade-in">
@@ -154,7 +156,8 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setEntidadSeleccionadas([]);
-                                setAnio('');
+                                setFechaInicio('');
+                                setFechaFin('');
                                 setNivelesRiesgo([]);
                                 setEstadosSeleccionados([]);
                                 setKeyword('');
@@ -178,20 +181,22 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                             placeholder="Todas las entidades"
                         />
                         <div className="relative">
-                            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-1">Año</label>
-                            <select
-                                value={anio}
-                                onChange={e => setAnio(e.target.value)}
+                            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-1">Desde</label>
+                            <input
+                                type="date"
+                                value={fechaInicio}
+                                onChange={e => setFechaInicio(e.target.value)}
                                 className="w-full h-[46px] px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
-                            >
-                                <option value="">Todos los años</option>
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
-                            <div className="absolute right-4 bottom-[14px] pointer-events-none">
-                                <svg className="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                            />
+                        </div>
+                        <div className="relative">
+                            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-1">Hasta</label>
+                            <input
+                                type="date"
+                                value={fechaFin}
+                                onChange={e => setFechaFin(e.target.value)}
+                                className="w-full h-[46px] px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
+                            />
                         </div>
                         <CustomMultiSelect
                             label="Nivel de Riesgo"
@@ -234,7 +239,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                             <tr className="bg-slate-50/80 border-b border-border">
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">No.</th>
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Entidad & Tipo</th>
-                                <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Fechas</th>
+                                <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Fecha Apertura</th>
                                 <th className="text-left py-5 px-4 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Riesgo</th>
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Observación</th>
                                 <th className="text-left py-5 px-6 text-[10px] bg-slate-50/50 font-black text-text-muted uppercase tracking-[0.15em]">Estado</th>
@@ -245,7 +250,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                         <tbody className="divide-y divide-border/60">
                             {paginatedResults.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7">
+                                    <td colSpan="8">
                                         <EmptyState
                                             title="No hay hallazgos que coincidan"
                                             description="Intenta ajustar los filtros para ver otros resultados."
@@ -274,7 +279,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                                             </td>
                                             <td className="py-2 px-4 align-middle">
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] font-bold text-text-secondary">{obs.fechaInicio}</span>
+                                                    <span className="text-[10px] font-bold text-text-secondary">{obs.fechaApertura}</span>
                                                     <span className="text-[10px] font-medium text-text-muted">{obs.fechaCierre || '—'}</span>
                                                 </div>
                                             </td>

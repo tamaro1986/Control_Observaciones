@@ -1,146 +1,261 @@
-import { useState } from 'react';
-import { Card, Badge } from '../components/SharedComponents';
-import { getEstadoStyle, getRiesgoStyle, formatDate, daysUntil } from '../data/data';
+import { useState, useMemo } from 'react';
+import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/SharedComponents';
+import { Search, Filter, Calendar, Briefcase, FileText } from 'lucide-react';
+import { ESTADOS } from '../data/data';
 
-export default function SeguimientoList({ observaciones, onSelectObservacion, eliminarObservacion, editarObservacion }) {
-    // Filtrar solo las que no están subsanadas
-    const pendientes = observaciones.filter(o => o.estado !== 'Subsanada');
+const ITEMS_PER_PAGE = 8;
 
-    // Stats
-    const totalPendientes = pendientes.length;
-    const criticos = pendientes.filter(o => o.nivelRiesgo === 'Crítico').length;
-    const vencidas = pendientes.filter(o => o.estado === 'Vencida').length;
+// Reutilizamos el MultiSelect para mantener consistencia visual
+function CustomSelect({ label, options, selected, onChange, placeholder = "Todos", icon: Icon }) {
+    const [isOpen, setIsOpen] = useState(false);
 
-    // Table render logic...
     return (
-        <div className="animate-fade-in max-w-[1600px] mx-auto space-y-4 pb-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-                <div className="space-y-1.5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                            </svg>
+        <div className="relative group">
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+                {label}
+            </label>
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                className={`h-12 w-full px-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center gap-3
+                    ${isOpen ? 'border-indigo-600 bg-white shadow-xl shadow-indigo-500/10 ring-4 ring-indigo-500/5' : 'border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300'}`}
+            >
+                {Icon && <Icon className={`w-4 h-4 ${isOpen ? 'text-indigo-600' : 'text-slate-400'}`} />}
+                <span className={`text-sm font-bold truncate ${selected ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {selected ? (typeof selected === 'object' ? selected.nombre : selected) : placeholder}
+                </span>
+                <svg className={`w-4 h-4 text-slate-400 ml-auto transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-20" onClick={() => setIsOpen(false)} />
+                    <div className="absolute top-full left-0 right-0 mt-3 bg-white border border-slate-100 rounded-[1.5rem] shadow-2xl z-30 max-h-72 overflow-y-auto p-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div
+                            onClick={() => { onChange(null); setIsOpen(false); }}
+                            className="px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-500 text-sm font-bold transition-colors mb-1"
+                        >
+                            Todos
                         </div>
-                        <h2 className="text-xl font-black text-text-primary tracking-tight uppercase">Módulo de Seguimiento</h2>
+                        {options.map(opt => {
+                            const val = typeof opt === 'string' ? opt : opt.nombre || opt.id;
+                            const isSelected = selected === opt || selected?.id === opt.id;
+                            return (
+                                <div
+                                    key={opt.id || val}
+                                    onClick={() => {
+                                        onChange(opt);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all mb-1
+                                        ${isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'hover:bg-slate-50 text-slate-600'}`}
+                                >
+                                    <span className="text-sm">{val}</span>
+                                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <p className="text-sm font-medium text-text-muted">Gestión y control de observaciones pendientes de subsanar.</p>
+                </>
+            )}
+        </div>
+    );
+}
+
+export default function SeguimientoList({ observaciones, onSelectObservacion, eliminarObservacion, editarObservacion, filtrar, catalogos }) {
+    const [keyword, setKeyword] = useState('');
+    const [entidad, setEntidad] = useState(null);
+    const [fechaDesde, setFechaDesde] = useState('');
+    const [fechaHasta, setFechaHasta] = useState('');
+    const [estado, setEstado] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const filtrados = useMemo(() => {
+        return filtrar({
+            keyword: keyword || undefined,
+            entidadIds: entidad ? [entidad.id] : undefined,
+            fechaInicio: fechaDesde || undefined,
+            fechaFin: fechaHasta || undefined,
+            estados: estado ? [estado] : undefined
+        });
+    }, [filtrar, keyword, entidad, fechaDesde, fechaHasta, estado]);
+
+    const paginatedResults = useMemo(() => {
+        return filtrados.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+    }, [filtrados, currentPage]);
+
+    const totalPages = Math.ceil(filtrados.length / ITEMS_PER_PAGE);
+
+    return (
+        <div className="max-w-[1600px] mx-auto space-y-6 animate-fade-in pb-10">
+            {/* Header with quick stats */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Seguimiento de Hallazgos</h2>
+                    <p className="text-sm text-slate-400 font-medium">Gestione y documente las acciones de subsanación</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="px-4 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            {filtrados.length} Resultados encontrados
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="!bg-gradient-to-br from-indigo-500 to-indigo-600 !border-0 text-white relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                    <div className="relative z-10 flex flex-col justify-between h-full">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-100">Pendientes</h4>
-                        <div className="mt-2 text-4xl font-black">{totalPendientes}</div>
+            {/* Filter Bar - Premium Design */}
+            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    {/* Search */}
+                    <div className="lg:col-span-1">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+                            Búsqueda Directa
+                        </label>
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Ref, palabra clave..."
+                                value={keyword}
+                                onChange={(e) => setKeyword(e.target.value)}
+                                className="h-12 w-full pl-11 pr-4 rounded-2xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 transition-all text-sm font-bold text-slate-700 placeholder:text-slate-300"
+                            />
+                        </div>
                     </div>
-                </Card>
-                <Card className="!bg-gradient-to-br from-rose-500 to-rose-600 !border-0 text-white relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                    <div className="relative z-10 flex flex-col justify-between h-full">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-100">Riesgo Crítico</h4>
-                        <div className="mt-2 text-4xl font-black">{criticos}</div>
+
+                    {/* Entidad */}
+                    <CustomSelect
+                        label="Sujeto Supervisado"
+                        options={catalogos?.entidades || []}
+                        selected={entidad}
+                        onChange={(val) => { setEntidad(val); setCurrentPage(1); }}
+                        icon={Briefcase}
+                    />
+
+                    {/* Fecha Desde */}
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+                            Desde (Apertura)
+                        </label>
+                        <div className="relative group">
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                            <input
+                                type="date"
+                                value={fechaDesde}
+                                onChange={(e) => { setFechaDesde(e.target.value); setCurrentPage(1); }}
+                                className="h-12 w-full pl-11 pr-4 rounded-2xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 transition-all text-sm font-bold text-slate-700 cursor-pointer"
+                            />
+                        </div>
                     </div>
-                </Card>
-                <Card className="!bg-gradient-to-br from-amber-500 to-amber-600 !border-0 text-white relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                    <div className="relative z-10 flex flex-col justify-between h-full">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-100">Vencidas</h4>
-                        <div className="mt-2 text-4xl font-black">{vencidas}</div>
+
+                    {/* Fecha Hasta */}
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+                            Hasta
+                        </label>
+                        <div className="relative group">
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                            <input
+                                type="date"
+                                value={fechaHasta}
+                                onChange={(e) => { setFechaHasta(e.target.value); setCurrentPage(1); }}
+                                className="h-12 w-full pl-11 pr-4 rounded-2xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 transition-all text-sm font-bold text-slate-700 cursor-pointer"
+                            />
+                        </div>
                     </div>
-                </Card>
+
+                    {/* Estado */}
+                    <CustomSelect
+                        label="Estado de Hallazgo"
+                        options={ESTADOS}
+                        selected={estado}
+                        onChange={(val) => { setEstado(val); setCurrentPage(1); }}
+                        icon={FileText}
+                    />
+                </div>
             </div>
 
-            {/* List */}
-            <Card className="overflow-hidden !p-0">
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left">
-                        <thead>
-                            <tr>
-                                <th className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap w-[80px]">Ref</th>
-                                <th className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap w-[30%]">Hallazgo</th>
-                                <th className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap">Estado</th>
-                                <th className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap">Criticidad</th>
-                                <th className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap">Plan de Acción</th>
-                                <th className="py-2.5 px-3 text-[10px] font-black text-text-muted uppercase tracking-[0.12em] bg-slate-50/70 border-b border-border whitespace-nowrap text-right">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pendientes.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="py-8 text-center text-sm text-slate-500">
-                                        No hay observaciones pendientes de subsanar.
-                                    </td>
-                                </tr>
-                            ) : (
-                                pendientes.map(obs => {
-                                    const estadoStyle = getEstadoStyle(obs.estado);
-                                    const riesgoStyle = getRiesgoStyle(obs.nivelRiesgo);
-                                    const evtDays = daysUntil(obs.fechaPlanAccion);
-                                    const isVencida = evtDays !== null && evtDays < 0;
-
-                                    return (
-                                        <tr key={obs.id} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                                            <td className="py-2.5 px-3 align-middle font-mono text-xs">{obs.nroInforme}</td>
-                                            <td className="py-2.5 px-3 align-middle">
-                                                <div className="font-bold text-slate-800 line-clamp-1" title={obs.titulo}>{obs.titulo}</div>
-                                                <div className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{obs.normativa}</div>
-                                            </td>
-                                            <td className="py-2.5 px-3 align-middle">
-                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${estadoStyle.bg}`}>
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${estadoStyle.dot}`} />
-                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${estadoStyle.text}`}>
-                                                        {obs.estado}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="py-2.5 px-3 align-middle">
-                                                <Badge className={`${riesgoStyle.bg} ${riesgoStyle.text} ${riesgoStyle.border}`}>
-                                                    {obs.nivelRiesgo}
-                                                </Badge>
-                                            </td>
-                                            <td className="py-2.5 px-3 align-middle">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-sm font-bold text-slate-700">{obs.fechaPlanAccion ? formatDate(obs.fechaPlanAccion) : '—'}</span>
-                                                    {evtDays !== null && (
-                                                        <span className={`text-[10px] font-black uppercase tracking-wider ${isVencida ? 'text-rose-500' : 'text-slate-400'}`}>
-                                                            {isVencida ? `Vencido hace ${Math.abs(evtDays)} días` : `En ${evtDays} días`}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="py-2.5 px-3 align-middle text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => onSelectObservacion(obs.id, 'nuevo_seguimiento')}
-                                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all text-xs font-black uppercase tracking-widest group-hover:shadow-md cursor-pointer"
-                                                    >
-                                                        Gestionar
-                                                        <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                                                        </svg>
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); eliminarObservacion(obs.id); }}
-                                                        className="p-2 rounded-xl hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer group/del"
-                                                        title="Eliminar Hallazgo"
-                                                    >
-                                                        <svg className="w-4 h-4 group-hover/del:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
+            {/* Content List */}
+            {paginatedResults.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                    {paginatedResults.map((obs) => (
+                        <Card
+                            key={obs.id}
+                            className="bg-white hover:border-indigo-200 transition-all hover:shadow-2xl hover:shadow-indigo-500/5 group"
+                            onClick={() => onSelectObservacion(obs.id)}
+                        >
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-6 p-1">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 uppercase tracking-widest ring-4 ring-indigo-500/5">
+                                            {obs.numReferencia}
+                                        </span>
+                                        <RiskBadge nivel={obs.nivelRiesgo} />
+                                        <EstadoBadge estado={obs.estado} />
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                            {obs.seccionId}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-800 mb-2 truncate group-hover:text-indigo-700 transition-colors">
+                                        {obs.titulo}
+                                    </h3>
+                                    <p className="text-sm text-slate-500 line-clamp-1 mb-4 leading-relaxed font-medium">
+                                        {obs.observacion}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-6">
+                                        <div className="flex items-center gap-2">
+                                            <Briefcase className="w-3.5 h-3.5 text-slate-400" />
+                                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                                                {obs.entidadNombre}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                                                Apertura: {new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between lg:justify-end gap-6 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-50">
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Responsable</span>
+                                        <Avatar name={obs.responsable} />
+                                    </div>
+                                    <button
+                                        className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm group/btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSelectObservacion(obs.id);
+                                        }}
+                                    >
+                                        <svg className="w-5 h-5 group-hover/btn:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
                 </div>
-            </Card>
+            ) : (
+                <EmptyState
+                    title="No se encontraron hallazgos"
+                    description="Ajuste los filtros de búsqueda para encontrar lo que necesita."
+                />
+            )}
+
+            {totalPages > 1 && (
+                <div className="pt-4">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -38,7 +38,13 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     const ent = entidades.find(e => Number(e.id) === Number(observacion.entidadId));
 
     const [isEditing, setIsEditing] = useState(false);
-    const [editData, setEditData] = useState({ ...observacion });
+    const [editData, setEditData] = useState({ 
+        ...observacion,
+        fechaApertura: observacion.fechaApertura || '',
+        fechaCierre: observacion.fechaCierre || '',
+        fechaEvalInicio: observacion.fechaEvalInicio || '',
+        fechaEvalFinal: observacion.fechaEvalFinal || ''
+    });
 
     const handleEliminar = () => {
         if (window.confirm('¿Está seguro de eliminar esta observación permanentemente?')) {
@@ -48,15 +54,21 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
         }
     };
 
-    const handleSaveEdit = () => {
-        editarObservacion(observacion.id, editData);
+    const handleSaveEdit = async () => {
         setIsEditing(false);
+        await editarObservacion(observacion.id, editData);
         setShowToast(true);
         setTimeout(() => setShowToast(false), 4000);
     };
 
     const handleCancelEdit = () => {
-        setEditData({ ...observacion });
+        setEditData({ 
+            ...observacion,
+            fechaApertura: observacion.fechaApertura || '',
+            fechaCierre: observacion.fechaCierre || '',
+            fechaEvalInicio: observacion.fechaEvalInicio || '',
+            fechaEvalFinal: observacion.fechaEvalFinal || ''
+        });
         setIsEditing(false);
     };
 
@@ -299,38 +311,65 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                 )}
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Vigencia Auditoría</span>
-                                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-                                    <div className="flex flex-col items-center">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase">Inicio</span>
-                                        {isEditing ? (
-                                            <input
-                                                type="date"
-                                                value={editData.fechaInicio}
-                                                onChange={e => setEditData({ ...editData, fechaInicio: e.target.value })}
-                                                className="text-[10px] font-black text-text-primary bg-transparent border-none focus:ring-0 p-0"
-                                            />
-                                        ) : (
-                                            <span className="text-xs font-black text-text-primary">{formatDate(observacion.fechaInicio)}</span>
-                                        )}
-                                    </div>
-                                    <div className="w-8 h-px bg-slate-200" />
-                                    <div className="flex flex-col items-center">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase">Fin</span>
-                                        {isEditing ? (
-                                            <input
-                                                type="date"
-                                                value={editData.fechaFin}
-                                                onChange={e => setEditData({ ...editData, fechaFin: e.target.value })}
-                                                className="text-[10px] font-black text-text-primary bg-transparent border-none focus:ring-0 p-0"
-                                            />
-                                        ) : (
-                                            <span className="text-xs font-black text-text-primary">{formatDate(observacion.fechaFin)}</span>
-                                        )}
-                                    </div>
+                        <div className="pt-2 space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <FieldLabel>Apertura Auditoría</FieldLabel>
+                                    {isEditing ? (
+                                        <input
+                                            type="date"
+                                            value={editData.fechaApertura?.split('T')[0] || ''}
+                                            onChange={e => setEditData({ ...editData, fechaApertura: e.target.value })}
+                                            className="text-[11px] font-bold text-text-primary w-full bg-slate-50 border border-slate-100 rounded px-2 py-1"
+                                        />
+                                    ) : (
+                                        <p className="text-xs font-bold text-text-primary uppercase">{formatDate(observacion.fechaApertura)}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <FieldLabel>Cierre Auditoría</FieldLabel>
+                                    {isEditing ? (
+                                        <input
+                                            type="date"
+                                            value={editData.fechaCierre?.split('T')[0] || ''}
+                                            onChange={e => setEditData({ ...editData, fechaCierre: e.target.value })}
+                                            className="text-[11px] font-bold text-text-primary w-full bg-slate-50 border border-slate-100 rounded px-2 py-1"
+                                        />
+                                    ) : (
+                                        <p className="text-xs font-bold text-text-primary uppercase">{formatDate(observacion.fechaCierre)}</p>
+                                    )}
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-50">
+                                <div className="space-y-1">
+                                    <FieldLabel>Inicio Evaluación</FieldLabel>
+                                    {isEditing ? (
+                                        <input
+                                            type="date"
+                                            value={editData.fechaEvalInicio?.split('T')[0] || ''}
+                                            onChange={e => setEditData({ ...editData, fechaEvalInicio: e.target.value })}
+                                            className="text-[11px] font-bold text-text-primary w-full bg-slate-50 border border-slate-100 rounded px-2 py-1"
+                                        />
+                                    ) : (
+                                        <p className="text-xs font-bold text-text-primary uppercase">{formatDate(observacion.fechaEvalInicio)}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <FieldLabel>Final Evaluación</FieldLabel>
+                                    {isEditing ? (
+                                        <input
+                                            type="date"
+                                            value={editData.fechaEvalFinal?.split('T')[0] || ''}
+                                            onChange={e => setEditData({ ...editData, fechaEvalFinal: e.target.value })}
+                                            className="text-[11px] font-bold text-text-primary w-full bg-slate-50 border border-slate-100 rounded px-2 py-1"
+                                        />
+                                    ) : (
+                                        <p className="text-xs font-bold text-text-primary uppercase">{formatDate(observacion.fechaEvalFinal)}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                         </div>
                     </Card>
                 </div>

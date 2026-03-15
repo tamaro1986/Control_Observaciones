@@ -97,6 +97,9 @@ const filterByPeriod = (data, dateField, period, specificValue) => {
         if (period === 'annual') {
             return year === parseInt(specificValue.year);
         }
+        if (period === 'custom') {
+            return dateStr >= specificValue.start && dateStr <= specificValue.end;
+        }
         return true;
     });
 };
@@ -268,6 +271,7 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
                 <option value="quarter">Trimestral</option>
                 <option value="semester">Semestral</option>
                 <option value="annual">Anual</option>
+                <option value="custom">Personalizado</option>
             </select>
 
             {period !== 'all' && (
@@ -312,6 +316,24 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
                     <option value="1">1er Semestre</option>
                     <option value="2">2do Semestre</option>
                 </select>
+            )}
+
+            {period === 'custom' && (
+                <div className="flex items-center gap-2">
+                    <input
+                        type="date"
+                        value={values.start || ''}
+                        onChange={(e) => setValues({ ...values, start: e.target.value })}
+                        className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+                    />
+                    <span className="text-[10px] font-black text-slate-300 uppercase">a</span>
+                    <input
+                        type="date"
+                        value={values.end || ''}
+                        onChange={(e) => setValues({ ...values, end: e.target.value })}
+                        className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+                    />
+                </div>
             )}
         </div>
     );

@@ -26,9 +26,6 @@ export default function App() {
     const [selectedObsId, setSelectedObsId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-    if (loading) return null;
-    if (!user) return <Login />;
-
     // Hook logic - Unified state
     const {
         observaciones,
@@ -71,6 +68,9 @@ export default function App() {
             return (b.numero || 0) - (a.numero || 0);
         });
     }, [notas]);
+
+    if (loading) return null;
+    if (!user) return <Login />;
 
     const sortedCatalogos = useMemo(() => {
         const sorted = { ...catalogos };
@@ -179,6 +179,8 @@ export default function App() {
                         onSelectObservacion={handleSelectObservacion}
                         eliminarObservacion={eliminarObservacion}
                         editarObservacion={editarObservacion}
+                        filtrar={filtrar}
+                        catalogos={sortedCatalogos}
                     />
                 );
             case 'nuevo_seguimiento':

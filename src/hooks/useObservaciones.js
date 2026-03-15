@@ -25,8 +25,8 @@ export default function useObservaciones() {
         entidades: ENTIDADES,
         tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
         normasExtra: NORMAS_NOTAS_EXTRA,
-        nivelesRiesgo: NIVELES_RIESGO,
-        estados: ESTADOS,
+        nivelesRiesgo: NIVELES_RIESGO.map(n => n.value),
+        estados: ESTADOS.map(e => e.value),
         tiposRiesgo: TIPOS_RIESGO,
         tiposVisita: TIPOS_VISITA,
         descripcionesAccion: [
@@ -87,27 +87,43 @@ export default function useObservaciones() {
         return mapped;
     };
 
+    // Safe fetch helper: returns { data, error } without throwing
+    const safeFetch = async (query) => {
+        try {
+            const result = await query;
+            if (result.error) {
+                // Log but don't throw — table may not exist yet
+                console.warn('[AuditFlow] Query warning:', result.error.message);
+                return { data: [], error: result.error };
+            }
+            return { data: result.data || [], error: null };
+        } catch (e) {
+            console.warn('[AuditFlow] Fetch error:', e.message);
+            return { data: [], error: e };
+        }
+    };
+
     // 2. Fetch Initial Data
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             
-            // Parallel fetch of all transactional data and entities
+            // Parallel fetch — each query is resilient; a missing table won't crash the app
             const [obsRes, corrRes, notasRes, entitiesRes, settingsRes] = await Promise.all([
-                supabase.from('observaciones').select('*').order('creado_at', { ascending: false }),
-                supabase.from('correlativos').select('*').order('creado_at', { ascending: false }),
-                supabase.from('correlativos_notas').select('*').order('creado_at', { ascending: false }),
-                supabase.from('entidades').select('*'),
-                supabase.from('settings').select('*')
+                safeFetch(supabase.from('observaciones').select('*').order('creado_at', { ascending: false })),
+                safeFetch(supabase.from('correlativos').select('*').order('creado_at', { ascending: false })),
+                safeFetch(supabase.from('correlativos_notas').select('*').order('creado_at', { ascending: false })),
+                safeFetch(supabase.from('entidades').select('*')),
+                safeFetch(supabase.from('settings').select('*')),
             ]);
 
-            if (obsRes.data) setObservaciones(obsRes.data.map(mapFromDB));
-            if (corrRes.data) setCorrelativos(corrRes.data);
-            if (notasRes.data) setNotas(notasRes.data);
-            if (entitiesRes.data && entitiesRes.data.length > 0) {
+            if (obsRes.data.length > 0 || !obsRes.error) setObservaciones(obsRes.data.map(mapFromDB));
+            if (corrRes.data.length > 0 || !corrRes.error) setCorrelativos(corrRes.data);
+            if (notasRes.data.length > 0 || !notasRes.error) setNotas(notasRes.data);
+            if (entitiesRes.data.length > 0) {
                 setCatalogos(prev => ({ ...prev, entidades: entitiesRes.data }));
             }
-            if (settingsRes.data && settingsRes.data.length > 0) {
+            if (settingsRes.data.length > 0) {
                 setCatalogos(prev => {
                     const newCatalogos = { ...prev };
                     settingsRes.data.forEach(s => {
@@ -118,7 +134,7 @@ export default function useObservaciones() {
             }
 
         } catch (error) {
-            console.error('Error fetching data from Supabase:', error);
+            console.error('Error in fetchData:', error);
         } finally {
             setLoading(false);
         }
@@ -218,15 +234,23 @@ export default function useObservaciones() {
             .update(updateData)
             .eq('id', id);
         
-        if (error) console.error('Error updating state:', error);
-    }, [observaciones]);
+        if (error) {
+            console.error('Error updating state:', error);
+        } else {
+            await fetchData();
+        }
+    }, [observaciones, fetchData]);
 
     const editarObservacion = useCallback(async (id, data) => {
         const { error } = await supabase.from('observaciones')
             .update(mapToDB(data))
             .eq('id', id);
-        if (error) console.error('Error editing observation:', error);
-    }, []);
+        if (error) {
+            console.error('Error editing observation:', error);
+        } else {
+            await fetchData();
+        }
+    }, [fetchData]);
 
     const eliminarObservacion = useCallback(async (id) => {
         if (!window.confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.')) return;
@@ -234,7 +258,8 @@ export default function useObservaciones() {
             .delete()
             .eq('id', id);
         if (error) console.error('Error deleting observation:', error);
-    }, []);
+        else await fetchData(); // Explicitly call fetchData after delete
+    }, [fetchData]);
 
     // --- Correlativos Actions ---
     const agregarCorrelativo = useCallback(async (nuevo) => {
@@ -286,7 +311,19 @@ export default function useObservaciones() {
         if (filtros.estados && filtros.estados.length > 0) {
             resultado = resultado.filter(o => filtros.estados.includes(o.estado));
         }
-        if (filtros.anio) {
+        if (filtros.fechaInicio) {
+            resultado = resultado.filter(o => {
+                const date = o.fechaApertura || o.fechaInicio;
+                return date && date >= filtros.fechaInicio;
+            });
+        }
+        if (filtros.fechaFin) {
+            resultado = resultado.filter(o => {
+                const date = o.fechaApertura || o.fechaInicio;
+                return date && date <= filtros.fechaFin;
+            });
+        }
+        if (filtros.anio && !filtros.fechaInicio && !filtros.fechaFin) {
             resultado = resultado.filter(o => {
                 const year = o.fechaApertura ? o.fechaApertura.substring(0, 4) : '';
                 return year === String(filtros.anio);

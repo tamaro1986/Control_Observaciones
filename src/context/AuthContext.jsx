@@ -42,7 +42,8 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
       options: {
-        data: metadata
+        data: metadata,
+        emailRedirectTo: window.location.origin
       }
     });
     if (response.error) throw response.error;
