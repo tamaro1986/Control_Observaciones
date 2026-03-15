@@ -69,9 +69,7 @@ export default function App() {
         });
     }, [notas]);
 
-    if (loading) return null;
-    if (!user) return <Login />;
-
+    // All hooks must be declared BEFORE conditional returns (Rules of Hooks)
     const sortedCatalogos = useMemo(() => {
         const sorted = { ...catalogos };
         Object.keys(sorted).forEach(key => {
@@ -81,7 +79,6 @@ export default function App() {
                 } else if (key === 'entidades') {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
                 } else if (key === 'nivelesRiesgo' || key === 'estados') {
-                    // Preservar orden si son objetos con value
                     sorted[key] = [...sorted[key]].sort((a, b) => {
                         const valA = typeof a === 'object' ? a.value : a;
                         const valB = typeof b === 'object' ? b.value : b;
@@ -142,6 +139,10 @@ export default function App() {
     const handleEditarNota = useCallback(async (updated) => {
         await editarNota(updated.id, updated);
     }, [editarNota]);
+
+    // Conditional renders AFTER all hooks
+    if (loading) return null;
+    if (!user) return <Login />;
 
     const selectedObs = selectedObsId ? getObservacion(selectedObsId) : null;
 

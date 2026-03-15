@@ -393,48 +393,144 @@ export default function useObservaciones() {
 
     const importData = useCallback(async (data) => {
         if (!data) return false;
-        
+
         try {
             setLoading(true);
-            
-            // 1. Entidades
-            if (data.entidades && data.entidades.length > 0) {
-                await supabase.from('entidades').upsert(data.entidades);
-            }
 
-            // 2. Settings (Catalogos)
-            if (data.settings && data.settings.length > 0) {
-                await supabase.from('settings').upsert(data.settings);
-            } else if (data.catalogos) {
-                // If it's an old format backup
-                const settingsToUpsert = Object.entries(data.catalogos).map(([key, value]) => ({
-                    key, value
-                }));
-                await supabase.from('settings').upsert(settingsToUpsert);
-            }
+            // Detect format: Supabase export (has exportMetadata.source) vs localStorage backup (has auditflow_* keys)
+            const isSupabaseExport = data.exportMetadata && data.exportMetadata.source === "AuditFlow-Supabase";
+            // The localStorage script exports keys like: auditflow_correlativos_v1, auditflow_catalogos, etc.
+            const hasLocalStorageKeys = !!data['auditflow_correlativos_v1'] || !!data['auditflow_observaciones_v1'] || !!data['auditflow_catalogos'];
 
-            // 3. Correlativos and Notas
-            if (data.correlativos && data.correlativos.length > 0) {
-                await supabase.from('correlativos').upsert(data.correlativos);
-            }
-            if (data.notas && data.notas.length > 0) {
-                await supabase.from('correlativos_notas').upsert(data.notas);
-            }
 
-            // 4. Observaciones
-            if (data.observaciones && data.observaciones.length > 0) {
-                const isDBFormat = data.observaciones[0].entidad_id !== undefined;
-                let toImport = data.observaciones;
-                
-                if (!isDBFormat) {
-                    // Map from frontend format to DB format
-                    toImport = data.observaciones.map(mapToDB);
+            if (isSupabaseExport) {
+                // Handle Supabase export format
+                // 1. Entidades
+                if (data.entidades && data.entidades.length > 0) {
+                    await supabase.from('entidades').upsert(data.entidades);
                 }
-                
-                // If they don't have IDs (from local version), we just insert.
-                // If they have IDs, upsert will update existing ones.
-                const { error } = await supabase.from('observaciones').upsert(toImport);
-                if (error) throw error;
+
+                // 2. Settings (Catalogos)
+                if (data.settings && data.settings.length > 0) {
+                    await supabase.from('settings').upsert(data.settings);
+                }
+
+                // 3. Correlativos and Notas
+                if (data.correlativos && data.correlativos.length > 0) {
+                    await supabase.from('correlativos').upsert(data.correlativos);
+                }
+                if (data.notas && data.notas.length > 0) {
+                    await supabase.from('correlativos_notas').upsert(data.notas);
+                }
+
+                // 4. Observaciones
+                if (data.observaciones && data.observaciones.length > 0) {
+                    const toImport = data.observaciones.map(mapToDB); // Ensure DB format
+                    const { error } = await supabase.from('observaciones').upsert(toImport);
+                    if (error) throw error;
+                }
+
+            } else if (hasLocalStorageKeys) {
+                // ─── Formato localStorage (auditflow_*) ──────────────────────
+                const corrLS  = data['auditflow_correlativos_v1']  || [];
+                const catLS   = data['auditflow_catalogos']         || null;
+                const obsLS   = data['auditflow_observaciones_v1'] || [];
+
+                // 1. Catálogos → entidades table + settings table
+                if (catLS) {
+                    const entidadesLS = catLS.entidades || [];
+                    if (entidadesLS.length > 0) {
+                        const entPayload = entidadesLS.map(e => ({
+                            id: typeof e.id === 'number' ? e.id : undefined,
+                            nombre: e.nombre,
+                            tipo: e.tipo || 'General',
+                            categoria: e.categoria || 'General',
+                        })).filter(e => e.nombre);
+                        const { error: entErr } = await supabase.from('entidades').upsert(entPayload, { onConflict: 'id', ignoreDuplicates: false });
+                        if (entErr) console.warn('[Import] Entidades:', entErr.message);
+                    }
+                    const otherCats = Object.entries(catLS).filter(([k]) => k !== 'entidades');
+                    if (otherCats.length > 0) {
+                        const settingsPayload = otherCats.map(([key, value]) => ({ key, value }));
+                        const { error: setErr } = await supabase.from('settings').upsert(settingsPayload, { onConflict: 'key' });
+                        if (setErr) console.warn('[Import] Settings:', setErr.message);
+                    }
+                }
+
+                // 2. Correlativos — strip string IDs (like "corr-123"), conflict on codigo
+                if (corrLS.length > 0) {
+                    const corrPayload = corrLS.map(c => ({
+                        codigo: c.codigo,
+                        numero: c.numero,
+                        año: c.año,
+                        fecha: c.fecha || null,
+                        entidad: c.entidad || '',
+                        asunto: c.asunto || '',
+                        responsable: c.responsable || '',
+                        normas: c.normas || [],
+                        clasificacion: c.clasificacion || '',
+                        industria: c.industria || '',
+                        tipo_informe: c.tipoInforme || c.tipo_informe || '',
+                        accion_supervision: c.accionSupervision || c.accion_supervision || '',
+                        descripcion_accion: c.descripcionAccion || c.descripcion_accion || '',
+                        tipo_correspondencia: c.tipoCorrespondencia || c.tipo_correspondencia || null,
+                        cantidad_unidades: c.cantidadUnidades != null ? c.cantidadUnidades : (c.cantidad_unidades != null ? c.cantidad_unidades : 1),
+                        blf_otro: c.blfOtro || c.blf_otro || '',
+                        es_interno: c.esInterno || c.es_interno || false,
+                        anulado: c.anulado || false,
+                    }));
+                    const { error: corrErr } = await supabase.from('correlativos').upsert(corrPayload, { onConflict: 'codigo', ignoreDuplicates: true });
+                    if (corrErr) console.warn('[Import] Correlativos:', corrErr.message);
+                }
+
+                // 3. Observaciones — map to DB schema, insert fresh (no local IDs)
+                if (obsLS.length > 0) {
+                    const obsPayload = obsLS.map(o => ({
+                        estado: o.estado || 'Pendiente',
+                        titulo: o.titulo || '',
+                        descripcion: o.descripcion || '',
+                        normativa: o.normativa || '',
+                        nota: o.nota || '',
+                        responsable: o.responsable || '',
+                        nivel_riesgo: o.nivelRiesgo || o.nivel_riesgo || '',
+                        tipo_riesgo: o.tipoRiesgo || o.tipo_riesgo || '',
+                        entidad_id: typeof (o.entidadId ?? o.entidad_id) === 'number' ? (o.entidadId ?? o.entidad_id) : null,
+                        tipo_visita: o.tipoVisita || o.tipo_visita || '',
+                        fecha_apertura: o.fechaApertura || o.fecha_apertura || null,
+                        fecha_cierre: o.fechaCierre || o.fecha_cierre || null,
+                        fecha_eval_inicio: o.fechaEvalInicio || o.fecha_eval_inicio || null,
+                        fecha_eval_final: o.fechaEvalFinal || o.fecha_eval_final || null,
+                        nro_informe: o.nroInforme || o.nro_informe || '',
+                        fecha_plan_accion: o.fechaPlanAccion || o.fecha_plan_accion || null,
+                        respuesta_entidad: o.respuestaEntidad || o.respuesta_entidad || '',
+                        fecha_respuesta: o.fechaRespuesta || o.fecha_respuesta || null,
+                        historial_estados: o.historialEstados || o.historial_estados || [],
+                    }));
+                    const { error: obsErr } = await supabase.from('observaciones').insert(obsPayload);
+                    if (obsErr) console.warn('[Import] Observaciones:', obsErr.message);
+                }
+
+                console.log(`[Import] localStorage backup OK: ${corrLS.length} correlativos, ${obsLS.length} observaciones.`);
+            } else {
+                // Fallback: Supabase-style export without exportMetadata marker
+                if (data.correlativos && data.correlativos.length > 0) {
+                    await supabase.from('correlativos').upsert(data.correlativos);
+                }
+                if (data.entidades && data.entidades.length > 0) {
+                    await supabase.from('entidades').upsert(data.entidades);
+                }
+                if (data.settings && data.settings.length > 0) {
+                    await supabase.from('settings').upsert(data.settings);
+                } else if (data.catalogos) {
+                    const settingsToUpsert = Object.entries(data.catalogos).map(([key, value]) => ({ key, value }));
+                    await supabase.from('settings').upsert(settingsToUpsert);
+                }
+                if (data.observaciones && data.observaciones.length > 0) {
+                    const isDBFormat = data.observaciones[0].entidad_id !== undefined;
+                    const toImport = isDBFormat ? data.observaciones : data.observaciones.map(mapToDB);
+                    const { error } = await supabase.from('observaciones').upsert(toImport);
+                    if (error) throw error;
+                }
             }
 
             // Refresh local state
@@ -450,7 +546,8 @@ export default function useObservaciones() {
     }, [fetchData]);
 
     return {
-        observaciones: [...observaciones],
+        observaciones,
+        setObservaciones,
         catalogos,
         setCatalogos,
         correlativos,
