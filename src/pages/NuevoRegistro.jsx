@@ -12,6 +12,8 @@ const EMPTY_TARJETA = {
     nota: '',
     responsable: '',
     fechaPlanAccion: '',
+    esVehiculoInversion: false,
+    fondoInversion: '',
     // Cycle finishing fields
     fechaRespuesta: '',
     respuestaEntidad: '',
@@ -30,7 +32,8 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
     const [fechaCierre, setFechaCierre] = useState('');
     const [fechaEvalInicio, setFechaEvalInicio] = useState('');
     const [fechaEvalFinal, setFechaEvalFinal] = useState('');
-
+    const [esVehiculoGlobal, setEsVehiculoGlobal] = useState(false);
+    const [fondoGlobal, setFondoGlobal] = useState('');
     // Items States
     const [tarjetas, setTarjetas] = useState([{ ...EMPTY_TARJETA }]);
     const [showToast, setShowToast] = useState(false);
@@ -268,12 +271,53 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                 </div>
                             </div>
                         </div>
+
+                        {/* Global Investment Vehicle Selection */}
+                        <div className="pt-2 px-1">
+                            <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-3xl bg-primary/[0.03] border border-primary/10 shadow-sm transition-all hover:bg-primary/[0.05]">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="esVehiculoGlobal"
+                                        checked={esVehiculoGlobal}
+                                        onChange={e => {
+                                            const val = e.target.checked;
+                                            setEsVehiculoGlobal(val);
+                                            setTarjetas(prev => prev.map(t => ({ ...t, esVehiculoInversion: val, fondoInversion: val ? fondoGlobal : '' })));
+                                        }}
+                                        className="w-5 h-5 rounded-lg border-slate-300 text-primary focus:ring-primary cursor-pointer transition-all"
+                                    />
+                                    <label htmlFor="esVehiculoGlobal" className="text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer select-none">
+                                        ¿Toda la auditoría es sobre un fondo?
+                                    </label>
+                                </div>
+                                
+                                {esVehiculoGlobal && (
+                                    <div className="flex-1 animate-slide-in">
+                                        <select
+                                            value={fondoGlobal}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setFondoGlobal(val);
+                                                setTarjetas(prev => prev.map(t => ({ ...t, fondoInversion: val })));
+                                            }}
+                                            className="w-full px-5 py-3 rounded-2xl border border-primary/20 bg-white text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-sm shadow-primary/5"
+                                        >
+                                            <option value="">— SELECCIONE EL FONDO PARA ESTA AUDITORÍA —</option>
+                                            {catalogos.fondos.map(f => (
+                                                <option key={f.id} value={f.nombre}>{f.nombre}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </Card>
             </section>
 
             {/* Hallazgos Section */}
-            <section className="space-y-3">
+            <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
@@ -402,6 +446,37 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                                 </div>
                                             </div>
                                             <p className="text-[9px] font-medium text-slate-400 mt-2 px-1">Seleccione la base legal o normativa transgredida.</p>
+                                        </div>
+
+                                        {/* Investment Vehicle (New) */}
+                                        <div className="pt-2">
+                                            <div className="flex items-center gap-3 mb-3 px-1">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`esVehiculo_${index}`}
+                                                    checked={tarjeta.esVehiculoInversion}
+                                                    onChange={e => updateTarjeta(index, 'esVehiculoInversion', e.target.checked)}
+                                                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                                                />
+                                                <label htmlFor={`esVehiculo_${index}`} className="text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer">
+                                                    VINCULAR CON VEHÍCULO DE INVERSIÓN
+                                                </label>
+                                            </div>
+                                            
+                                            {tarjeta.esVehiculoInversion && (
+                                                <div className="animate-fade-in">
+                                                    <select
+                                                        value={tarjeta.fondoInversion}
+                                                        onChange={e => updateTarjeta(index, 'fondoInversion', e.target.value)}
+                                                        className="w-full px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer"
+                                                    >
+                                                        <option value="">— SELECCIONE FONDO —</option>
+                                                        {catalogos.fondos.map(f => (
+                                                            <option key={f.id} value={f.nombre}>{f.nombre}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

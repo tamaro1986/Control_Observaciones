@@ -5,7 +5,8 @@ import {
     CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
     ACCIONES_SUPERVISION, NORMAS_CORR, RESPONSABLES, ENTIDADES,
     TIPOS_CORRESPONDENCIA, NORMAS_NOTAS_EXTRA,
-    NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA
+    NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA, FONDOS_INVERSION,
+    UNIDADES_AUDITABLES, PUNTOS_NORMATIVOS
 } from '../data/data';
 
 export default function useObservaciones() {
@@ -25,11 +26,14 @@ export default function useObservaciones() {
         responsables: RESPONSABLES,
         entidades: ENTIDADES,
         tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
-        normasExtra: NORMAS_NOTAS_EXTRA,
+        normasExtra: [],
+        fondosInversion: FONDOS_INVERSION,
         nivelesRiesgo: NIVELES_RIESGO.map(n => n.value),
         estados: ESTADOS.map(e => e.value),
         tiposRiesgo: TIPOS_RIESGO,
         tiposVisita: TIPOS_VISITA,
+        unidadesAuditables: UNIDADES_AUDITABLES,
+        puntosNormativos: PUNTOS_NORMATIVOS,
         descripcionesAccion: [
             'Visita de supervisión focalizada en controles de seguridad de la información.',
             'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
@@ -72,6 +76,10 @@ export default function useObservaciones() {
             fechaPlanAccion: item.fecha_plan_accion,
             respuestaEntidad: ensureString(item.respuesta_entidad),
             fechaRespuesta: item.fecha_respuesta,
+            esVehiculoInversion: item.es_vehiculo_inversion || false,
+            fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
+            criterioAdministrativo: ensureString(item.criterio_administrativo),
+            criterioLegal: ensureString(item.criterio_legal),
             historialEstados: item.historial_estados || []
         };
     };
@@ -89,8 +97,32 @@ export default function useObservaciones() {
             industria: ensureString(item.industria),
             accionSupervision: ensureString(item.accion_supervision || item.accionSupervision),
             descripcionAccion: ensureString(item.descripcion_accion || item.descripcionAccion),
-            nota: ensureString(item.nota)
+            nota: ensureString(item.nota),
+            esVehiculoInversion: item.es_vehiculo_inversion || false,
+            fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion)
         };
+    };
+
+    // Helper: convierte cadenas vacías a null para campos DATE de PostgreSQL
+    const nullIfEmptyString = (value) => (value === '' || value === null || value === undefined) ? null : value;
+
+    const mapCorrelativoToDB = (item) => {
+        if (!item) return null;
+        const mapped = { ...item };
+        if (item.tipoInforme !== undefined) mapped.tipo_informe = item.tipoInforme;
+        if (item.accionSupervision !== undefined) mapped.accion_supervision = item.accionSupervision;
+        if (item.descripcionAccion !== undefined) mapped.descripcion_accion = item.descripcionAccion;
+        if (item.esVehiculoInversion !== undefined) mapped.es_vehiculo_inversion = item.esVehiculoInversion;
+        if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
+        
+        // Remove camelCase keys to avoid sending them to Supabase
+        delete mapped.tipoInforme;
+        delete mapped.accionSupervision;
+        delete mapped.descripcionAccion;
+        delete mapped.esVehiculoInversion;
+        delete mapped.fondoInversion;
+        
+        return mapped;
     };
 
     const mapToDB = (item) => {
@@ -98,16 +130,16 @@ export default function useObservaciones() {
         const mapped = {};
         if (item.entidadId !== undefined) mapped.entidad_id = item.entidadId;
         if (item.tipoVisita !== undefined) mapped.tipo_visita = item.tipoVisita;
-        if (item.fechaApertura !== undefined) mapped.fecha_apertura = item.fechaApertura;
-        if (item.fechaCierre !== undefined) mapped.fecha_cierre = item.fechaCierre;
-        if (item.fechaEvalInicio !== undefined) mapped.fecha_eval_inicio = item.fechaEvalInicio;
-        if (item.fechaEvalFinal !== undefined) mapped.fecha_eval_final = item.fechaEvalFinal;
+        if (item.fechaApertura !== undefined) mapped.fecha_apertura = nullIfEmptyString(item.fechaApertura);
+        if (item.fechaCierre !== undefined) mapped.fecha_cierre = nullIfEmptyString(item.fechaCierre);
+        if (item.fechaEvalInicio !== undefined) mapped.fecha_eval_inicio = nullIfEmptyString(item.fechaEvalInicio);
+        if (item.fechaEvalFinal !== undefined) mapped.fecha_eval_final = nullIfEmptyString(item.fechaEvalFinal);
         if (item.nroInforme !== undefined) mapped.nro_informe = item.nroInforme;
         if (item.nivelRiesgo !== undefined) mapped.nivel_riesgo = item.nivelRiesgo;
         if (item.tipoRiesgo !== undefined) mapped.tipo_riesgo = item.tipoRiesgo;
-        if (item.fechaPlanAccion !== undefined) mapped.fecha_plan_accion = item.fechaPlanAccion;
+        if (item.fechaPlanAccion !== undefined) mapped.fecha_plan_accion = nullIfEmptyString(item.fechaPlanAccion);
         if (item.respuestaEntidad !== undefined) mapped.respuesta_entidad = item.respuestaEntidad;
-        if (item.fechaRespuesta !== undefined) mapped.fecha_respuesta = item.fechaRespuesta;
+        if (item.fechaRespuesta !== undefined) mapped.fecha_respuesta = nullIfEmptyString(item.fechaRespuesta);
         if (item.historialEstados !== undefined) mapped.historial_estados = item.historialEstados;
         if (item.estado !== undefined) mapped.estado = item.estado;
         if (item.titulo !== undefined) mapped.titulo = item.titulo;
@@ -115,6 +147,10 @@ export default function useObservaciones() {
         if (item.normativa !== undefined) mapped.normativa = item.normativa;
         if (item.nota !== undefined) mapped.nota = item.nota;
         if (item.responsable !== undefined) mapped.responsable = item.responsable;
+        if (item.esVehiculoInversion !== undefined) mapped.es_vehiculo_inversion = item.esVehiculoInversion;
+        if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
+        if (item.criterioAdministrativo !== undefined) mapped.criterio_administrativo = item.criterioAdministrativo;
+        if (item.criterioLegal !== undefined) mapped.criterio_legal = item.criterioLegal;
         return mapped;
     };
 
@@ -266,6 +302,8 @@ export default function useObservaciones() {
             analisisAuditor: cambio.analisisAuditor || '',
             planAccion: cambio.planAccion || '',
             fechaPlanAccion: cambio.fechaPlanAccion || '',
+            criterioAdministrativo: cambio.criterioAdministrativo || obs.criterioAdministrativo,
+            criterioLegal: cambio.criterioLegal || obs.criterioLegal,
         };
 
         const updateData = mapToDB({
@@ -273,6 +311,8 @@ export default function useObservaciones() {
             nroInforme: cambio.nroInforme || obs.nroInforme,
             nota: cambio.nota || obs.nota,
             fechaPlanAccion: cambio.fechaPlanAccion || obs.fechaPlanAccion,
+            criterioAdministrativo: cambio.criterioAdministrativo || obs.criterioAdministrativo,
+            criterioLegal: cambio.criterioLegal || obs.criterioLegal,
             historialEstados: [...(obs.historialEstados || []), nuevoHistorial],
         });
 
@@ -309,15 +349,19 @@ export default function useObservaciones() {
 
     // --- Correlativos Actions ---
     const agregarCorrelativo = useCallback(async (nuevo) => {
-        const { data, error } = await supabase.from('correlativos').insert([nuevo]).select();
+        const payload = mapCorrelativoToDB(nuevo);
+        const { data, error } = await supabase.from('correlativos').insert([payload]).select();
         if (error) console.error('Error adding correlativo:', error);
-        return data ? data[0] : null;
-    }, []);
+        if (!error) await fetchData();
+        return data ? mapCorrelativoFromDB(data[0]) : null;
+    }, [fetchData]);
 
     const editarCorrelativo = useCallback(async (id, data) => {
-        const { error } = await supabase.from('correlativos').update(data).eq('id', id);
+        const payload = mapCorrelativoToDB(data);
+        const { error } = await supabase.from('correlativos').update(payload).eq('id', id);
         if (error) console.error('Error editing correlativo:', error);
-    }, []);
+        if (!error) await fetchData();
+    }, [fetchData]);
 
     const eliminarCorrelativo = useCallback(async (id) => {
         const { error } = await supabase.from('correlativos').delete().eq('id', id);
@@ -351,12 +395,29 @@ export default function useObservaciones() {
         if (filtros.entidadIds && filtros.entidadIds.length > 0) {
             resultado = resultado.filter(o => filtros.entidadIds.includes(o.entidadId));
         }
+        if (filtros.fondoInversionId) {
+            resultado = resultado.filter(o => 
+                o.esVehiculoInversion && o.fondoInversion === filtros.fondoInversionId
+            );
+        }
         if (filtros.nivelRiesgo && filtros.nivelRiesgo.length > 0) {
             resultado = resultado.filter(o => filtros.nivelRiesgo.includes(o.nivelRiesgo));
         }
         if (filtros.estados && filtros.estados.length > 0) {
             resultado = resultado.filter(o => filtros.estados.includes(o.estado));
         }
+        if (filtros.keyword) {
+            const kw = filtros.keyword.toLowerCase();
+            resultado = resultado.filter(o =>
+                String(o.id).includes(kw) ||
+                (o.titulo || '').toLowerCase().includes(kw) ||
+                (o.descripcion || '').toLowerCase().includes(kw) ||
+                (o.responsable || '').toLowerCase().includes(kw) ||
+                (o.normativa || '').toLowerCase().includes(kw) ||
+                (o.fondoInversion || '').toLowerCase().includes(kw)
+            );
+        }
+        // ... continue processing dates, etc.
         if (filtros.fechaInicio) {
             resultado = resultado.filter(o => {
                 const date = o.fechaApertura || o.fechaInicio;
@@ -374,16 +435,6 @@ export default function useObservaciones() {
                 const year = o.fechaApertura ? o.fechaApertura.substring(0, 4) : '';
                 return year === String(filtros.anio);
             });
-        }
-        if (filtros.keyword) {
-            const kw = filtros.keyword.toLowerCase();
-            resultado = resultado.filter(o =>
-                String(o.id).includes(kw) ||
-                (o.titulo || '').toLowerCase().includes(kw) ||
-                (o.descripcion || '').toLowerCase().includes(kw) ||
-                (o.responsable || '').toLowerCase().includes(kw) ||
-                (o.normativa || '').toLowerCase().includes(kw)
-            );
         }
 
         return resultado.sort((a, b) => b.id - a.id);

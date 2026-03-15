@@ -248,7 +248,7 @@ function SmartChart({ data, palette, barColor = "#6366f1", height = 300, isReady
     );
 }
 
-function PeriodFilters({ period, setPeriod, values, setValues, availableYears }) {
+function PeriodFilters({ period, setPeriod, values, setValues, availableYears, fondoFilter, setFondoFilter, fondos }) {
     const months = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -258,8 +258,22 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears })
         <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-[1.5rem] border border-slate-100 shadow-sm">
             <div className="flex items-center gap-2 mr-2">
                 <Filter className="w-4 h-4 text-slate-400" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtros de Tiempo</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtros</span>
             </div>
+
+            <select
+                value={fondoFilter}
+                onChange={(e) => setFondoFilter(e.target.value)}
+                className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer bg-slate-50"
+            >
+                <option value="all">Sujeto: Todos</option>
+                <option value="direct">Entidades Directas</option>
+                <optgroup label="Fondos de Inversión">
+                    {fondos.map(f => (
+                        <option key={f} value={f}>{f}</option>
+                    ))}
+                </optgroup>
+            </select>
 
             <select
                 value={period}
@@ -553,12 +567,26 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
 
     // Time filtering state
     const [period, setPeriod] = useState('all');
+    const [fondoFilter, setFondoFilter] = useState('all'); 
     const [filterValues, setFilterValues] = useState({
         year: new Date().getFullYear().toString(),
         month: new Date().getMonth().toString(),
         quarter: '1',
         semester: '1'
     });
+
+    const filterByFondo = (data) => {
+        if (fondoFilter === 'all') return data;
+        if (fondoFilter === 'direct') return data.filter(item => !item.esVehiculoInversion);
+        return data.filter(item => item.esVehiculoInversion && item.fondoInversion === fondoFilter);
+    };
+    const filteredObs = useMemo(() => filterByFondo(observaciones), [observaciones, fondoFilter]);
+    const filteredCorr = useMemo(() => filterByFondo(correlativos), [correlativos, fondoFilter]);
+    const filteredNotas = useMemo(() => filterByFondo(notas), [notas, fondoFilter]);
+
+    const obsData = useMemo(() => filterByPeriod(filteredObs.filter(o => !o.anulado), 'fechaInicio', period, filterValues), [filteredObs, period, filterValues]);
+    const corrData = useMemo(() => filterByPeriod(filteredCorr.filter(c => !c.anulado), 'fecha', period, filterValues), [filteredCorr, period, filterValues]);
+    const notasData = useMemo(() => filterByPeriod(filteredNotas.filter(n => !n.anulado), 'fecha', period, filterValues), [filteredNotas, period, filterValues]);
 
     const years = useMemo(() => {
         const set = new Set([
@@ -595,19 +623,19 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                     values={filterValues}
                     setValues={setFilterValues}
                     availableYears={years}
+                    fondoFilter={fondoFilter}
+                    setFondoFilter={setFondoFilter}
+                    fondos={catalogos?.fondosInversion || []}
                 />
             </div>
 
-            <div className="flex gap-2 bg-slate-100/50 p-2 rounded-[2rem] border border-slate-200/50 backdrop-blur-xl overflow-x-auto no-scrollbar">
+            {/* Tab Search/Switcher */}
+            <div className="bg-white/40 backdrop-blur-xl p-2 rounded-[2rem] border border-white/40 shadow-xl flex flex-wrap gap-2 sticky top-4 z-50">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-3 px-6 py-3.5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 cursor-pointer flex-1 justify-center
-                            ${activeTab === tab.id
-                                ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 border border-indigo-100'
-                                : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
-                            }`}
+                        className={`flex items-center gap-3 px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/40 ring-4 ring-slate-900/10' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}
                     >
                         {tab.icon}
                         {tab.label}
@@ -615,15 +643,15 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                 ))}
             </div>
 
-            <div className="animate-fade-in">
+            <div className="mt-8 transition-all">
                 {activeTab === 'resumen' && (
-                    <TabResumen observaciones={observaciones} correlativos={correlativos} notas={notas} period={period} values={filterValues} years={years} />
+                    <TabResumen observaciones={obsData} correlativos={corrData} notas={notasData} period="all" values={{}} years={[]} />
                 )}
                 {activeTab === 'correlativos' && (
-                    <TabCorrelativos correlativos={correlativos} notas={notas} period={period} values={filterValues} />
+                    <TabCorrelativos correlativos={corrData} notas={notasData} period="all" values={{}} />
                 )}
                 {activeTab === 'hallazgos' && (
-                    <TabSeguimiento observaciones={observaciones} period={period} values={filterValues} />
+                    <TabSeguimiento observaciones={obsData} period="all" values={{}} />
                 )}
                 {activeTab === 'correspondencia' && (
                     <div className="py-20 text-center bg-white rounded-[2rem] border border-slate-100 shadow-sm">
@@ -634,12 +662,9 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                 )}
                 {activeTab === 'informes' && (
                     <Informes
-                        observaciones={observaciones}
-                        filtrar={filtrar}
-                        getEstadisticas={getEstadisticas}
-                        onSelectObservacion={onSelectObservacion}
-                        eliminarObservacion={eliminarObservacion}
-                        editarObservacion={editarObservacion}
+                        observaciones={obsData}
+                        correlativos={corrData}
+                        notas={notasData}
                         catalogos={catalogos}
                     />
                 )}

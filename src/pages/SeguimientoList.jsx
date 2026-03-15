@@ -69,6 +69,7 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
     const [fechaDesde, setFechaDesde] = useState('');
     const [fechaHasta, setFechaHasta] = useState('');
     const [estado, setEstado] = useState(null);
+    const [selectedFondo, setSelectedFondo] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
     const filtrados = useMemo(() => {
@@ -77,9 +78,10 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
             entidadIds: entidad ? [entidad.id] : undefined,
             fechaInicio: fechaDesde || undefined,
             fechaFin: fechaHasta || undefined,
-            estados: estado ? [estado] : undefined
+            estados: estado ? [estado] : undefined,
+            fondo: selectedFondo || undefined
         });
-    }, [filtrar, keyword, entidad, fechaDesde, fechaHasta, estado]);
+    }, [filtrar, keyword, entidad, fechaDesde, fechaHasta, estado, selectedFondo]);
 
     const paginatedResults = useMemo(() => {
         return filtrados.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -107,9 +109,9 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
 
             {/* Filter Bar - Premium Design */}
             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                     {/* Search */}
-                    <div className="lg:col-span-1">
+                    <div className="xl:col-span-1">
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
                             Búsqueda Directa
                         </label>
@@ -132,6 +134,15 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                         selected={entidad}
                         onChange={(val) => { setEntidad(val); setCurrentPage(1); }}
                         icon={Briefcase}
+                    />
+
+                    {/* Fondo de Inversión */}
+                    <CustomSelect
+                        label="Fondo de Inversión"
+                        options={catalogos?.fondosInversion || []}
+                        selected={selectedFondo}
+                        onChange={(val) => { setSelectedFondo(val); setCurrentPage(1); }}
+                        icon={FileText}
                     />
 
                     {/* Fecha Desde */}
@@ -194,6 +205,11 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                                         </span>
                                         <RiskBadge nivel={obs.nivelRiesgo} />
                                         <EstadoBadge estado={obs.estado} />
+                                        {obs.fondoInversion && (
+                                            <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 uppercase tracking-widest">
+                                                {obs.fondoInversion}
+                                            </span>
+                                        )}
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                             {obs.seccionId}
                                         </span>

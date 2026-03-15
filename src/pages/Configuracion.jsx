@@ -21,6 +21,7 @@ export default function Configuracion({ catalogos, setCatalogos, exportData, imp
         { key: 'accionesSupervision', label: 'Acciones de Supervisión' },
         { key: 'responsables', label: 'Responsables' },
         { key: 'entidades', label: 'Entidades', isComplex: true },
+        { key: 'fondosInversion', label: 'Fondos de Inversión' },
         { key: 'descripcionesAccion', label: 'Descripciones Predeterminadas' },
     ];
 
@@ -29,6 +30,8 @@ export default function Configuracion({ catalogos, setCatalogos, exportData, imp
         { key: 'estados', label: 'Estados de Hallazgo' },
         { key: 'tiposRiesgo', label: 'Tipos de Riesgo' },
         { key: 'tiposVisita', label: 'Tipos de Visita' },
+        { key: 'unidadesAuditables', label: 'Unidades Auditables' },
+        { key: 'puntosNormativos', label: 'Puntos Normativos' },
     ];
 
     async function handleAdd(key, isComplex) {

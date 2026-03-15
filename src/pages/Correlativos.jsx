@@ -41,6 +41,8 @@ const emptyForm = {
     asunto: '',
     entidad: '',
     anulado: false,
+    esVehiculoInversion: false,
+    fondoInversion: '',
 };
 
 export default function Correlativos({ correlativos, onAgregarCorrelativo, onEliminarCorrelativo, onEditarCorrelativo, catalogos }) {
@@ -359,10 +361,17 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                             </span>
                                         </td>
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
-                                            <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">
-                                                {c.tipoInforme}
-                                                {c.esInterno && <span className="ml-1.5 bg-indigo-50 text-indigo-500 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ring-1 ring-indigo-100">Interno</span>}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-slate-600 whitespace-nowrap">
+                                                    {c.tipoInforme}
+                                                    {c.esInterno && <span className="ml-1.5 bg-indigo-50 text-indigo-500 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ring-1 ring-indigo-100">Interno</span>}
+                                                </span>
+                                                {c.esVehiculoInversion && c.fondoInversion && (
+                                                    <span className="text-[9px] font-black text-amber-600 uppercase tracking-tighter mt-0.5">
+                                                        {c.fondoInversion}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${ACCION_COLOR[c.accionSupervision] || 'bg-slate-100 text-slate-600'}`}>
@@ -588,12 +597,59 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                             <div className={`grid gap-4 ${form.esInterno ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2'}`}>
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Tipo de Informe/Memo *</label>
-                                    <select value={form.tipoInforme} onChange={e => handleField('tipoInforme', e.target.value)}
+                                    <select value={form.tipoInforme} onChange={e => {
+                                        const val = e.target.value;
+                                        handleField('tipoInforme', val);
+                                        // Resetear campos si cambia de tipo
+                                        if (val !== 'Informe de Planeación') {
+                                            handleField('esVehiculoInversion', false);
+                                            handleField('fondoInversion', '');
+                                        }
+                                    }}
                                         className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
                                         <option value="">— Seleccionar —</option>
                                         {catalogos.tiposInforme.map(t => <option key={t}>{t}</option>)}
                                     </select>
                                 </div>
+
+                                {/* Lógica de Vehículo de Inversión exclusiva para Informe de Planeación */}
+                                {form.tipoInforme === 'Informe de Planeación' && (
+                                    <div className="col-span-2 mt-2 p-4 bg-amber-50/50 rounded-xl border border-amber-100 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">¿Es Vehículo de Inversión?</span>
+                                                <span className="text-[9px] font-medium text-amber-500 uppercase">Habilitar para informes enfocados en fondos específicos</span>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    const newVal = !form.esVehiculoInversion;
+                                                    handleField('esVehiculoInversion', newVal);
+                                                    if (!newVal) handleField('fondoInversion', '');
+                                                }}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.esVehiculoInversion ? 'bg-amber-500' : 'bg-slate-200'}`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.esVehiculoInversion ? 'translate-x-6' : 'translate-x-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {form.esVehiculoInversion && (
+                                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1.5">Fondo de Inversión *</label>
+                                                <select
+                                                    value={form.fondoInversion}
+                                                    onChange={e => handleField('fondoInversion', e.target.value)}
+                                                    className="w-full h-9 px-3 rounded-lg border border-amber-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white cursor-pointer transition-all"
+                                                >
+                                                    <option value="">— Seleccionar Fondo del Catálogo —</option>
+                                                    {catalogos.fondosInversion && catalogos.fondosInversion.map(f => (
+                                                        <option key={f} value={f}>{f}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 {!form.esInterno && (
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Acción de Supervisión *</label>

@@ -87,10 +87,19 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     const [analisisAuditor, setAnalisisAuditor] = useState('');
     const [planAccion, setPlanAccion] = useState('');
     const [fechaPlanAccion, setFechaPlanAccion] = useState('');
+    const [criterioAdministrativo, setCriterioAdministrativo] = useState(observacion.criterioAdministrativo || '');
+    const [criterioLegal, setCriterioLegal] = useState(observacion.criterioLegal || '');
 
     const [showToast, setShowToast] = useState(false);
 
     const handleGuardarCiclo = () => {
+        if (nuevoEstado === 'Subsanada') {
+            if (!criterioAdministrativo.trim() || !criterioLegal.trim()) {
+                alert('Debe completar los criterios administrativo y legal para cerrar la observación.');
+                return;
+            }
+        }
+
         cambiarEstado(observacion.id, {
             nuevoEstado,
             nroInforme: isEditing ? editData.nroInforme : nroInforme,
@@ -100,6 +109,8 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
             analisisAuditor: comentarioAuditor || analisisAuditor,
             planAccion,
             fechaPlanAccion,
+            criterioAdministrativo,
+            criterioLegal,
         });
         // Reset section-3 fields
         setFechaRespuesta('');
@@ -471,6 +482,41 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                             </div>
                         </div>
 
+                        {/* Criterios de Cierre (Solo si es Subsanada) */}
+                        {nuevoEstado === 'Subsanada' && (
+                            <div className="mt-6 pt-6 border-t border-slate-100 space-y-5">
+                                <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-2xl p-5 space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <svg className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="flex-1 space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Administrativo de Cierre <span className="text-rose-500">*</span></label>
+                                                <textarea
+                                                    rows={2}
+                                                    placeholder="Describa el criterio administrativo para cerrar esta observación..."
+                                                    value={criterioAdministrativo}
+                                                    onChange={e => setCriterioAdministrativo(e.target.value)}
+                                                    className={`w-full p-4 rounded-2xl border border-emerald-200 bg-white text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm resize-none`}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Legal de Cierre <span className="text-rose-500">*</span></label>
+                                                <textarea
+                                                    rows={2}
+                                                    placeholder="Describa el fundamento legal para el cierre..."
+                                                    value={criterioLegal}
+                                                    onChange={e => setCriterioLegal(e.target.value)}
+                                                    className={`w-full p-4 rounded-2xl border border-emerald-200 bg-white text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm resize-none`}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Action bar */}
                         <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
                             <p className="text-[10px] text-amber-600 font-bold italic max-w-sm">
@@ -562,6 +608,34 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                                         <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Situación Actual — Comentario del Auditor</span>
                                                     </div>
                                                     <p className="text-[13px] font-medium text-violet-900 leading-relaxed">{h.analisisAuditor}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Criterios de Cierre en historial */}
+                                            {(h.criterioAdministrativo || h.criterioLegal) && (
+                                                <div className="space-y-4 md:col-span-2 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                                            <svg className="w-3 h-3 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        </div>
+                                                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Criterios de Cierre (Subsanada)</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {h.criterioAdministrativo && (
+                                                            <div>
+                                                                <span className="text-[8px] font-black text-emerald-700 uppercase tracking-widest block mb-1">Administrativo</span>
+                                                                <p className="text-[12px] font-medium text-emerald-900 leading-tight italic">"{h.criterioAdministrativo}"</p>
+                                                            </div>
+                                                        )}
+                                                        {h.criterioLegal && (
+                                                            <div>
+                                                                <span className="text-[8px] font-black text-emerald-700 uppercase tracking-widest block mb-1">Legal</span>
+                                                                <p className="text-[12px] font-medium text-emerald-900 leading-tight italic">"{h.criterioLegal}"</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
 

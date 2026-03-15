@@ -10,6 +10,8 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
     const [analisisAuditor, setAnalisisAuditor] = useState('');
     const [responsable, setResponsable] = useState(observacion.responsable || '');
     const [fechaPlanAccion, setFechaPlanAccion] = useState(observacion.fechaPlanAccion || '');
+    const [criterioAdministrativo, setCriterioAdministrativo] = useState(observacion.criterioAdministrativo || '');
+    const [criterioLegal, setCriterioLegal] = useState(observacion.criterioLegal || '');
 
     const [showToast, setShowToast] = useState(false);
     const [errors, setErrors] = useState({});
@@ -25,6 +27,8 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
         if (!analisisAuditor.trim()) errs.analisisAuditor = 'Requerido';
         if (!responsable) errs.responsable = 'Requerido';
         if (nuevoEstado !== 'Subsanada' && !fechaPlanAccion) errs.fechaPlanAccion = 'Requerido para observaciones no subsanadas';
+        if (nuevoEstado === 'Subsanada' && !criterioAdministrativo.trim()) errs.criterioAdministrativo = 'Requerido para subsanar';
+        if (nuevoEstado === 'Subsanada' && !criterioLegal.trim()) errs.criterioLegal = 'Requerido para subsanar';
         setErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -39,6 +43,8 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
             fechaRespuesta,
             analisisAuditor,
             responsable,
+            criterioAdministrativo,
+            criterioLegal,
             // Only update action plan if it's not solved
             fechaPlanAccion: nuevoEstado !== 'Subsanada' ? fechaPlanAccion : '',
             // Clear current plan details inside history if moved to solved
@@ -261,6 +267,43 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Criterios de Cierre (Solo si es Subsanada) */}
+                                    {nuevoEstado === 'Subsanada' && (
+                                        <div className="pl-8 pt-4 border-t border-slate-100 space-y-5">
+                                            <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-2xl p-5 space-y-4">
+                                                <div className="flex items-start gap-3">
+                                                    <svg className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <div className="flex-1 space-y-4">
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Administrativo de Cierre <span className="text-rose-500">*</span></label>
+                                                            <textarea
+                                                                rows={2}
+                                                                placeholder="Describa el criterio administrativo para cerrar esta observación..."
+                                                                value={criterioAdministrativo}
+                                                                onChange={e => setCriterioAdministrativo(e.target.value)}
+                                                                className={`w-full p-4 rounded-2xl border ${errors.criterioAdministrativo ? 'border-rose-300 bg-rose-50/50' : 'border-emerald-200 bg-white'} text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm resize-none`}
+                                                            />
+                                                            {errors.criterioAdministrativo && <p className="text-[10px] font-bold text-rose-500 mt-1">{errors.criterioAdministrativo}</p>}
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Legal de Cierre <span className="text-rose-500">*</span></label>
+                                                            <textarea
+                                                                rows={2}
+                                                                placeholder="Describa el fundamento legal para el cierre..."
+                                                                value={criterioLegal}
+                                                                onChange={e => setCriterioLegal(e.target.value)}
+                                                                className={`w-full p-4 rounded-2xl border ${errors.criterioLegal ? 'border-rose-300 bg-rose-50/50' : 'border-emerald-200 bg-white'} text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm resize-none`}
+                                                            />
+                                                            {errors.criterioLegal && <p className="text-[10px] font-bold text-rose-500 mt-1">{errors.criterioLegal}</p>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Fecha Plan de Accion Condicional */}
                                     {nuevoEstado !== 'Subsanada' && (

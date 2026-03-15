@@ -20,6 +20,34 @@ export const NIVELES_RIESGO = [
 
 export const TIPOS_RIESGO = ['Operacional', 'LA/FT/PADM', 'Cumplimiento', 'Crédito', 'Liquidez', 'Mercado', 'Legal'];
 
+
+// ===== Catálogos Adicionales =====
+export const UNIDADES_AUDITABLES = [
+    'Riesgo Operativo',
+    'Riesgo de Mercado',
+    'Riesgo de Crédito',
+    'Riesgo de Liquidez',
+    'Ciberseguridad',
+    'Prevención de Lavado de Dinero',
+    'Gobierno Corporativo',
+    'Cumplimiento Normativo',
+    'Tecnología de la Información',
+    'Operaciones y Procesos',
+];
+
+export const PUNTOS_NORMATIVOS = [
+    'Art. 20 - Gestión de Riesgos',
+    'Art. 45 - Control Interno',
+    'Art. 12 - Capital Mínimo',
+    'NRP-33 - Manual de Riesgos',
+    'NCMC-10 - Divulgación de Información',
+    'LFI Art. 15 - Inversiones Permitidas',
+    'LTA Art. 8 - Patrimonios Separados',
+    'Gobierno Corporativo - Mejores Prácticas',
+    'Seguridad de la Información - ISO 27001',
+    'Continuidad del Negocio',
+];
+
 export const ESTADOS = [
     { value: 'Pendiente', color: 'estado-pendiente' },
     { value: 'En Curso', color: 'estado-encurso' },
@@ -38,6 +66,16 @@ export const RESPONSABLES = [
     'Ana Vilanova',
     'Karen Torres',
     'José Castellanos',
+    'AUDITORIA_INTERNA',
+    'COMITE_AUDITORIA',
+];
+
+export const FONDOS_INVERSION = [
+    'Fondo de Inversión Abierto Liquidez de Corto Plazo',
+    'Fondo de Inversión Abierto de Crecimiento',
+    'Fondo de Inversión Cerrado Inmobiliario No. 1',
+    'Fondo de Inversión Cerrado Inmobiliario No. 2',
+    'Fondo de Inversión Cerrado de Capital de Riesgo',
 ];
 
 // ===== Mock Observations =====
@@ -493,6 +531,8 @@ export const CLASIFICACIONES_CORR = [
     'Gobierno Corporativo',
     'Cumplimiento Normativo',
     'Titularización',
+    'Comité Administrador de Fondos',
+    'Unidad Reguladora',
 ];
 
 export const INDUSTRIAS_CORR = [

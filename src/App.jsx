@@ -225,7 +225,6 @@ export default function App() {
                         setCatalogos={setCatalogos}
                         exportData={exportData}
                         importData={importData}
-                        updateConfig={updateConfig}
                     />
                 );
             case 'reportes':
