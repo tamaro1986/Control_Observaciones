@@ -190,7 +190,7 @@ export default function useObservaciones() {
         }
 
         // Always sort results alphabetically by title
-        return resultado.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+        return resultado.sort((a, b) => b.id - a.id);
     }, [observaciones]);
 
     // Get stats
@@ -215,7 +215,7 @@ export default function useObservaciones() {
     }, [observaciones]);
 
     return {
-        observaciones: [...observaciones].sort((a, b) => (a.titulo || '').localeCompare(b.titulo || '')),
+        observaciones: [...observaciones].sort((a, b) => b.id - a.id),
         crearAuditoria,
         cambiarEstado,
         getObservacion,

@@ -99,11 +99,17 @@ export default function App() {
 
     // --- Alphabetic Sorting Logic ---
     const sortedCorrelativos = useMemo(() => {
-        return [...correlativos].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+        return [...correlativos].sort((a, b) => {
+            if (b.año !== a.año) return b.año - a.año;
+            return (b.numero || 0) - (a.numero || 0);
+        });
     }, [correlativos]);
 
     const sortedNotas = useMemo(() => {
-        return [...notas].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+        return [...notas].sort((a, b) => {
+            if (b.año !== a.año) return b.año - a.año;
+            return (b.numero || 0) - (a.numero || 0);
+        });
     }, [notas]);
 
     const sortedCatalogos = useMemo(() => {
