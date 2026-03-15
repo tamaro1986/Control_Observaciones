@@ -93,11 +93,12 @@ export default function useObservaciones() {
             setLoading(true);
             
             // Parallel fetch of all transactional data and entities
-            const [obsRes, corrRes, notasRes, entitiesRes] = await Promise.all([
+            const [obsRes, corrRes, notasRes, entitiesRes, settingsRes] = await Promise.all([
                 supabase.from('observaciones').select('*').order('creado_at', { ascending: false }),
                 supabase.from('correlativos').select('*').order('creado_at', { ascending: false }),
                 supabase.from('correlativos_notas').select('*').order('creado_at', { ascending: false }),
-                supabase.from('entidades').select('*')
+                supabase.from('entidades').select('*'),
+                supabase.from('settings').select('*')
             ]);
 
             if (obsRes.data) setObservaciones(obsRes.data.map(mapFromDB));
@@ -105,6 +106,15 @@ export default function useObservaciones() {
             if (notasRes.data) setNotas(notasRes.data);
             if (entitiesRes.data && entitiesRes.data.length > 0) {
                 setCatalogos(prev => ({ ...prev, entidades: entitiesRes.data }));
+            }
+            if (settingsRes.data && settingsRes.data.length > 0) {
+                setCatalogos(prev => {
+                    const newCatalogos = { ...prev };
+                    settingsRes.data.forEach(s => {
+                        newCatalogos[s.key] = s.value;
+                    });
+                    return newCatalogos;
+                });
             }
 
         } catch (error) {
@@ -122,6 +132,8 @@ export default function useObservaciones() {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'observaciones' }, () => fetchData())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos' }, () => fetchData())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos_notas' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'entidades' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => fetchData())
             .subscribe();
 
         return () => supabase.removeChannel(channel);
@@ -314,13 +326,91 @@ export default function useObservaciones() {
         return { total, porEstado, porEntidad, porRiesgo, cumplimientoGlobal };
     }, [observaciones]);
 
-    const exportData = useCallback(() => {
-        return { message: "Función migrada a Supabase. Use el dashboard de Supabase para backups." };
+    const exportData = useCallback(async () => {
+        try {
+            const [obsRes, corrRes, notasRes, entitiesRes, settingsRes] = await Promise.all([
+                supabase.from('observaciones').select('*'),
+                supabase.from('correlativos').select('*'),
+                supabase.from('correlativos_notas').select('*'),
+                supabase.from('entidades').select('*'),
+                supabase.from('settings').select('*')
+            ]);
+
+            return {
+                observaciones: obsRes.data || [],
+                correlativos: corrRes.data || [],
+                notas: notasRes.data || [],
+                entidades: entitiesRes.data || [],
+                settings: settingsRes.data || [],
+                exportMetadata: {
+                    date: new Date().toISOString(),
+                    version: "Supabase-1.0",
+                    source: "AuditFlow-Supabase"
+                }
+            };
+        } catch (error) {
+            console.error("Error exporting data:", error);
+            return null;
+        }
     }, []);
 
-    const importData = useCallback(() => {
-        return false;
-    }, []);
+    const importData = useCallback(async (data) => {
+        if (!data) return false;
+        
+        try {
+            setLoading(true);
+            
+            // 1. Entidades
+            if (data.entidades && data.entidades.length > 0) {
+                await supabase.from('entidades').upsert(data.entidades);
+            }
+
+            // 2. Settings (Catalogos)
+            if (data.settings && data.settings.length > 0) {
+                await supabase.from('settings').upsert(data.settings);
+            } else if (data.catalogos) {
+                // If it's an old format backup
+                const settingsToUpsert = Object.entries(data.catalogos).map(([key, value]) => ({
+                    key, value
+                }));
+                await supabase.from('settings').upsert(settingsToUpsert);
+            }
+
+            // 3. Correlativos and Notas
+            if (data.correlativos && data.correlativos.length > 0) {
+                await supabase.from('correlativos').upsert(data.correlativos);
+            }
+            if (data.notas && data.notas.length > 0) {
+                await supabase.from('correlativos_notas').upsert(data.notas);
+            }
+
+            // 4. Observaciones
+            if (data.observaciones && data.observaciones.length > 0) {
+                const isDBFormat = data.observaciones[0].entidad_id !== undefined;
+                let toImport = data.observaciones;
+                
+                if (!isDBFormat) {
+                    // Map from frontend format to DB format
+                    toImport = data.observaciones.map(mapToDB);
+                }
+                
+                // If they don't have IDs (from local version), we just insert.
+                // If they have IDs, upsert will update existing ones.
+                const { error } = await supabase.from('observaciones').upsert(toImport);
+                if (error) throw error;
+            }
+
+            // Refresh local state
+            await fetchData();
+            return true;
+        } catch (error) {
+            console.error("Error importing data:", error);
+            alert("Error al importar los datos: " + error.message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchData]);
 
     return {
         observaciones: [...observaciones],

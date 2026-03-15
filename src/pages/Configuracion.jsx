@@ -60,8 +60,8 @@ export default function Configuracion({ catalogos, setCatalogos, exportData, imp
         });
     }
 
-    const exportarDatos = () => {
-        const data = exportData();
+    const exportarDatos = async () => {
+        const data = await exportData();
         if (!data) return;
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -79,10 +79,11 @@ export default function Configuracion({ catalogos, setCatalogos, exportData, imp
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                if (importData(data)) {
+                const success = await importData(data);
+                if (success) {
                     alert("Importación exitosa. Los cambios se han aplicado.");
                 } else {
                     throw new Error("Error en la importación");
