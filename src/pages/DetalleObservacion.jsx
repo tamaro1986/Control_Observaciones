@@ -145,7 +145,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                     </button>
                     <div className="flex items-center gap-3 mt-1">
                         <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200">
-                            <span className="text-sm font-black text-white">#{observacion.id.split('-').pop()}</span>
+                            <span className="text-sm font-black text-white">#{observacion?.id?.split('-').pop()}</span>
                         </div>
                         <div className="flex-grow">
                             {isEditing ? (
@@ -173,7 +173,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                     <span>Expediente {observacion.nroInforme}</span>
                                 )}
                                 <div className="w-1 h-1 rounded-full bg-slate-200" />
-                                <span>{ent?.nombre.split(',')[0]}</span>
+                                <span>{ent?.nombre?.split(',')[0]}</span>
                             </div>
                         </div>
                     </div>

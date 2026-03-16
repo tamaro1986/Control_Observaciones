@@ -1,0 +1,39 @@
+﻿diff --git a/src/data/data.js b/src/data/data.js
+index 80d5725..25c093c 100644
+--- a/src/data/data.js
++++ b/src/data/data.js
+@@ -497,7 +497,7 @@ export function getEstadoStyle(estado) {
+ }
+ 
+ export function getInitials(name) {
+-    return name.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
++    return name?.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '';
+ }
+ 
+ export function getAvatarColor(name) {
+diff --git a/src/pages/Correlativos.jsx b/src/pages/Correlativos.jsx
+index c588d5c..32eacbb 100644
+--- a/src/pages/Correlativos.jsx
++++ b/src/pages/Correlativos.jsx
+@@ -381,7 +381,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
+                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
+                                             <div className="flex items-center gap-1.5">
+                                                 <Avatar nombre={c.responsable} size="xs" />
+-                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{c.responsable.split(' ').slice(0, 2).join(' ')}</span>
++                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{c.responsable?.split(' ').slice(0, 2).join(' ')}</span>
+                                             </div>
+                                         </td>
+                                         <td className="py-2 px-3 align-middle max-w-[180px]" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
+diff --git a/src/pages/CorrelativosNotas.jsx b/src/pages/CorrelativosNotas.jsx
+index e44409c..963f8c1 100644
+--- a/src/pages/CorrelativosNotas.jsx
++++ b/src/pages/CorrelativosNotas.jsx
+@@ -504,7 +504,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
+                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
+                                             <div className="flex items-center gap-1.5">
+                                                 <Avatar nombre={n.responsable} size="xs" />
+-                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{n.responsable.split(' ').slice(0, 2).join(' ')}</span>
++                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{n.responsable?.split(' ').slice(0, 2).join(' ')}</span>
+                                             </div>
+                                         </td>
+                                         <td className="py-2 px-3 align-middle max-w-[160px]" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>

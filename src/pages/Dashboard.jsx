@@ -122,7 +122,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
 
                                 {/* Title */}
                                 <h3 className="group-hover:text-primary transition-colors text-text-primary font-bold text-sm leading-tight mb-0.5 z-10 relative">
-                                    {ent.nombre.split(',')[0]}
+                                    {ent?.nombre?.split(',')[0]}
                                 </h3>
                                 <p className="text-text-muted text-xs z-10 relative">Sector: {ent.categoria}</p>
 

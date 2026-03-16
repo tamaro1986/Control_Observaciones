@@ -273,7 +273,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                                             </td>
                                             <td className="py-2 px-4 align-middle">
                                                 <div className="flex flex-col">
-                                                    <span className="text-xs font-bold text-text-primary">{ent?.nombre.split(',')[0]}</span>
+                                                    <span className="text-xs font-bold text-text-primary">{ent?.nombre?.split(',')[0]}</span>
                                                     {obs.esVehiculoInversion && obs.fondoInversion ? (
                                                         <span className="text-[10px] font-black text-primary uppercase tracking-[0.05em] flex items-center gap-1">
                                                             <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
@@ -378,7 +378,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                             return (
                                 <div key={ent.id} className="group">
                                     <div className="flex justify-between text-[11px] mb-2">
-                                        <span className="text-text-secondary font-bold truncate transition-colors group-hover:text-primary">{ent.nombre.split(',')[0]}</span>
+                                        <span className="text-text-secondary font-bold truncate transition-colors group-hover:text-primary">{ent?.nombre?.split(',')[0]}</span>
                                         <span className="font-black text-text-primary">{pct}%</span>
                                     </div>
                                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner border border-slate-200/50">
