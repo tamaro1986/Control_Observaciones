@@ -81,6 +81,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
     const [isFilterVisible, setIsFilterVisible] = useState(true);
 
     const resultados = useMemo(() => {
+        if (typeof filtrar !== 'function') return observaciones;
         return filtrar({
             entidadIds: entidadSeleccionadas.length > 0 ? entidadSeleccionadas : undefined,
             nivelRiesgo: nivelesRiesgo.length > 0 ? nivelesRiesgo : undefined,
@@ -89,11 +90,11 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
             fechaFin: fechaFin || undefined,
             keyword: keyword || undefined,
         });
-    }, [filtrar, entidadSeleccionadas, nivelesRiesgo, estadosSeleccionados, fechaInicio, fechaFin, keyword]);
+    }, [filtrar, observaciones, entidadSeleccionadas, nivelesRiesgo, estadosSeleccionados, fechaInicio, fechaFin, keyword]);
 
     const totalPages = Math.ceil(resultados.length / ITEMS_PER_PAGE);
     const paginatedResults = resultados.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-    const stats = getEstadisticas();
+    const stats = typeof getEstadisticas === 'function' ? getEstadisticas() : { total: 0, porEstado: {}, porRiesgo: {} };
     const years = [...new Set(observaciones.map(o => o.fechaApertura?.substring(0, 4)).filter(Boolean))].sort().reverse();
 
     return (
