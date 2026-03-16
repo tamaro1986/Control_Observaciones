@@ -381,7 +381,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <div className="flex items-center gap-1.5">
                                                 <Avatar nombre={c.responsable} size="xs" />
-                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{c.responsable.split(' ').slice(0, 2).join(' ')}</span>
+                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{c.responsable?.split(' ').slice(0, 2).join(' ')}</span>
                                             </div>
                                         </td>
                                         <td className="py-2 px-3 align-middle max-w-[180px]" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>

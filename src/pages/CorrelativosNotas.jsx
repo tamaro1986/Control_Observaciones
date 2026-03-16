@@ -504,7 +504,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <div className="flex items-center gap-1.5">
                                                 <Avatar nombre={n.responsable} size="xs" />
-                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{n.responsable.split(' ').slice(0, 2).join(' ')}</span>
+                                                <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{n.responsable?.split(' ').slice(0, 2).join(' ')}</span>
                                             </div>
                                         </td>
                                         <td className="py-2 px-3 align-middle max-w-[160px]" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
