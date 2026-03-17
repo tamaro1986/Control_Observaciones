@@ -1,10 +1,10 @@
 import { daysUntil } from '../data/data';
 import { RiskBadge, Avatar } from '../components/SharedComponents';
 
-export default function Dashboard({ observaciones, getEstadisticas, onNavigate, onSelectObservacion, catalogos }) {
+export default function Dashboard({ observaciones, getEstadisticas, onNavigate, onSelectObservacion, catalogos, entidades }) {
     const stats = getEstadisticas();
 
-    const entidadesDisponibles = catalogos?.entidades || [];
+    const entidadesDisponibles = entidades || [];
 
     const entidadCards = entidadesDisponibles.map(ent => {
         const obs = observaciones.filter(o => o.entidadId === ent.id);

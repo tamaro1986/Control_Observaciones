@@ -68,8 +68,8 @@ function CustomMultiSelect({ label, options, selected, onChange, placeholder = "
     );
 }
 
-export default function Informes({ observaciones, filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos }) {
-    const getEntidadById = (id) => catalogos.entidades.find(e => String(e.id) === String(id));
+export default function Informes({ observaciones, filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos, entidades }) {
+    const getEntidadById = (id) => entidades.find(e => String(e.id) === String(id));
 
     const [entidadSeleccionadas, setEntidadSeleccionadas] = useState([]);
     const [fechaInicio, setFechaInicio] = useState('');
@@ -176,9 +176,9 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                     <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
                         <CustomMultiSelect
                             label="Entidades"
-                            options={catalogos.entidades.map(e => e.nombre)}
+                            options={entidades.map(e => e.nombre)}
                             selected={entidadSeleccionadas.map(id => getEntidadById(id)?.nombre).filter(Boolean)}
-                            onChange={(names) => setEntidadSeleccionadas(names.map(name => catalogos.entidades.find(e => e.nombre === name)?.id))}
+                            onChange={(names) => setEntidadSeleccionadas(names.map(name => entidades.find(e => e.nombre === name)?.id))}
                             placeholder="Todas las entidades"
                         />
                         <div className="relative">
@@ -373,7 +373,7 @@ export default function Informes({ observaciones, filtrar, getEstadisticas, onSe
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                        {catalogos.entidades.filter(e => stats.porEntidad[e.id]).slice(0, 6).map(ent => {
+                        {entidades.filter(e => stats.porEntidad[e.id]).slice(0, 6).map(ent => {
                             const data = stats.porEntidad[ent.id];
                             const pct = Math.round((data.subsanadas / data.total) * 100);
                             return (

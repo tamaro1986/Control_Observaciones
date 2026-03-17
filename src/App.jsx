@@ -33,6 +33,8 @@ export default function App() {
         setCatalogos,
         correlativos,
         setCorrelativos,
+        entidades,
+        setEntidades,
         notas,
         setNotas,
         getEntidadById,
@@ -46,11 +48,15 @@ export default function App() {
         agregarCorrelativo,
         editarCorrelativo,
         eliminarCorrelativo,
+        agregarEntidad,
+        editarEntidad,
+        eliminarEntidad,
         agregarNota,
         editarNota,
         eliminarNota,
         exportData,
         importData,
+        updateConfig,
         error,
         setError,
         loading: observationsLoading
@@ -76,7 +82,7 @@ export default function App() {
         const sorted = { ...catalogos };
         Object.keys(sorted).forEach(key => {
             if (Array.isArray(sorted[key])) {
-                if (key === 'normas' || key === 'normasExtra') {
+                if (key === 'normas' || key === 'normasExtra' || key === 'unidadesAuditables') {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
                 } else if (key === 'entidades') {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
@@ -93,6 +99,9 @@ export default function App() {
         });
         return sorted;
     }, [catalogos]);
+    const sortedEntidades = useMemo(() => {
+        return [...entidades].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    }, [entidades]);
 
     const handleSelectObservacion = useCallback((id, view = 'detalle') => {
         setSelectedObsId(id);
@@ -158,6 +167,7 @@ export default function App() {
                     editarObservacion={editarObservacion}
                     onBack={handleBack}
                     catalogos={sortedCatalogos}
+                    entidades={sortedEntidades}
                 />
             );
         }
@@ -171,10 +181,11 @@ export default function App() {
                         onNavigate={handleNavigate}
                         onSelectObservacion={handleSelectObservacion}
                         catalogos={sortedCatalogos}
+                        entidades={sortedEntidades}
                     />
                 );
             case 'nuevo':
-                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={sortedCatalogos} correlativos={sortedCorrelativos} />;
+                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={sortedCatalogos} correlativos={sortedCorrelativos} entidades={sortedEntidades} />;
             case 'seguimiento':
                 return (
                     <SeguimientoList
@@ -184,6 +195,7 @@ export default function App() {
                         editarObservacion={editarObservacion}
                         filtrar={filtrar}
                         catalogos={sortedCatalogos}
+                        entidades={sortedEntidades}
                     />
                 );
             case 'nuevo_seguimiento':
@@ -195,6 +207,7 @@ export default function App() {
                         onBack={handleBack}
                         catalogos={sortedCatalogos}
                         correlativos={sortedCorrelativos}
+                        entidades={sortedEntidades}
                     />
                 );
             case 'correlativos':
@@ -204,7 +217,6 @@ export default function App() {
                         onAgregarCorrelativo={handleAgregarCorrelativo}
                         onEliminarCorrelativo={handleEliminarCorrelativo}
                         onEditarCorrelativo={handleEditarCorrelativo}
-                        catalogos={sortedCatalogos}
                     />
                 );
             case 'notas':
@@ -223,6 +235,11 @@ export default function App() {
                     <Configuracion
                         catalogos={sortedCatalogos}
                         setCatalogos={setCatalogos}
+                        entidades={entidades}
+                        updateConfig={updateConfig}
+                        agregarEntidad={agregarEntidad}
+                        editarEntidad={editarEntidad}
+                        eliminarEntidad={eliminarEntidad}
                         exportData={exportData}
                         importData={importData}
                     />
@@ -240,6 +257,7 @@ export default function App() {
                         eliminarObservacion={eliminarObservacion}
                         editarObservacion={editarObservacion}
                         catalogos={sortedCatalogos}
+                        entidades={sortedEntidades}
                     />
                 );
             default:

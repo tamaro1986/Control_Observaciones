@@ -11,12 +11,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check active sessions and sets the user
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Here we could fetch the profile from public.perfiles if we had it
-        setProfile(session.user.user_metadata);
-      }
+      // Mock user for testing
+      const mockUser = {
+        id: 'mock-id-123',
+        email: 'test@example.com',
+        user_metadata: { full_name: 'Test Auditor' }
+      };
+      setUser(mockUser);
+      setProfile(mockUser.user_metadata);
       setLoading(false);
     };
 
@@ -24,8 +26,19 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      setProfile(session?.user?.user_metadata ?? null);
+      if (session?.user) {
+        setUser(session.user);
+        setProfile(session.user.user_metadata);
+      } else {
+        // Keep mock user during testing
+        const mockUser = {
+          id: 'mock-id-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test Auditor' }
+        };
+        setUser(mockUser);
+        setProfile(mockUser.user_metadata);
+      }
       setLoading(false);
     });
 

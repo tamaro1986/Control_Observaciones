@@ -14,6 +14,7 @@ export default function useObservaciones() {
     const [observaciones, setObservaciones] = useState([]);
     const [correlativos, setCorrelativos] = useState([]);
     const [notas, setNotas] = useState([]);
+    const [entidades, setEntidades] = useState(ENTIDADES);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -24,7 +25,7 @@ export default function useObservaciones() {
         accionesSupervision: ACCIONES_SUPERVISION,
         normas: NORMAS_CORR,
         responsables: RESPONSABLES,
-        entidades: ENTIDADES,
+        responsables: RESPONSABLES,
         tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
         normasExtra: [],
         fondosInversion: FONDOS_INVERSION,
@@ -80,6 +81,7 @@ export default function useObservaciones() {
             fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
             criterioAdministrativo: ensureString(item.criterio_administrativo),
             criterioLegal: ensureString(item.criterio_legal),
+            seccionId: ensureString(item.seccion_id),
             historialEstados: item.historial_estados || []
         };
     };
@@ -151,6 +153,7 @@ export default function useObservaciones() {
         if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
         if (item.criterioAdministrativo !== undefined) mapped.criterio_administrativo = item.criterioAdministrativo;
         if (item.criterioLegal !== undefined) mapped.criterio_legal = item.criterioLegal;
+        if (item.seccionId !== undefined) mapped.seccion_id = item.seccionId;
         return mapped;
     };
 
@@ -200,7 +203,7 @@ export default function useObservaciones() {
             if (corrRes.data.length > 0 || !corrRes.error) setCorrelativos(corrRes.data.map(mapCorrelativoFromDB));
             if (notasRes.data.length > 0 || !notasRes.error) setNotas(notasRes.data.map(ensureString));
             if (entitiesRes.data.length > 0) {
-                setCatalogos(prev => ({ ...prev, entidades: entitiesRes.data }));
+                setEntidades(entitiesRes.data);
             }
             if (settingsRes.data.length > 0) {
                 setCatalogos(prev => {
@@ -237,8 +240,8 @@ export default function useObservaciones() {
 
     // Helpers
     const getEntidadById = useCallback((id) => {
-        return catalogos.entidades.find(e => String(e.id) === String(id)) || null;
-    }, [catalogos.entidades]);
+        return entidades.find(e => String(e.id) === String(id)) || null;
+    }, [entidades]);
 
     // --- Actions ---
 
@@ -668,6 +671,24 @@ export default function useObservaciones() {
         await fetchData();
     }, [fetchData]);
 
+    const agregarEntidad = useCallback(async (nueva) => {
+        const { error } = await supabase.from('entidades').insert([nueva]);
+        if (error) throw error;
+        await fetchData();
+    }, [fetchData]);
+
+    const editarEntidad = useCallback(async (id, data) => {
+        const { error } = await supabase.from('entidades').update(data).eq('id', id);
+        if (error) throw error;
+        await fetchData();
+    }, [fetchData]);
+
+    const eliminarEntidad = useCallback(async (id) => {
+        const { error } = await supabase.from('entidades').delete().eq('id', id);
+        if (error) throw error;
+        await fetchData();
+    }, [fetchData]);
+
     return {
         observaciones,
         setObservaciones,
@@ -675,6 +696,8 @@ export default function useObservaciones() {
         setCatalogos,
         correlativos,
         setCorrelativos,
+        entidades,
+        setEntidades,
         notas,
         setNotas,
         getEntidadById,
@@ -688,6 +711,9 @@ export default function useObservaciones() {
         agregarCorrelativo,
         editarCorrelativo,
         eliminarCorrelativo,
+        agregarEntidad,
+        editarEntidad,
+        eliminarEntidad,
         agregarNota,
         editarNota,
         eliminarNota,

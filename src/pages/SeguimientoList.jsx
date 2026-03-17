@@ -63,7 +63,7 @@ function CustomSelect({ label, options, selected, onChange, placeholder = "Todos
     );
 }
 
-export default function SeguimientoList({ observaciones, onSelectObservacion, eliminarObservacion, editarObservacion, filtrar, catalogos }) {
+export default function SeguimientoList({ observaciones, onSelectObservacion, eliminarObservacion, editarObservacion, filtrar, catalogos, entidades }) {
     const [keyword, setKeyword] = useState('');
     const [entidad, setEntidad] = useState(null);
     const [fechaDesde, setFechaDesde] = useState('');
@@ -130,7 +130,7 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                     {/* Entidad */}
                     <CustomSelect
                         label="Sujeto Supervisado"
-                        options={catalogos?.entidades || []}
+                        options={entidades || []}
                         selected={entidad}
                         onChange={(val) => { setEntidad(val); setCurrentPage(1); }}
                         icon={Briefcase}

@@ -23,16 +23,16 @@ export const TIPOS_RIESGO = ['Operacional', 'LA/FT/PADM', 'Cumplimiento', 'Créd
 
 // ===== Catálogos Adicionales =====
 export const UNIDADES_AUDITABLES = [
-    'Riesgo Operativo',
-    'Riesgo de Mercado',
-    'Riesgo de Crédito',
-    'Riesgo de Liquidez',
-    'Ciberseguridad',
-    'Prevención de Lavado de Dinero',
-    'Gobierno Corporativo',
-    'Cumplimiento Normativo',
-    'Tecnología de la Información',
-    'Operaciones y Procesos',
+    { codigo: 'RO', nombre: 'Riesgo Operativo' },
+    { codigo: 'RM', nombre: 'Riesgo de Mercado' },
+    { codigo: 'RC', nombre: 'Riesgo de Crédito' },
+    { codigo: 'RL', nombre: 'Riesgo de Liquidez' },
+    { codigo: 'CIBER', nombre: 'Ciberseguridad' },
+    { codigo: 'PLD', nombre: 'Prevención de Lavado de Dinero' },
+    { codigo: 'GC', nombre: 'Gobierno Corporativo' },
+    { codigo: 'CN', nombre: 'Cumplimiento Normativo' },
+    { codigo: 'TI', nombre: 'Tecnología de la Información' },
+    { codigo: 'OPP', nombre: 'Operaciones y Procesos' },
 ];
 
 export const PUNTOS_NORMATIVOS = [

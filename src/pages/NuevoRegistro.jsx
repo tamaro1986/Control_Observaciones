@@ -14,13 +14,14 @@ const EMPTY_TARJETA = {
     fechaPlanAccion: '',
     esVehiculoInversion: false,
     fondoInversion: '',
+    seccionId: '', // Added
     // Cycle finishing fields
     fechaRespuesta: '',
     respuestaEntidad: '',
     comentarioAuditor: '',
 };
 
-export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos = [] }) {
+export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [], correlativos = [] }) {
     // Header Data States
     const [entidadId, setEntidadId] = useState('');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
@@ -137,7 +138,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                     className={`w-full px-4 py-3.5 rounded-2xl border ${errors.entidad ? 'border-rose-500 bg-rose-50/30' : 'border-slate-100 bg-slate-50/50'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer`}
                                 >
                                     <option value="">— SELECCIONE ENTIDAD —</option>
-                                    {catalogos.entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                                    {entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
                                 </select>
                             </div>
 
@@ -398,7 +399,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                             {errors[`desc_${index}`] && <p className="text-[10px] font-black text-rose-500 mt-2 px-1 uppercase tracking-tighter">⚠️ {errors[`desc_${index}`]}</p>}
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-3 gap-4">
                                             <div>
                                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Estado</label>
                                                 <select
@@ -417,6 +418,19 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, correlativos 
                                                     className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all"
                                                 >
                                                     {(catalogos.tiposRiesgo || TIPOS_RIESGO).map(t => <option key={t} value={t}>{t}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">U. Auditable</label>
+                                                <select
+                                                    value={tarjeta.seccionId}
+                                                    onChange={e => updateTarjeta(index, 'seccionId', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all font-mono"
+                                                >
+                                                    <option value="">— SELEC —</option>
+                                                    {catalogos.unidadesAuditables.map(u => (
+                                                        <option key={u.codigo} value={u.codigo} title={u.nombre}>{u.codigo}</option>
+                                                    ))}
                                                 </select>
                                             </div>
                                         </div>

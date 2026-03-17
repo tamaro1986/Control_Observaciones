@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ENTIDADES } from '../data/data.js';
 import Informes from './Informes';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
@@ -11,8 +10,6 @@ import {
     TrendingUp, Filter, CheckCircle, AlertCircle,
     Download, Briefcase, Globe, Award
 } from 'lucide-react';
-
-const ENTIDAD_MAP = Object.fromEntries(ENTIDADES.map(e => [e.id, e.nombre]));
 
 // ─── Palette ───────────────────────────────────────────────────────────────
 const PALETTES = {
@@ -562,7 +559,8 @@ const TABS = [
     { id: 'informes', label: 'Generador', icon: <Award className="w-4 h-4" /> },
 ];
 
-export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos }) {
+export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos, entidades = [] }) {
+    const ENTIDAD_MAP = useMemo(() => Object.fromEntries(entidades.map(e => [e.id, e.nombre])), [entidades]);
     const [activeTab, setActiveTab] = useState('resumen');
 
     // Time filtering state
