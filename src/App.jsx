@@ -217,6 +217,7 @@ export default function App() {
                         onAgregarCorrelativo={handleAgregarCorrelativo}
                         onEliminarCorrelativo={handleEliminarCorrelativo}
                         onEditarCorrelativo={handleEditarCorrelativo}
+                        catalogos={sortedCatalogos}
                     />
                 );
             case 'notas':

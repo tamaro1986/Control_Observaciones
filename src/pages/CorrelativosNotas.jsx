@@ -131,7 +131,7 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                             <label className={LABEL}>Industria</label>
                             <select value={draft.industria} onChange={e => handleDraft('industria', e.target.value)} className={SELECT}>
                                 <option value="">— Seleccionar —</option>
-                                {catalogos.industrias.map(i => <option key={i}>{i}</option>)}
+                                {(catalogos.industrias || []).map(i => <option key={i}>{i}</option>)}
                             </select>
                         </div>
                         <div>
@@ -159,7 +159,7 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                             <label className={LABEL}>Responsable</label>
                             <select value={draft.responsable} onChange={e => handleDraft('responsable', e.target.value)} className={SELECT}>
                                 <option value="">— Seleccionar —</option>
-                                {catalogos.responsables.map(r => <option key={r}>{r}</option>)}
+                                {(catalogos.responsables || []).map(r => <option key={r}>{r}</option>)}
                             </select>
                         </div>
                         <div>
@@ -408,9 +408,9 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                     </div>
                     {[
                         { label: 'Año', value: filterAño, set: v => { setFilterAño(v); setCurrentPage(1); }, options: años.map(a => ({ value: String(a), label: String(a) })) },
-                        { label: 'Clasificación', value: filterClasif, set: v => { setFilterClasif(v); setCurrentPage(1); }, options: catalogos.clasificaciones.map(c => ({ value: c, label: c })) },
-                        { label: 'Industria', value: filterIndust, set: v => { setFilterIndust(v); setCurrentPage(1); }, options: catalogos.industrias.map(i => ({ value: i, label: i })) },
-                        { label: 'Acción', value: filterAccion, set: v => { setFilterAccion(v); setCurrentPage(1); }, options: catalogos.accionesSupervision.map(a => ({ value: a, label: a })) },
+                        { label: 'Clasificación', value: filterClasif, set: v => { setFilterClasif(v); setCurrentPage(1); }, options: (catalogos.clasificaciones || []).map(c => ({ value: c, label: c })) },
+                        { label: 'Industria', value: filterIndust, set: v => { setFilterIndust(v); setCurrentPage(1); }, options: (catalogos.industrias || []).map(i => ({ value: i, label: i })) },
+                        { label: 'Acción', value: filterAccion, set: v => { setFilterAccion(v); setCurrentPage(1); }, options: (catalogos.accionesSupervision || []).map(a => ({ value: a, label: a })) },
                     ].map(f => (
                         <select
                             key={f.label}
@@ -694,14 +694,14 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                     <label className={LABEL}>Clasificación *</label>
                                     <select value={form.clasificacion} onChange={e => handleField('clasificacion', e.target.value)} className={SELECT}>
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.clasificaciones.map(c => <option key={c}>{c}</option>)}
+                                        {(catalogos.clasificaciones || []).map(c => <option key={c}>{c}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className={LABEL}>Tipo Correspondencia *</label>
                                     <select value={form.tipoCorrespondencia} onChange={e => handleField('tipoCorrespondencia', e.target.value)} className={SELECT}>
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.tiposCorrespondencia.map(t => <option key={t}>{t}</option>)}
+                                        {(catalogos.tiposCorrespondencia || []).map(t => <option key={t}>{t}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -711,7 +711,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                     <label className={LABEL}>Industria *</label>
                                     <select value={form.industria} onChange={e => handleField('industria', e.target.value)} className={SELECT}>
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.industrias.map(i => <option key={i}>{i}</option>)}
+                                        {(catalogos.industrias || []).map(i => <option key={i}>{i}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -720,7 +720,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                 <div>
                                     <label className={LABEL}>Acción Supervisión</label>
                                     <select value={form.accionSupervision} onChange={e => handleField('accionSupervision', e.target.value)} className={SELECT}>
-                                        {catalogos.accionesSupervision.map(a => <option key={a}>{a}</option>)}
+                                        {(catalogos.accionesSupervision || []).map(a => <option key={a}>{a}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -762,14 +762,14 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                     <label className={LABEL}>Responsable *</label>
                                     <select value={form.responsable} onChange={e => handleField('responsable', e.target.value)} className={SELECT}>
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.responsables.map(r => <option key={r}>{r}</option>)}
+                                        {(catalogos.responsables || []).map(r => <option key={r}>{r}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className={LABEL}>Entidad *</label>
                                     <select value={form.entidad} onChange={e => handleField('entidad', e.target.value)} className={SELECT}>
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.entidades.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
+                                        {(catalogos.entidades || []).map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -782,7 +782,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                         className="text-[9px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded cursor-pointer border-none outline-none"
                                     >
                                         <option value="">— Cargar Plantilla —</option>
-                                        {catalogos.descripcionesAccion.map((d, i) => (
+                                        {(catalogos.descripcionesAccion || []).map((d, i) => (
                                             <option key={i} value={d}>{d.substring(0, 40)}...</option>
                                         ))}
                                     </select>

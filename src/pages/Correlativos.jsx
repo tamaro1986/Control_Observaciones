@@ -45,7 +45,7 @@ const emptyForm = {
     fondoInversion: '',
 };
 
-export default function Correlativos({ correlativos, onAgregarCorrelativo, onEliminarCorrelativo, onEditarCorrelativo, catalogos }) {
+export default function Correlativos({ correlativos, onAgregarCorrelativo, onEliminarCorrelativo, onEditarCorrelativo, catalogos = {} }) {
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
@@ -272,9 +272,9 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                     </div>
                     {[
                         { label: 'Año', value: filterAño, set: v => { setFilterAño(v); setCurrentPage(1); }, options: años.map(a => ({ value: String(a), label: String(a) })) },
-                        { label: 'Clasificación', value: filterClasif, set: v => { setFilterClasif(v); setCurrentPage(1); }, options: catalogos.clasificaciones.map(c => ({ value: c, label: c })) },
-                        { label: 'Industria', value: filterIndust, set: v => { setFilterIndust(v); setCurrentPage(1); }, options: catalogos.industrias.map(i => ({ value: i, label: i })) },
-                        { label: 'Acción', value: filterAccion, set: v => { setFilterAccion(v); setCurrentPage(1); }, options: catalogos.accionesSupervision.map(a => ({ value: a, label: a })) },
+                        { label: 'Clasificación', value: filterClasif, set: v => { setFilterClasif(v); setCurrentPage(1); }, options: (catalogos.clasificaciones || []).map(c => ({ value: c, label: c })) },
+                        { label: 'Industria', value: filterIndust, set: v => { setFilterIndust(v); setCurrentPage(1); }, options: (catalogos.industrias || []).map(i => ({ value: i, label: i })) },
+                        { label: 'Acción', value: filterAccion, set: v => { setFilterAccion(v); setCurrentPage(1); }, options: (catalogos.accionesSupervision || []).map(a => ({ value: a, label: a })) },
                     ].map(f => (
                         <select
                             key={f.label}
@@ -525,14 +525,14 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         onChange={(e) => {
                                             const code = e.target.value;
                                             if (!code) return;
-                                            const norma = catalogos.normas.find(n => n.codigo === code);
+                                            const norma = (catalogos.normas || []).find(n => n.codigo === code);
                                             if (norma && (!form.normas || !form.normas.find(n => n.codigo === code))) {
                                                 setForm(f => ({ ...f, normas: [...(f.normas || []), norma] }));
                                             }
                                         }}
                                     >
                                         <option value="">— Agregar norma... —</option>
-                                        {catalogos.normas.map(n => <option key={n.codigo} value={n.codigo}>{n.codigo} - {n.nombre.substring(0, 60)}{n.nombre.length > 60 ? '...' : ''}</option>)}
+                                        {(catalogos.normas || []).map(n => <option key={n.codigo} value={n.codigo}>{n.codigo} - {n.nombre.substring(0, 60)}{n.nombre.length > 60 ? '...' : ''}</option>)}
                                     </select>
 
                                     {form.normas && form.normas.length > 0 && (
@@ -579,7 +579,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         <select value={form.clasificacion} onChange={e => handleField('clasificacion', e.target.value)}
                                             className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
                                             <option value="">— Seleccionar —</option>
-                                            {catalogos.clasificaciones.map(c => <option key={c}>{c}</option>)}
+                                            {(catalogos.clasificaciones || []).map(c => <option key={c}>{c}</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -587,7 +587,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         <select value={form.industria} onChange={e => handleField('industria', e.target.value)}
                                             className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
                                             <option value="">— Seleccionar —</option>
-                                            {catalogos.industrias.map(i => <option key={i}>{i}</option>)}
+                                            {(catalogos.industrias || []).map(i => <option key={i}>{i}</option>)}
                                         </select>
                                     </div>
                                 </div>
@@ -608,7 +608,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                     }}
                                         className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.tiposInforme.map(t => <option key={t}>{t}</option>)}
+                                        {(catalogos.tiposInforme || []).map(t => <option key={t}>{t}</option>)}
                                     </select>
                                 </div>
 
@@ -655,7 +655,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Acción de Supervisión *</label>
                                         <select value={form.accionSupervision} onChange={e => handleField('accionSupervision', e.target.value)}
                                             className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                            {catalogos.accionesSupervision.map(a => <option key={a}>{a}</option>)}
+                                            {(catalogos.accionesSupervision || []).map(a => <option key={a}>{a}</option>)}
                                         </select>
                                     </div>
                                 )}
@@ -668,7 +668,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                     <select value={form.responsable} onChange={e => handleField('responsable', e.target.value)}
                                         className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
                                         <option value="">— Seleccionar —</option>
-                                        {catalogos.responsables.map(r => <option key={r}>{r}</option>)}
+                                        {(catalogos.responsables || []).map(r => <option key={r}>{r}</option>)}
                                     </select>
                                 </div>
                                 {!form.esInterno && (
@@ -677,7 +677,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         <select value={form.entidad} onChange={e => handleField('entidad', e.target.value)}
                                             className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
                                             <option value="">— Seleccionar —</option>
-                                            {catalogos.entidades.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
+                                            {(catalogos.entidades || []).map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
                                         </select>
                                     </div>
                                 )}
@@ -693,7 +693,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                             className="text-[9px] font-black uppercase text-primary bg-primary/5 px-2 py-0.5 rounded cursor-pointer border-none outline-none"
                                         >
                                             <option value="">— Cargar Plantilla —</option>
-                                            {catalogos.descripcionesAccion.map((d, i) => (
+                                            {(catalogos.descripcionesAccion || []).map((d, i) => (
                                                 <option key={i} value={d}>{d.substring(0, 40)}...</option>
                                             ))}
                                         </select>

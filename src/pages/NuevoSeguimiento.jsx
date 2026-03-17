@@ -226,7 +226,7 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
                                                 className={`w-full px-4 py-3 rounded-2xl border ${errors.responsable ? 'border-rose-300 bg-rose-50/50 focus:ring-rose-500/10 focus:border-rose-400' : 'border-slate-200 bg-white focus:ring-primary/5 focus:border-primary'} text-sm font-bold text-text-primary focus:outline-none flex-1 appearance-none cursor-pointer`}
                                             >
                                                 <option value="">— SELECCIONE —</option>
-                                                {catalogos.responsables.map(r => <option key={r} value={r}>{r}</option>)}
+                                                {(catalogos.responsables || []).map(r => <option key={r} value={r}>{r}</option>)}
                                             </select>
                                             {errors.responsable && (
                                                 <p className="text-[10px] font-bold text-rose-500 mt-1.5 pl-1 flex items-center gap-1">

@@ -21,7 +21,7 @@ const EMPTY_TARJETA = {
     comentarioAuditor: '',
 };
 
-export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [], correlativos = [] }) {
+export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidades = [], correlativos = [] }) {
     // Header Data States
     const [entidadId, setEntidadId] = useState('');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
@@ -305,7 +305,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [
                                             className="w-full px-5 py-3 rounded-2xl border border-primary/20 bg-white text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-sm shadow-primary/5"
                                         >
                                             <option value="">— SELECCIONE EL FONDO PARA ESTA AUDITORÍA —</option>
-                                            {catalogos.fondos.map(f => (
+                                            {(catalogos.fondos || []).map(f => (
                                                 <option key={f.id} value={f.nombre}>{f.nombre}</option>
                                             ))}
                                         </select>
@@ -417,7 +417,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [
                                                     onChange={e => updateTarjeta(index, 'tipoRiesgo', e.target.value)}
                                                     className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all"
                                                 >
-                                                    {(catalogos.tiposRiesgo || TIPOS_RIESGO).map(t => <option key={t} value={t}>{t}</option>)}
+                                                    {(catalogos.tiposRiesgo || TIPOS_RIESGO.map(t => t.value || t)).map(t => <option key={t} value={t}>{t}</option>)}
                                                 </select>
                                             </div>
                                             <div>
@@ -428,7 +428,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [
                                                     className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all font-mono"
                                                 >
                                                     <option value="">— SELEC —</option>
-                                                    {catalogos.unidadesAuditables.map(u => (
+                                                    {(catalogos.unidadesAuditables || []).map(u => (
                                                         <option key={u.codigo} value={u.codigo} title={u.nombre}>{u.codigo}</option>
                                                     ))}
                                                 </select>
@@ -447,7 +447,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [
                                                     className="w-full px-4 py-3.5 rounded-2xl border border-slate-100 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary appearance-none cursor-pointer shadow-sm"
                                                 >
                                                     <option value="">— SELECCIONAR NORMA —</option>
-                                                    {catalogos.normas.map(n => (
+                                                    {(catalogos.normas || []).map(n => (
                                                         <option key={n.codigo} value={`${n.codigo} - ${n.nombre}`}>
                                                             {n.codigo} - {n.nombre.length > 50 ? n.nombre.substring(0, 50) + '...' : n.nombre}
                                                         </option>
@@ -485,7 +485,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [
                                                         className="w-full px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer"
                                                     >
                                                         <option value="">— SELECCIONE FONDO —</option>
-                                                        {catalogos.fondos.map(f => (
+                                                        {(catalogos.fondos || []).map(f => (
                                                             <option key={f.id} value={f.nombre}>{f.nombre}</option>
                                                         ))}
                                                     </select>
@@ -536,7 +536,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos, entidades = [
                                                     className="w-full px-4 py-3 rounded-2xl border border-violet-100 bg-white text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-violet-500/5 focus:border-violet-400 appearance-none cursor-pointer shadow-sm"
                                                 >
                                                     <option value="">— ASIGNAR AUDITOR —</option>
-                                                    {catalogos.responsables.map(r => <option key={r} value={r}>{r}</option>)}
+                                                    {(catalogos.responsables || []).map(r => <option key={r} value={r}>{r}</option>)}
                                                 </select>
                                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                                                     <svg className="w-4 h-4 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
