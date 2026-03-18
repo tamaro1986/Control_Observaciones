@@ -31,7 +31,7 @@ function CustomSelect({ label, options, selected, onChange, placeholder = "Todos
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-20" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-full left-0 right-0 mt-3 bg-white border border-slate-100 rounded-[1.5rem] shadow-2xl z-30 max-h-72 overflow-y-auto p-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="absolute top-full left-0 right-0 mt-3 bg-white border border-slate-100 rounded-3xl shadow-2xl z-30 max-h-72 overflow-y-auto p-2 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div
                             onClick={() => { onChange(null); setIsOpen(false); }}
                             className="px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-500 text-sm font-bold transition-colors mb-1"

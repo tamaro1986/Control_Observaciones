@@ -19,9 +19,11 @@ import {
     NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA
 } from './data/data.js';
 import Configuracion from './pages/Configuracion.jsx';
+import { useConfirm } from './context/ConfirmContext';
 
 export default function App() {
     const { user, loading } = useAuth();
+    const confirm = useConfirm();
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedObsId, setSelectedObsId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -129,9 +131,9 @@ export default function App() {
     }, [agregarCorrelativo]);
 
     const handleEliminarCorrelativo = useCallback(async (id) => {
-        if (!window.confirm('¿Está seguro de eliminar este correlativo?')) return;
+        if (!(await confirm('¿Está seguro de eliminar este correlativo?', 'Eliminar Correlativo'))) return;
         await eliminarCorrelativo(id);
-    }, [eliminarCorrelativo]);
+    }, [eliminarCorrelativo, confirm]);
 
     const handleEditarCorrelativo = useCallback(async (updated) => {
         await editarCorrelativo(updated.id, updated);
@@ -143,9 +145,9 @@ export default function App() {
     }, [agregarNota]);
 
     const handleEliminarNota = useCallback(async (id) => {
-        if (!window.confirm('¿Está seguro de eliminar esta nota?')) return;
+        if (!(await confirm('¿Está seguro de eliminar esta nota?', 'Eliminar Nota'))) return;
         await eliminarNota(id);
-    }, [eliminarNota]);
+    }, [eliminarNota, confirm]);
 
     const handleEditarNota = useCallback(async (updated) => {
         await editarNota(updated.id, updated);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NIVELES_RIESGO, TIPOS_RIESGO, ESTADOS, TIPOS_VISITA } from '../data/data';
 import { RiskBadge, SuccessToast, Card } from '../components/SharedComponents';
+import { useConfirm } from '../context/ConfirmContext';
 
 const EMPTY_TARJETA = {
     titulo: '',
@@ -22,6 +23,7 @@ const EMPTY_TARJETA = {
 };
 
 export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidades = [], correlativos = [] }) {
+    const confirm = useConfirm();
     // Header Data States
     const [entidadId, setEntidadId] = useState('');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
@@ -126,7 +128,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                     <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">01. Protocolo y Programación</h3>
                 </div>
 
-                <Card className="!p-6 bg-white border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-visible">
+                <Card className="p-6! bg-white border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-visible">
                     <div className="space-y-6">
                         {/* Primary Metadata */}
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -275,7 +277,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
 
                         {/* Global Investment Vehicle Selection */}
                         <div className="pt-2 px-1">
-                            <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-3xl bg-primary/[0.03] border border-primary/10 shadow-sm transition-all hover:bg-primary/[0.05]">
+                            <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-3xl bg-primary/3 border border-primary/10 shadow-sm transition-all hover:bg-primary/5">
                                 <div className="flex items-center gap-3">
                                     <input
                                         type="checkbox"
@@ -358,7 +360,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                         {errors[`titulo_${index}`] && <p className="text-[10px] font-black text-rose-500 mt-2 px-1 uppercase tracking-tighter">⚠️ {errors[`titulo_${index}`]}</p>}
                                     </div>
 
-                                    <div className="flex items-center gap-4 flex-shrink-0">
+                                    <div className="flex items-center gap-4 shrink-0">
                                         <div className="flex flex-col items-end">
                                             <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Criticidad</label>
                                             <select
@@ -596,8 +598,8 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
 
                     <div className="flex items-center gap-5">
                         <button
-                            onClick={() => {
-                                if (window.confirm('¿Desea descartar todos los cambios actuales?')) {
+                            onClick={async () => {
+                                if (await confirm('¿Desea descartar todos los cambios actuales?', 'Descartar Cambios')) {
                                     setEntidadId('');
                                     setNroInforme('');
                                     setFechaApertura('');

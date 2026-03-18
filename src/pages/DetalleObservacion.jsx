@@ -13,7 +13,7 @@ function SectionHeader({ number, label, color = 'slate', icon }) {
     const c = colors[color];
     return (
         <div className={`flex items-center gap-3 mb-4 pb-3 border-b border-slate-100`}>
-            <div className={`w-7 h-7 rounded-lg ${c.numBg} flex items-center justify-center flex-shrink-0`}>
+            <div className={`w-7 h-7 rounded-lg ${c.numBg} flex items-center justify-center shrink-0`}>
                 <span className={`text-xs font-black ${c.numText}`}>{number}</span>
             </div>
             <div className="flex items-center gap-2 flex-1">
@@ -133,7 +133,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
 
             {/* ── Header ──────────────────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex flex-col gap-2 flex-grow">
+                <div className="flex flex-col gap-2 grow">
                     <button
                         onClick={onBack}
                         className="group flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-primary transition-all cursor-pointer w-fit"
@@ -147,7 +147,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200">
                             <span className="text-sm font-black text-white">#{observacion?.id?.split('-').pop()}</span>
                         </div>
-                        <div className="flex-grow">
+                        <div className="grow">
                             {isEditing ? (
                                 <input
                                     type="text"
@@ -226,12 +226,12 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
 
                 {/* Left Column – static info */}
                 <div className="lg:col-span-1 space-y-4">
-                    <Card className="!p-0 overflow-hidden shadow-xl border-0 ring-1 ring-slate-100">
+                    <Card className="p-0! overflow-hidden shadow-xl border-0 ring-1 ring-slate-100">
                         <div className="bg-slate-900 p-4">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Información de Atribución</h3>
                             <div className="flex items-center gap-4">
                                 <Avatar nombre={isEditing ? editData.responsable : observacion.responsable} size="lg" className="ring-4 ring-white/10" />
-                                <div className="flex-grow">
+                                <div className="grow">
                                     {isEditing ? (
                                         <select
                                             value={editData.responsable}
@@ -391,7 +391,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                     {/* ╔═══════════════════════════════════════════════════════╗ */}
                     {/* ║  SECCIÓN 3 – Respuesta de la Entidad                 ║ */}
                     {/* ╚═══════════════════════════════════════════════════════╝ */}
-                    <Card className="!p-5 shadow-xl border-0 ring-1 ring-blue-100">
+                    <Card className="p-5! shadow-xl border-0 ring-1 ring-blue-100">
                         <SectionHeader
                             number="3"
                             color="blue"
@@ -432,7 +432,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                     {/* ╔═══════════════════════════════════════════════════════╗ */}
                     {/* ║  SECCIÓN 4 – Situación Actual                        ║ */}
                     {/* ╚═══════════════════════════════════════════════════════╝ */}
-                    <Card className="!p-5 shadow-xl border-0 ring-1 ring-violet-100">
+                    <Card className="p-5! shadow-xl border-0 ring-1 ring-violet-100">
                         <SectionHeader
                             number="4"
                             color="violet"
@@ -462,7 +462,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
 
                                 {/* Estado pill visual */}
                                 <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 rounded-xl border border-violet-100">
-                                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse flex-shrink-0" />
+                                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse shrink-0" />
                                     <span className="text-[10px] font-black text-violet-700 uppercase tracking-widest leading-none">
                                         {nuevoEstado}
                                     </span>
@@ -584,7 +584,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                             {(h.respuestaEntidad || h.fechaRespuesta) && (
                                                 <div className="space-y-2 md:col-span-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                                        <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center shrink-0">
                                                             <span className="text-[9px] font-black text-blue-700">3</span>
                                                         </div>
                                                         <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Respuesta de la Entidad</span>
@@ -602,7 +602,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                             {h.analisisAuditor && (
                                                 <div className="space-y-2 md:col-span-2 p-4 bg-violet-50 rounded-2xl border border-violet-100">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center flex-shrink-0">
+                                                        <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center shrink-0">
                                                             <span className="text-[9px] font-black text-violet-700">4</span>
                                                         </div>
                                                         <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Situación Actual — Comentario del Auditor</span>
@@ -615,7 +615,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                             {(h.criterioAdministrativo || h.criterioLegal) && (
                                                 <div className="space-y-4 md:col-span-2 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                                        <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center shrink-0">
                                                             <svg className="w-3 h-3 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                             </svg>

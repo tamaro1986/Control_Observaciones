@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useConfirm } from '../context/ConfirmContext';
 import { 
     MOCK_OBSERVACIONES, MOCK_CORRELATIVOS, MOCK_CORRELATIVOS_NOTAS,
     CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
@@ -10,6 +11,7 @@ import {
 } from '../data/data';
 
 export default function useObservaciones() {
+    const confirm = useConfirm();
     // 1. Core States
     const [observaciones, setObservaciones] = useState([]);
     const [correlativos, setCorrelativos] = useState([]);
@@ -348,13 +350,13 @@ export default function useObservaciones() {
     }, [fetchData]);
 
     const eliminarObservacion = useCallback(async (id) => {
-        if (!window.confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.')) return;
+        if (!(await confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.', 'Eliminar Observación'))) return;
         const { error } = await supabase.from('observaciones')
             .delete()
             .eq('id', id);
         if (error) console.error('Error deleting observation:', error);
         else await fetchData(); // Explicitly call fetchData after delete
-    }, [fetchData]);
+    }, [fetchData, confirm]);
 
     // --- Correlativos Actions ---
     const agregarCorrelativo = useCallback(async (nuevo) => {
