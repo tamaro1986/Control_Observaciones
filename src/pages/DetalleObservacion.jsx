@@ -124,7 +124,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     const estados = catalogos?.estados || ESTADOS.map(e => e.value);
     const responsables = catalogos?.responsables || RESPONSABLES;
     const tiposVisita = catalogos?.tiposVisita || TIPOS_VISITA;
-    const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO;
+    const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value);
     const tiposRiesgo = catalogos?.tiposRiesgo || TIPOS_RIESGO;
     const normas = catalogos?.normas || [];
 
