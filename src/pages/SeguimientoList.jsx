@@ -92,11 +92,9 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
         setEditingResponsable(null);
     };
 
-    const handleDelete = (e, id) => {
+    const handleDelete = async (e, id) => {
         e.stopPropagation();
-        if (window.confirm('¿Está seguro de eliminar este hallazgo?')) {
-            eliminarObservacion(id);
-        }
+        await eliminarObservacion(id);
     };
 
     const filtrados = useMemo(() => {
