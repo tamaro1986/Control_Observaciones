@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/SharedComponents';
-import { Search, Filter, Calendar, Briefcase, FileText } from 'lucide-react';
+import { Search, Filter, Calendar, Briefcase, FileText, Trash2, Edit2, ChevronDown, Check, X } from 'lucide-react';
 import { ESTADOS } from '../data/data';
 
 const ITEMS_PER_PAGE = 8;
@@ -71,6 +71,33 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
     const [estado, setEstado] = useState(null);
     const [selectedFondo, setSelectedFondo] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+
+    const [editingResponsable, setEditingResponsable] = useState(null);
+    const [nuevoResponsable, setNuevoResponsable] = useState('');
+
+    const handleEditResponsable = (e, obs) => {
+        e.stopPropagation();
+        setEditingResponsable(obs.id);
+        setNuevoResponsable(obs.responsable || '');
+    };
+
+    const handleSaveResponsable = async (e, id) => {
+        e.stopPropagation();
+        await editarObservacion(id, { responsable: nuevoResponsable });
+        setEditingResponsable(null);
+    };
+
+    const handleCancelResponsable = (e) => {
+        e.stopPropagation();
+        setEditingResponsable(null);
+    };
+
+    const handleDelete = (e, id) => {
+        e.stopPropagation();
+        if (window.confirm('¿Está seguro de eliminar este hallazgo?')) {
+            eliminarObservacion(id);
+        }
+    };
 
     const filtrados = useMemo(() => {
         return filtrar({
@@ -235,17 +262,72 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between lg:justify-end gap-6 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-50">
-                                    <div className="flex flex-col items-end gap-1">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Responsable</span>
-                                        <Avatar name={obs.responsable} />
+                                <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-50">
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-row items-center gap-1 mr-4">
+                                         <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSelectObservacion(obs.id);
+                                            }}
+                                            className="p-2.5 rounded-xl bg-indigo-50/50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                            title="Editar hallazgo completo"
+                                         >
+                                             <Edit2 className="w-4 h-4" />
+                                         </button>
+                                         <button 
+                                            onClick={(e) => handleDelete(e, obs.id)}
+                                            className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                            title="Eliminar hallazgo"
+                                         >
+                                             <Trash2 className="w-4 h-4" />
+                                         </button>
                                     </div>
+
+                                    {/* Responsable Area */}
+                                    <div className="flex flex-col items-end gap-1 min-w-[140px]">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                            Responsable
+                                            {editingResponsable !== obs.id && (
+                                                <button onClick={(e) => handleEditResponsable(e, obs)} className="text-slate-300 hover:text-indigo-600 p-0.5 rounded-md hover:bg-indigo-50" title="Editar Responsable">
+                                                    <Edit2 className="w-3 h-3" />
+                                                </button>
+                                            )}
+                                        </span>
+                                        {editingResponsable === obs.id ? (
+                                            <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 w-full bg-slate-50 p-1 rounded-xl shadow-inner border border-slate-200">
+                                                <select
+                                                    value={nuevoResponsable}
+                                                    onChange={(e) => setNuevoResponsable(e.target.value)}
+                                                    className="w-full bg-white text-xs font-bold text-slate-700 py-1.5 px-2 rounded-lg border-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                                                >
+                                                    <option value="">Seleccionar...</option>
+                                                    {catalogos?.responsables?.map((resp, i) => (
+                                                        <option key={i} value={typeof resp === 'string' ? resp : (resp.nombre || resp.value)}>
+                                                            {typeof resp === 'string' ? resp : (resp.nombre || resp.value)}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <button onClick={(e) => handleSaveResponsable(e, obs.id)} className="p-1.5 text-green-600 hover:bg-green-100 rounded-lg">
+                                                    <Check className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={handleCancelResponsable} className="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg">
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <Avatar name={obs.responsable} />
+                                        )}
+                                    </div>
+
+                                    {/* Arrow Navigation */}
                                     <button
-                                        className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm group/btn"
+                                        className="w-10 h-10 ml-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm group/btn shrink-0"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onSelectObservacion(obs.id);
                                         }}
+                                        title="Abrir seguimiento"
                                     >
                                         <svg className="w-5 h-5 group-hover/btn:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
