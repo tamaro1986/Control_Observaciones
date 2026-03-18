@@ -209,7 +209,13 @@ export default function useObservaciones() {
                 setCatalogos(prev => {
                     const newCatalogos = { ...prev };
                     settingsRes.data.forEach(s => {
-                        newCatalogos[s.key] = s.value;
+                        let val = s.value;
+                        // Fix for legacy data or misconfigurations where arrays of objects were saved instead of strings
+                        const stringCatalogs = ['nivelesRiesgo', 'estados', 'tiposRiesgo', 'tiposVisita', 'responsables', 'clasificaciones', 'industrias', 'tiposInforme'];
+                        if (Array.isArray(val) && stringCatalogs.includes(s.key)) {
+                            val = val.map(item => (typeof item === 'object' && item !== null) ? (item.value || item.label || String(item)) : item);
+                        }
+                        newCatalogos[s.key] = val;
                     });
                     return newCatalogos;
                 });
