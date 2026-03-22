@@ -94,8 +94,11 @@ export default function useObservaciones() {
     const mapCorrelativoFromDB = (item) => {
         if (!item) return null;
         return {
-            ...item,
-            codigo: ensureString(item.codigo),
+            id: item.id,
+            fecha: item.fecha,
+            codigo: item.codigo,
+            numero: item.numero,
+            blfOtro: item.blf_otro || item.blfOtro || '',
             asunto: ensureString(item.asunto),
             responsable: ensureString(item.responsable),
             entidad: ensureString(item.entidad),
@@ -104,10 +107,13 @@ export default function useObservaciones() {
             industria: ensureString(item.industria),
             accionSupervision: ensureString(item.accion_supervision || item.accionSupervision),
             descripcionAccion: ensureString(item.descripcion_accion || item.descripcionAccion),
-            nota: ensureString(item.nota),
+            anulado: item.anulado || false,
+            esInterno: item.es_interno || false,
+            cantidadUnidades: item.cantidad_unidades || 1,
+            normas: item.normas || [],
             esVehiculoInversion: item.es_vehiculo_inversion || false,
             fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
-            año: item.año || item.an_io || 2025 // Handle possible year field names
+            año: item.año || item.an_io || 2025
         };
     };
 
@@ -116,8 +122,8 @@ export default function useObservaciones() {
 
     const mapCorrelativoToDB = (item) => {
         if (!item) return null;
-        // Solo enviamos los campos que queremos persistir.
-        // NO enviamos el ID porque es autogenerado o manejado por Supabase
+        
+        // Mapeo estricto a las columnas existentes en la tabla 'correlativos'
         const mapped = {
             fecha: item.fecha,
             codigo: item.codigo,
@@ -128,15 +134,15 @@ export default function useObservaciones() {
             entidad: item.entidad,
             clasificacion: item.clasificacion,
             industria: item.industria,
-            nota: item.nota,
             anulado: item.anulado || false,
             es_interno: item.esInterno || false,
             tipo_informe: item.tipoInforme,
             accion_supervision: item.accionSupervision,
-            descripcion_accion: item.descripcionAccion,
+            descripcion_accion: item.descripcionAccion || item.descripcion_accion,
             es_vehiculo_inversion: item.esVehiculoInversion || false,
             fondo_inversion: item.fondoInversion,
             cantidad_unidades: item.cantidadUnidades || 1,
+            blf_otro: item.blfOtro || '', 
             normas: item.normas || []
         };
         
@@ -376,7 +382,12 @@ export default function useObservaciones() {
     const agregarCorrelativo = useCallback(async (nuevo) => {
         const payload = mapCorrelativoToDB(nuevo);
         const { data, error } = await supabase.from('correlativos').insert([payload]).select();
-        if (error) console.error('Error adding correlativo:', error);
+        
+        if (error) {
+            console.error('Error adding correlativo:', error.message, error.details, error.hint);
+            setError(`Error al guardar: ${error.message}`);
+        }
+        
         if (!error) await fetchData();
         return data ? mapCorrelativoFromDB(data[0]) : null;
     }, [fetchData]);
@@ -384,7 +395,12 @@ export default function useObservaciones() {
     const editarCorrelativo = useCallback(async (id, data) => {
         const payload = mapCorrelativoToDB(data);
         const { error } = await supabase.from('correlativos').update(payload).eq('id', id);
-        if (error) console.error('Error editing correlativo:', error);
+        
+        if (error) {
+            console.error('Error updating correlativo:', error.message, error.details, error.hint);
+            setError(`Error al actualizar: ${error.message}`);
+        }
+        
         if (!error) await fetchData();
     }, [fetchData]);
 
