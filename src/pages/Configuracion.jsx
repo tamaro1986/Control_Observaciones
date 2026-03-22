@@ -3,7 +3,6 @@ import { Card } from '../components/SharedComponents';
 
 export default function Configuracion({ 
     catalogos, 
-    setCatalogos, 
     entidades,
     exportData, 
     importData, 
@@ -36,6 +35,7 @@ export default function Configuracion({
             { id: 'normas', label: 'Normas Principales (Código | Nombre)', isComplex: true },
             { id: 'normasExtra', label: 'Normas Complementarias (Código | Nombre)', isComplex: true },
             { id: 'puntosNormativos', label: 'Puntos de Control Normativo' },
+            { id: 'secciones', label: 'Secciones (Código | Nombre)', isComplex: true },
             { id: 'unidadesAuditables', label: 'Unidades Auditables (Código | Nombre)', isComplex: true },
         ],
         clasificacion: [
@@ -72,7 +72,6 @@ export default function Configuracion({
 
         try {
             await updateConfig(catalogId, newList);
-            setCatalogos(prev => ({ ...prev, [catalogId]: newList }));
             setNewItem('');
         } catch (err) {
             alert("Error al guardar: " + err.message);
@@ -87,7 +86,6 @@ export default function Configuracion({
 
         try {
             await updateConfig(catalogId, currentList);
-            setCatalogos(prev => ({ ...prev, [catalogId]: currentList }));
         } catch (err) {
             alert("Error al actualizar: " + err.message);
         }
@@ -176,7 +174,7 @@ export default function Configuracion({
                 <main className="lg:col-span-9">
                     {activeTab === 'general' && (
                         <div className="space-y-6">
-                            <Card className="!p-10 text-center space-y-8">
+                            <Card className="p-10! text-center space-y-8">
                                 <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center text-5xl mx-auto border-2 border-emerald-100 shadow-sm">
                                     💾
                                 </div>
@@ -243,7 +241,7 @@ export default function Configuracion({
 
                             {/* Catalog Editor Area */}
                             <div className="md:col-span-8">
-                                <Card className="min-h-[600px] flex flex-col !bg-slate-50 shadow-none border-slate-200/60">
+                                <Card className="min-h-[600px] flex flex-col bg-slate-50! shadow-none border-slate-200/60">
                                     {!selectedCatalog ? (
                                         <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50">
                                             <i className="ri-layout-left-line text-6xl"></i>

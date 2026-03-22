@@ -27,7 +27,6 @@ export default function useObservaciones() {
         accionesSupervision: ACCIONES_SUPERVISION,
         normas: NORMAS_CORR,
         responsables: RESPONSABLES,
-        responsables: RESPONSABLES,
         tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
         normasExtra: [],
         fondosInversion: FONDOS_INVERSION,

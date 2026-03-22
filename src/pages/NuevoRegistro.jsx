@@ -423,14 +423,14 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">U. Auditable</label>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Sección</label>
                                                 <select
                                                     value={tarjeta.seccionId}
                                                     onChange={e => updateTarjeta(index, 'seccionId', e.target.value)}
                                                     className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all font-mono"
                                                 >
                                                     <option value="">— SELEC —</option>
-                                                    {(catalogos.unidadesAuditables || []).map(u => (
+                                                    {(catalogos.secciones || []).map(u => (
                                                         <option key={u.codigo} value={u.codigo} title={u.nombre}>{u.codigo}</option>
                                                     ))}
                                                 </select>

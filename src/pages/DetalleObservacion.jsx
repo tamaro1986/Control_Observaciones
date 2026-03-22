@@ -127,6 +127,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value);
     const tiposRiesgo = catalogos?.tiposRiesgo || TIPOS_RIESGO;
     const normas = catalogos?.normas || [];
+    const secciones = catalogos?.secciones || [];
 
     return (
         <div className="max-w-6xl mx-auto animate-fade-in space-y-4 pb-6 px-4">
@@ -288,6 +289,23 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                         />
                                     ) : (
                                         <p className="text-sm font-bold text-text-primary">{observacion.normativa || 'No Declarada'}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sección</span>
+                                    {isEditing ? (
+                                        <select
+                                            value={editData.seccionId}
+                                            onChange={e => setEditData({ ...editData, seccionId: e.target.value })}
+                                            className="text-xs font-bold text-text-primary uppercase w-full bg-slate-50 border-none rounded p-1"
+                                        >
+                                            <option value="">— SELEC —</option>
+                                            {secciones.map(s => (
+                                                <option key={s.codigo} value={s.codigo} title={s.nombre}>{s.codigo}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <p className="text-sm font-bold text-text-primary uppercase">{observacion.seccionId || '—'}</p>
                                     )}
                                 </div>
                                 <div className="space-y-1">

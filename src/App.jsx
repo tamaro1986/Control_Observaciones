@@ -80,6 +80,10 @@ export default function App() {
     }, [notas]);
 
     // All hooks must be declared BEFORE conditional returns (Rules of Hooks)
+    const sortedEntidades = useMemo(() => {
+        return [...entidades].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    }, [entidades]);
+
     const sortedCatalogos = useMemo(() => {
         const sorted = { ...catalogos };
         Object.keys(sorted).forEach(key => {
@@ -99,11 +103,8 @@ export default function App() {
                 }
             }
         });
-        return sorted;
-    }, [catalogos]);
-    const sortedEntidades = useMemo(() => {
-        return [...entidades].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-    }, [entidades]);
+        return { ...sorted, entidades: sortedEntidades };
+    }, [catalogos, sortedEntidades]);
 
     const handleSelectObservacion = useCallback((id, view = 'detalle') => {
         setSelectedObsId(id);
@@ -236,8 +237,7 @@ export default function App() {
             case 'config':
                 return (
                     <Configuracion
-                        catalogos={sortedCatalogos}
-                        setCatalogos={setCatalogos}
+                        catalogos={catalogos}
                         entidades={entidades}
                         updateConfig={updateConfig}
                         agregarEntidad={agregarEntidad}

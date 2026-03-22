@@ -68,7 +68,7 @@ function CustomMultiSelect({ label, options, selected, onChange, placeholder = "
     );
 }
 
-export default function Informes({ observaciones, filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos, entidades }) {
+export default function Informes({ observaciones = [], filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos, entidades = [] }) {
     const getEntidadById = (id) => entidades.find(e => String(e.id) === String(id));
 
     const [entidadSeleccionadas, setEntidadSeleccionadas] = useState([]);

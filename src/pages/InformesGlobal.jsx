@@ -664,6 +664,7 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                         correlativos={corrData}
                         notas={notasData}
                         catalogos={catalogos}
+                        entidades={entidades}
                         filtrar={filtrar}
                         getEstadisticas={getEstadisticas}
                         onSelectObservacion={onSelectObservacion}
