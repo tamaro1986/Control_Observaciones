@@ -65,15 +65,22 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
     const filtered = useMemo(() => {
         const q = search.toLowerCase();
         return correlativos.filter(c => {
-            const codeStr = c.codigo || '';
-            const asntStr = c.asunto || '';
+            if (!c) return false;
+            const codeStr = (c.codigo || '').toLowerCase();
+            const asntStr = (c.asunto || '').toLowerCase();
+            const entStr = (c.entidad || '').toLowerCase();
+            const respStr = (c.responsable || '').toLowerCase();
+            const yearStr = String(c.año || '');
+            
             const matchQ = !q ||
-                codeStr.toLowerCase().includes(q) ||
-                c.entidad.toLowerCase().includes(q) ||
-                c.responsable.toLowerCase().includes(q) ||
-                (c.normas && c.normas.some(n => n.codigo.toLowerCase().includes(q) || n.nombre.toLowerCase().includes(q))) ||
+                codeStr.includes(q) ||
+                entStr.includes(q) ||
+                respStr.includes(q) ||
+                yearStr.includes(q) ||
+                (c.normas && c.normas.some(n => (n.codigo || '').toLowerCase().includes(q) || (n.nombre || '').toLowerCase().includes(q))) ||
                 (c.codigoNorma && c.codigoNorma.toLowerCase().includes(q)) ||
-                asntStr.toLowerCase().includes(q);
+                asntStr.includes(q);
+                
             const matchClasif = !filterClasif || c.clasificacion === filterClasif;
             const matchIndust = !filterIndust || c.industria === filterIndust;
             const matchAccion = !filterAccion || c.accionSupervision === filterAccion;
@@ -98,7 +105,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
         setShowForm(true);
     }
 
-    function handleGuardar() {
+    async function handleGuardar() {
         if (!form.anulado) {
             if (form.esInterno) {
                 if (!form.fecha || !form.tipoInforme || !form.responsable || !form.asunto) {
@@ -113,18 +120,25 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
             }
         }
 
-        if (editingId) {
-            onEditarCorrelativo({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
-        } else {
-            const { codigo, numero, año } = getNextCorrelativo(correlativos, new Date(form.fecha + 'T00:00:00').getFullYear());
-            const nuevo = { ...form, id: `corr-${Date.now()}`, codigo, numero, año, cantidadUnidades: Number(form.cantidadUnidades) };
-            onAgregarCorrelativo(nuevo);
-        }
+        try {
+            if (editingId) {
+                await onEditarCorrelativo({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
+            } else {
+                const yearVal = form.fecha ? new Date(form.fecha + 'T00:00:00').getFullYear() : new Date().getFullYear();
+                const { codigo, numero, año } = getNextCorrelativo(correlativos, yearVal);
+                const nuevo = { ...form, id: `corr-${Date.now()}`, codigo, numero, año, cantidadUnidades: Number(form.cantidadUnidades) };
+                await onAgregarCorrelativo(nuevo);
+                alert('Correlativo guardado exitosamente.');
+            }
 
-        setForm(emptyForm);
-        setEditingId(null);
-        setShowForm(false);
-        setCurrentPage(1);
+            setForm(emptyForm);
+            setEditingId(null);
+            setShowForm(false);
+            setCurrentPage(1);
+        } catch (error) {
+            console.error("Error saving correlativo:", error);
+            alert("Ocurrió un error al guardar el correlativo. Por favor intente de nuevo.");
+        }
     }
 
     const stats = useMemo(() => {

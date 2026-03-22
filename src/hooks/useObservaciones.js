@@ -106,7 +106,8 @@ export default function useObservaciones() {
             descripcionAccion: ensureString(item.descripcion_accion || item.descripcionAccion),
             nota: ensureString(item.nota),
             esVehiculoInversion: item.es_vehiculo_inversion || false,
-            fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion)
+            fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
+            año: item.año || item.an_io || 2025 // Handle possible year field names
         };
     };
 
@@ -115,19 +116,29 @@ export default function useObservaciones() {
 
     const mapCorrelativoToDB = (item) => {
         if (!item) return null;
-        const mapped = { ...item };
-        if (item.tipoInforme !== undefined) mapped.tipo_informe = item.tipoInforme;
-        if (item.accionSupervision !== undefined) mapped.accion_supervision = item.accionSupervision;
-        if (item.descripcionAccion !== undefined) mapped.descripcion_accion = item.descripcionAccion;
-        if (item.esVehiculoInversion !== undefined) mapped.es_vehiculo_inversion = item.esVehiculoInversion;
-        if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
-        
-        // Remove camelCase keys to avoid sending them to Supabase
-        delete mapped.tipoInforme;
-        delete mapped.accionSupervision;
-        delete mapped.descripcionAccion;
-        delete mapped.esVehiculoInversion;
-        delete mapped.fondoInversion;
+        // Solo enviamos los campos que queremos persistir.
+        // NO enviamos el ID porque es autogenerado o manejado por Supabase
+        const mapped = {
+            fecha: item.fecha,
+            codigo: item.codigo,
+            numero: item.numero,
+            año: item.año,
+            asunto: item.asunto,
+            responsable: item.responsable,
+            entidad: item.entidad,
+            clasificacion: item.clasificacion,
+            industria: item.industria,
+            nota: item.nota,
+            anulado: item.anulado || false,
+            es_interno: item.esInterno || false,
+            tipo_informe: item.tipoInforme,
+            accion_supervision: item.accionSupervision,
+            descripcion_accion: item.descripcionAccion,
+            es_vehiculo_inversion: item.esVehiculoInversion || false,
+            fondo_inversion: item.fondoInversion,
+            cantidad_unidades: item.cantidadUnidades || 1,
+            normas: item.normas || []
+        };
         
         return mapped;
     };
@@ -204,9 +215,9 @@ export default function useObservaciones() {
                 }
             }
 
-            if (obsRes.data.length > 0 || !obsRes.error) setObservaciones(obsRes.data.map(mapFromDB));
-            if (corrRes.data.length > 0 || !corrRes.error) setCorrelativos(corrRes.data.map(mapCorrelativoFromDB));
-            if (notasRes.data.length > 0 || !notasRes.error) setNotas(notasRes.data.map(ensureString));
+            if (obsRes.data) setObservaciones(obsRes.data.map(mapFromDB));
+            if (corrRes.data) setCorrelativos(corrRes.data.map(mapCorrelativoFromDB));
+            if (notasRes.data) setNotas(notasRes.data.map(ensureString));
             if (entitiesRes.data.length > 0) {
                 setEntidades(entitiesRes.data);
             }
