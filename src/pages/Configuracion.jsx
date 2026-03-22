@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card } from '../components/SharedComponents';
+import CatalogManager from '../components/CatalogManager';
 
 export default function Configuracion({ 
     catalogos, 
@@ -7,6 +8,7 @@ export default function Configuracion({
     exportData, 
     importData, 
     updateConfig,
+    onUpdateCatalog,
     agregarEntidad,
     editarEntidad,
     eliminarEntidad 
@@ -57,42 +59,6 @@ export default function Configuracion({
         ]
     };
 
-    const handleAddCatalogItem = async (catalogId, isComplex) => {
-        if (!newItem.trim()) return;
-
-        let valueToAdd = newItem.trim();
-        if (isComplex) {
-            const [codigo, ...rest] = newItem.split('|').map(s => s.trim());
-            if (!codigo) {
-                alert("Formato incorrecto. Use: CÓDIGO | Nombre");
-                return;
-            }
-            valueToAdd = { codigo, nombre: rest.join(' ') || codigo };
-        }
-
-        const currentList = catalogos[catalogId] || [];
-        const newList = [...currentList, valueToAdd];
-
-        try {
-            await updateConfig(catalogId, newList);
-            setNewItem('');
-        } catch (err) {
-            alert("Error al guardar: " + err.message);
-        }
-    };
-
-    const handleDeleteCatalogItem = async (catalogId, index) => {
-        if (!window.confirm('¿Confirmas que deseas eliminar este elemento?')) return;
-
-        const currentList = [...(catalogos[catalogId] || [])];
-        currentList.splice(index, 1);
-
-        try {
-            await updateConfig(catalogId, currentList);
-        } catch (err) {
-            alert("Error al actualizar: " + err.message);
-        }
-    };
 
     const handleSaveEntity = async () => {
         if (!entityForm.nombre.trim()) return;
@@ -226,7 +192,7 @@ export default function Configuracion({
                     {activeTab !== 'general' && (
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                             {/* Catalog Selection List */}
-                            <div className="md:col-span-4 space-y-2">
+                            <aside className="md:col-span-4 space-y-2">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 pb-2 border-b border-slate-100">Catálogos</p>
                                 <div className="space-y-1 pt-2">
                                     {catalogsByCategory[activeTab].map(cat => (
@@ -240,61 +206,61 @@ export default function Configuracion({
                                         </button>
                                     ))}
                                 </div>
-                            </div>
+                            </aside>
 
                             {/* Catalog Editor Area */}
                             <div className="md:col-span-8">
-                                <Card className="min-h-[600px] flex flex-col bg-slate-50! shadow-none border-slate-200/60">
-                                    {!selectedCatalog ? (
-                                        <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50">
-                                            <i className="ri-layout-left-line text-6xl"></i>
-                                            <p className="text-xs font-black uppercase tracking-widest">Seleccione un elemento para gestionar</p>
-                                        </div>
-                                    ) : selectedCatalog.id === 'entidades' ? (
-                                        /* SPECIAL CASE: ENTIDADES */
-                                        <div className="flex flex-col h-full space-y-6">
-                                            <div className="flex items-center justify-between border-b border-slate-200 pb-4 shrink-0">
+                                {!selectedCatalog ? (
+                                    <Card className="min-h-[400px] flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50 bg-slate-50! border-slate-200/60 shadow-none">
+                                        <i className="ri-layout-left-line text-6xl"></i>
+                                        <p className="text-xs font-black uppercase tracking-widest">Seleccione un elemento para gestionar</p>
+                                    </Card>
+                                ) : selectedCatalog.id === 'entidades' ? (
+                                    /* SPECIAL CASE: ENTIDADES */
+                                    <div className="flex flex-col h-full space-y-6">
+                                        <Card className="p-6 border-slate-200/60 shadow-sm space-y-6">
+                                            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                                 <div>
-                                                    <h3 className="text-lg font-black text-slate-900">{selectedCatalog.label}</h3>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{entidades.length} registros</p>
+                                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{selectedCatalog.label}</h3>
+                                                    <p className="text-[10px] font-bold text-slate-400 mt-0.5">{entidades.length} registros</p>
                                                 </div>
                                                 <button 
                                                     onClick={() => { setEditingEntity(null); setEntityForm({ nombre: '', tipo: 'Banco', categoria: 'General' }); }}
-                                                    className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+                                                    className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center shadow-sm active:scale-95"
+                                                    title="Nuevo Registro"
                                                 >
-                                                    Nuevo
+                                                    <i className="ri-add-line text-xl"></i>
                                                 </button>
                                             </div>
 
-                                            {/* Entity Form / Filter */}
-                                            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                                            <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 space-y-4">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="sm:col-span-2 space-y-1.5">
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nombre de la Entidad</label>
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nombre de la Entidad</label>
                                                         <input 
                                                             type="text"
                                                             value={entityForm.nombre}
                                                             onChange={e => setEntityForm({...entityForm, nombre: e.target.value})}
-                                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-slate-50/50"
+                                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-white"
                                                             placeholder="Ej: Banco Nacional del Desarrollo"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Tipo</label>
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Tipo</label>
                                                         <select
                                                             value={entityForm.tipo}
                                                             onChange={e => setEntityForm({...entityForm, tipo: e.target.value})}
-                                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-slate-50/50"
+                                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-white"
                                                         >
                                                             {(catalogos.tiposEntidad || []).map(t => <option key={t}>{t}</option>)}
                                                         </select>
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Categoría</label>
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Categoría</label>
                                                         <select
                                                             value={entityForm.categoria}
                                                             onChange={e => setEntityForm({...entityForm, categoria: e.target.value})}
-                                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-slate-50/50"
+                                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-white"
                                                         >
                                                             {(catalogos.categoriasEntidad || []).map(c => <option key={c}>{c}</option>)}
                                                         </select>
@@ -302,38 +268,37 @@ export default function Configuracion({
                                                 </div>
                                                 <button
                                                     onClick={handleSaveEntity}
-                                                    className="w-full h-12 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95"
+                                                    className="w-full h-12 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-95"
                                                 >
                                                     {editingEntity ? 'Actualizar Registro' : 'Inscribir Entidad'}
                                                 </button>
                                             </div>
 
-                                            {/* Entities List */}
-                                            <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {entidades.map(ent => (
-                                                    <div key={ent.id} className="group flex items-center justify-between p-4 bg-white border border-slate-200 rounded-3xl hover:border-slate-300 hover:shadow-md transition-all">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 font-black text-xs">
+                                                    <div key={ent.id} className="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-slate-300 hover:shadow-md transition-all">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 font-black text-xs">
                                                                 {ent.nombre.charAt(0)}
                                                             </div>
                                                             <div>
-                                                                <p className="text-[13px] font-black text-slate-900 leading-tight">{ent.nombre}</p>
+                                                                <p className="text-[12px] font-black text-slate-900 leading-tight">{ent.nombre}</p>
                                                                 <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-wider">{ent.tipo}</span>
-                                                                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-wider">{ent.categoria}</span>
+                                                                    <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-wider">{ent.tipo}</span>
+                                                                    <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-wider">{ent.categoria}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <button 
                                                                 onClick={() => { setEditingEntity(ent); setEntityForm({nombre: ent.nombre, tipo: ent.tipo, categoria: ent.categoria}); }}
-                                                                className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center"
+                                                                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center"
                                                             >
                                                                 <i className="ri-edit-line"></i>
                                                             </button>
                                                             <button 
                                                                 onClick={() => { if(window.confirm('¿Eliminar entidad?')) eliminarEntidad(ent.id); }}
-                                                                className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center"
+                                                                className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all flex items-center justify-center"
                                                             >
                                                                 <i className="ri-delete-bin-line"></i>
                                                             </button>
@@ -341,82 +306,17 @@ export default function Configuracion({
                                                     </div>
                                                 ))}
                                             </div>
-                                        </div>
-                                    ) : (
-                                        /* STANDARD CATALOG CASE */
-                                        <div className="flex flex-col h-full space-y-6">
-                                            <div className="flex items-center justify-between border-b border-slate-200 pb-4 shrink-0">
-                                                <div>
-                                                    <h3 className="text-lg font-black text-slate-900">{selectedCatalog.label}</h3>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                        {catalogos[selectedCatalog.id]?.length || 0} elementos registrados
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* Entry Area */}
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Añadir Nuevo</label>
-                                                <div className="flex gap-3">
-                                                    <input 
-                                                        type="text"
-                                                        value={newItem}
-                                                        onChange={e => setNewItem(e.target.value)}
-                                                        onKeyDown={e => e.key === 'Enter' && handleAddCatalogItem(selectedCatalog.id, selectedCatalog.isComplex)}
-                                                        placeholder={selectedCatalog.isComplex ? 'CÓDIGO | Nombre descriptivo' : 'Escriba aquí...'}
-                                                        className="flex-1 h-12 px-5 rounded-2xl border border-slate-200 text-sm font-bold bg-white focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900"
-                                                    />
-                                                    <button 
-                                                        onClick={() => handleAddCatalogItem(selectedCatalog.id, selectedCatalog.isComplex)}
-                                                        className="h-12 px-8 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 cursor-pointer"
-                                                    >
-                                                        Registrar
-                                                    </button>
-                                                </div>
-                                                {selectedCatalog.isComplex && (
-                                                    <p className="text-[9px] font-bold text-slate-400 bg-slate-100 p-2 px-3 rounded-lg border border-slate-200">
-                                                        💡 Consejo: Para normas, use la "barra vertical" ( | ) para separar el código del nombre.
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* Items List */}
-                                            <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                                {(catalogos[selectedCatalog.id] || []).map((item, idx) => (
-                                                    <div key={idx} className="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-3xl hover:border-slate-300 hover:shadow-md transition-all">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400">
-                                                                {idx + 1}
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                {selectedCatalog.isComplex ? (
-                                                                    <>
-                                                                        <span className="text-[11px] font-black text-slate-900">{item.codigo}</span>
-                                                                        <span className="text-[11px] font-bold text-slate-500">{item.nombre}</span>
-                                                                    </>
-                                                                ) : (
-                                                                    <span className="text-[12px] font-bold text-slate-700">{item}</span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <button 
-                                                            onClick={() => handleDeleteCatalogItem(selectedCatalog.id, idx)}
-                                                            className="w-10 h-10 rounded-2xl text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover:opacity-100"
-                                                        >
-                                                            <i className="ri-delete-bin-7-line text-lg"></i>
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                {(catalogos[selectedCatalog.id] || []).length === 0 && (
-                                                    <div className="h-40 flex flex-col items-center justify-center text-slate-300 gap-3">
-                                                        <i className="ri-inbox-line text-4xl"></i>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest">Sin elementos registrados</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </Card>
+                                        </Card>
+                                    </div>
+                                ) : (
+                                    /* STANDARD CATALOG CASE - NOW USING CatalogManager */
+                                    <CatalogManager
+                                        title={selectedCatalog.label}
+                                        items={catalogos[selectedCatalog.id] || []}
+                                        isComplex={selectedCatalog.isComplex}
+                                        onUpdate={(newItems) => onUpdateCatalog(selectedCatalog.id, newItems)}
+                                    />
+                                )}
                             </div>
                         </div>
                     )}

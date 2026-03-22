@@ -124,9 +124,19 @@ export default function Sidebar({ activeView, onNavigate, collapsed, setCollapse
             </nav>
 
             {/* Footer */}
-            <div className="p-3 border-t border-white/5">
+            <div className="p-3 border-t border-white/5 space-y-2">
+                <a 
+                    href="/OnboardingGuide.md" 
+                    target="_blank"
+                    className={`w-full flex items-center gap-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer py-2.5 ${collapsed ? 'justify-center px-0' : 'px-3'
+                    } text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/5 border border-emerald-400/10`}
+                >
+                    <i className="ri-book-open-line text-lg"></i>
+                    {!collapsed && <span>Guía de Inicio</span>}
+                </a>
+
                 {!collapsed && (
-                    <div className="bg-white/5 rounded-xl p-3.5 mb-3 border border-white/5">
+                    <div className="bg-white/5 rounded-xl p-3.5 mb-1 border border-white/5">
                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Soporte Técnico</p>
                         <p className="text-[11px] text-slate-400 font-medium leading-relaxed">¿Necesitas ayuda? Contacta con IT.</p>
                     </div>

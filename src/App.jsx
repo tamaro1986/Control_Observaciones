@@ -154,6 +154,14 @@ export default function App() {
         await editarNota(updated.id, updated);
     }, [editarNota]);
 
+    const handleUpdateCatalog = useCallback(async (key, items) => {
+        try {
+            await updateConfig(key, items);
+        } catch (err) {
+            setError('No se pudo actualizar el catálogo: ' + err.message);
+        }
+    }, [updateConfig, setError]);
+
     // Conditional renders AFTER all hooks
     if (loading) return null;
     if (!user) return <Login />;
@@ -188,7 +196,15 @@ export default function App() {
                     />
                 );
             case 'nuevo':
-                return <NuevoRegistro crearAuditoria={crearAuditoria} catalogos={sortedCatalogos} correlativos={sortedCorrelativos} entidades={sortedEntidades} />;
+                return (
+                    <NuevoRegistro 
+                        crearAuditoria={crearAuditoria} 
+                        catalogos={sortedCatalogos} 
+                        correlativos={sortedCorrelativos} 
+                        entidades={sortedEntidades}
+                        onUpdateCatalog={handleUpdateCatalog}
+                    />
+                );
             case 'seguimiento':
                 return (
                     <SeguimientoList
@@ -240,6 +256,7 @@ export default function App() {
                         catalogos={catalogos}
                         entidades={entidades}
                         updateConfig={updateConfig}
+                        onUpdateCatalog={handleUpdateCatalog}
                         agregarEntidad={agregarEntidad}
                         editarEntidad={editarEntidad}
                         eliminarEntidad={eliminarEntidad}
