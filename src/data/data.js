@@ -526,6 +526,19 @@ export function daysUntil(dateStr) {
 }
 
 // ===== Correlativos — Catálogos =====
+export const TIPOS_OPERACION = ['Supervisión', 'Sancionatorio', 'Autorización', 'Registro'];
+
+export const TIPOS_ENTIDAD = [
+    'Banco', 'Gestora', 'Leasing', 'Casa de Valores', 'Inmobiliaria', 
+    'Titularizadora', 'Bolsa de Valores', 'Sociedad de Seguros', 
+    'Fondo de Inversión', 'Conglomerado Financiero'
+];
+
+export const CATEGORIAS_ENTIDAD = [
+    'Sucursal Central', 'Activos', 'Legal', 'Operaciones', 
+    'Proyectos', 'Fondos', 'Seguros', 'Gobierno'
+];
+
 export const CLASIFICACIONES_CORR = [
     'Operatividad',
     'Gestión de Fondos de Inversión',

@@ -121,7 +121,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
         setTimeout(() => setShowToast(false), 4000);
     };
 
-    const estados = catalogos?.estados || ESTADOS.map(e => e.value);
+    const estados = catalogos?.estados?.map(e => e.nombre) || ESTADOS.map(e => e.value);
     const responsables = catalogos?.responsables || RESPONSABLES;
     const tiposVisita = catalogos?.tiposVisita || TIPOS_VISITA;
     const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value);
@@ -466,13 +466,16 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                             {/* Estado – 1 col */}
                             <div className="space-y-3">
                                 <div>
-                                    <FieldLabel>Estado de Gestión Inicial</FieldLabel>
+                                    <FieldLabel>Estado de Gestión Final</FieldLabel>
                                     <select
                                         value={nuevoEstado}
                                         onChange={e => setNuevoEstado(e.target.value)}
-                                        className={`${inputCls()} font-bold uppercase cursor-pointer`}
+                                        className={`${inputCls()} font-bold uppercase cursor-pointer border-violet-200 bg-violet-50/30 text-violet-900 focus:ring-violet-500/20 focus:border-violet-500`}
                                     >
-                                        {estados.map(e => (
+                                        <option value="" disabled>— Seleccionar Estado —</option>
+                                        {catalogos?.estados?.map(e => (
+                                            <option key={e.id} value={e.nombre}>{e.nombre}</option>
+                                        )) || estados.map(e => (
                                             <option key={e} value={e}>{e}</option>
                                         ))}
                                     </select>
@@ -482,7 +485,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                 <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 rounded-xl border border-violet-100">
                                     <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse shrink-0" />
                                     <span className="text-[10px] font-black text-violet-700 uppercase tracking-widest leading-none">
-                                        {nuevoEstado}
+                                        Transición a: {nuevoEstado || '...'}
                                     </span>
                                 </div>
                             </div>

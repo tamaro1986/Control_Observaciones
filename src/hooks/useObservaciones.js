@@ -7,7 +7,8 @@ import {
     ACCIONES_SUPERVISION, NORMAS_CORR, RESPONSABLES, ENTIDADES,
     TIPOS_CORRESPONDENCIA, NORMAS_NOTAS_EXTRA,
     NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA, FONDOS_INVERSION,
-    UNIDADES_AUDITABLES, PUNTOS_NORMATIVOS
+    UNIDADES_AUDITABLES, PUNTOS_NORMATIVOS,
+    TIPOS_OPERACION, TIPOS_ENTIDAD, CATEGORIAS_ENTIDAD
 } from '../data/data';
 
 export default function useObservaciones() {
@@ -36,6 +37,9 @@ export default function useObservaciones() {
         tiposVisita: TIPOS_VISITA,
         unidadesAuditables: UNIDADES_AUDITABLES,
         puntosNormativos: PUNTOS_NORMATIVOS,
+        tiposOperacion: TIPOS_OPERACION,
+        tiposEntidad: TIPOS_ENTIDAD,
+        categoriasEntidad: CATEGORIAS_ENTIDAD,
         descripcionesAccion: [
             'Visita de supervisión focalizada en controles de seguridad de la información.',
             'Revisión de gestión de inversión y cumplimiento normativo en fondo de inversión.',
@@ -212,7 +216,7 @@ export default function useObservaciones() {
                     settingsRes.data.forEach(s => {
                         let val = s.value;
                         // Fix for legacy data or misconfigurations where arrays of objects were saved instead of strings
-                        const stringCatalogs = ['nivelesRiesgo', 'estados', 'tiposRiesgo', 'tiposVisita', 'responsables', 'clasificaciones', 'industrias', 'tiposInforme'];
+                        const stringCatalogs = ['nivelesRiesgo', 'estados', 'tiposRiesgo', 'tiposVisita', 'responsables', 'clasificaciones', 'industrias', 'tiposInforme', 'tiposOperacion', 'tiposEntidad', 'categoriasEntidad'];
                         if (Array.isArray(val) && stringCatalogs.includes(s.key)) {
                             val = val.map(item => (typeof item === 'object' && item !== null) ? (item.value || item.label || String(item)) : item);
                         }

@@ -73,7 +73,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
     const handleSubmit = () => {
         if (!validate()) return;
         crearAuditoria({
-            entidadId,
+            entidadId: Number(entidadId),
             tipoVisita,
             nroInforme,
             esInformeManual,
@@ -136,7 +136,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Institución / Entidad Auditada</label>
                                 <select
                                     value={entidadId}
-                                    onChange={e => setEntidadId(e.target.value)}
+                                    onChange={e => setEntidadId(Number(e.target.value))}
                                     className={`w-full px-4 py-3.5 rounded-2xl border ${errors.entidad ? 'border-rose-500 bg-rose-50/30' : 'border-slate-100 bg-slate-50/50'} text-sm font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer`}
                                 >
                                     <option value="">— SELECCIONE ENTIDAD —</option>
@@ -409,7 +409,11 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                                     onChange={e => updateTarjeta(index, 'estado', e.target.value)}
                                                     className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all"
                                                 >
-                                                    {(catalogos.estados || ESTADOS.map(e => e.value)).map(e => <option key={e} value={e}>{e}</option>)}
+                                                    {catalogos?.estados?.map(e => (
+                                                        <option key={e.id} value={e.nombre}>{e.nombre}</option>
+                                                    )) || ESTADOS.map(e => (
+                                                        <option key={e.value} value={e.value}>{e.label}</option>
+                                                    ))}
                                                 </select>
                                             </div>
                                             <div>

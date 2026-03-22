@@ -39,6 +39,9 @@ export default function Configuracion({
             { id: 'unidadesAuditables', label: 'Unidades Auditables (Código | Nombre)', isComplex: true },
         ],
         clasificacion: [
+            { id: 'tiposOperacion', label: 'Tipos de Operación' },
+            { id: 'tiposEntidad', label: 'Tipos de Entidad' },
+            { id: 'categoriasEntidad', label: 'Categorías de Entidad' },
             { id: 'clasificaciones', label: 'Clasificaciones' },
             { id: 'industrias', label: 'Industrias / Sectores' },
             { id: 'tiposInforme', label: 'Tipos de Informe' },
@@ -283,14 +286,7 @@ export default function Configuracion({
                                                             onChange={e => setEntityForm({...entityForm, tipo: e.target.value})}
                                                             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-slate-50/50"
                                                         >
-                                                            <option>Banco</option>
-                                                            <option>Cooperativa</option>
-                                                            <option>Financiera</option>
-                                                            <option>Empresa de Remesas</option>
-                                                            <option>Caja de Crédito</option>
-                                                            <option>Sociedad de Ahorro</option>
-                                                            <option>Emisor de Dinero Electrónico</option>
-                                                            <option>Punto de Atención</option>
+                                                            {(catalogos.tiposEntidad || []).map(t => <option key={t}>{t}</option>)}
                                                         </select>
                                                     </div>
                                                     <div className="space-y-1.5">
@@ -300,10 +296,7 @@ export default function Configuracion({
                                                             onChange={e => setEntityForm({...entityForm, categoria: e.target.value})}
                                                             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 bg-slate-50/50"
                                                         >
-                                                            <option>General</option>
-                                                            <option>Especializada</option>
-                                                            <option>Gubernamental</option>
-                                                            <option>Internacional</option>
+                                                            {(catalogos.categoriasEntidad || []).map(c => <option key={c}>{c}</option>)}
                                                         </select>
                                                     </div>
                                                 </div>
