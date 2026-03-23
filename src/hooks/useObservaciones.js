@@ -36,6 +36,7 @@ export default function useObservaciones() {
         tiposRiesgo: TIPOS_RIESGO,
         tiposVisita: TIPOS_VISITA,
         unidadesAuditables: UNIDADES_AUDITABLES,
+        secciones: UNIDADES_AUDITABLES,
         puntosNormativos: PUNTOS_NORMATIVOS,
         tiposOperacion: TIPOS_OPERACION,
         tiposEntidad: TIPOS_ENTIDAD,

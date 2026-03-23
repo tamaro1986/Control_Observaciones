@@ -31,7 +31,7 @@ export default function Configuracion({
         operativo: [
             { id: 'entidades', label: 'Entidades / Sujetos Obligados', custom: true },
             { id: 'responsables', label: 'Responsables / Auditores' },
-            { id: 'fondosInversion', label: 'Fondos de Inversión' },
+            { id: 'fondosInversion', label: 'Fondos de Inversión (Código | Nombre)', isComplex: true },
         ],
         normativo: [
             { id: 'normas', label: 'Normas Principales (Código | Nombre)', isComplex: true },

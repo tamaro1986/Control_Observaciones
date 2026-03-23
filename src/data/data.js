@@ -71,11 +71,11 @@ export const RESPONSABLES = [
 ];
 
 export const FONDOS_INVERSION = [
-    'Fondo de Inversión Abierto Liquidez de Corto Plazo',
-    'Fondo de Inversión Abierto de Crecimiento',
-    'Fondo de Inversión Cerrado Inmobiliario No. 1',
-    'Fondo de Inversión Cerrado Inmobiliario No. 2',
-    'Fondo de Inversión Cerrado de Capital de Riesgo',
+    { codigo: 'LIQP1', nombre: 'Fondo de Inversión Abierto Liquidez de Corto Plazo' },
+    { codigo: 'CRECI', nombre: 'Fondo de Inversión Abierto de Crecimiento' },
+    { codigo: 'INMO1', nombre: 'Fondo de Inversión Cerrado Inmobiliario No. 1' },
+    { codigo: 'INMO2', nombre: 'Fondo de Inversión Cerrado Inmobiliario No. 2' },
+    { codigo: 'CRISC', nombre: 'Fondo de Inversión Cerrado de Capital de Riesgo' },
 ];
 
 // ===== Mock Observations =====

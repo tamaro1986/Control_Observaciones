@@ -435,7 +435,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                                 >
                                                     <option value="">— SELEC —</option>
                                                     {(catalogos.secciones || []).map(u => (
-                                                        <option key={u.codigo} value={u.codigo} title={u.nombre}>{u.codigo}</option>
+                                                        <option key={u.codigo} value={u.codigo}>{u.codigo} - {u.nombre}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -491,8 +491,8 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                                         className="w-full px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer"
                                                     >
                                                         <option value="">— SELECCIONE FONDO —</option>
-                                                        {(catalogos.fondos || []).map(f => (
-                                                            <option key={f.id} value={f.nombre}>{f.nombre}</option>
+                                                        {(catalogos.fondosInversion || []).map(f => (
+                                                            <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
                                                         ))}
                                                     </select>
                                                 </div>

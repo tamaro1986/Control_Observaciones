@@ -10,12 +10,21 @@ const ACCION_COLOR = {
     'Extra Sitio': 'bg-violet-50 text-violet-700 ring-1 ring-violet-200',
 };
 
+// ─── Time Slots for selection ────────────────────────────────────────────────
+const TIME_SLOTS = [
+    "06:00 a.m.", "06:30 a.m.", "07:00 a.m.", "07:30 a.m.", "08:00 a.m.", "08:30 a.m.",
+    "09:00 a.m.", "09:30 a.m.", "10:00 a.m.", "10:30 a.m.", "11:00 a.m.", "11:30 a.m.",
+    "12:00 p.m.", "12:30 p.m.", "01:00 p.m.", "01:30 p.m.", "02:00 p.m.", "02:30 p.m.",
+    "03:00 p.m.", "03:30 p.m.", "04:00 p.m.", "04:30 p.m.", "05:00 p.m.", "05:30 p.m.",
+    "06:00 p.m.", "06:30 p.m.", "07:00 p.m.", "07:30 p.m.", "08:00 p.m.", "08:30 p.m.",
+    "09:00 p.m.", "09:30 p.m.", "10:00 p.m.", "10:30 p.m.", "11:00 p.m."
+];
+
 // ─── Empty junta template ───────────────────────────────────────────────────
 const emptyJunta = {
     industria: '',
     fechaCelebracion: new Date().toISOString().slice(0, 10),
     hora: '',
-    entidad: '',
     lugar: '',
     responsable: '',
     tipoJunta: '',
@@ -53,8 +62,8 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
     }
 
     function agregarJunta() {
-        if (!draft.entidad || !draft.fechaCelebracion || !draft.tipoJunta) {
-            alert('Complete los campos obligatorios de la junta: Entidad, Fecha y Tipo/Nombre de Junta.');
+        if (!draft.fechaCelebracion || !draft.tipoJunta) {
+            alert('Complete los campos obligatorios de la junta: Fecha y Tipo/Nombre de Junta.');
             return;
         }
         onChange([...juntas, { ...draft, id: Date.now() }]);
@@ -84,7 +93,7 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                         <table className="w-full border-collapse text-left text-[10px]">
                             <thead>
                                 <tr className="bg-amber-50">
-                                    {['Industria', 'Fecha', 'Hora', 'Entidad', 'Lugar', 'Responsable', 'Tipo/Nombre Junta', ''].map(h => (
+                                    {['Industria', 'Fecha', 'Hora', 'Lugar', 'Responsable', 'Tipo/Nombre Junta', ''].map(h => (
                                         <th key={h} className="py-2 px-3 font-black text-amber-700 uppercase tracking-widest whitespace-nowrap border-b border-amber-100">
                                             {h}
                                         </th>
@@ -97,9 +106,6 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.industria || '—'}</td>
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{formatDate(j.fechaCelebracion)}</td>
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.hora || '—'}</td>
-                                        <td className="py-2 px-3 font-bold text-slate-700 max-w-[140px]">
-                                            <span className="line-clamp-2">{j.entidad}</span>
-                                        </td>
                                         <td className="py-2 px-3 text-slate-500 max-w-[140px]">
                                             <span className="line-clamp-2">{j.lugar || '—'}</span>
                                         </td>
@@ -140,13 +146,11 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                         </div>
                         <div>
                             <label className={LABEL}>Hora</label>
-                            <input type="text" placeholder="ej. 10:00 a.m." value={draft.hora} onChange={e => handleDraft('hora', e.target.value)} className={INPUT} />
+                            <select value={draft.hora} onChange={e => handleDraft('hora', e.target.value)} className={SELECT}>
+                                <option value="">— Seleccionar —</option>
+                                {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
                         </div>
-                    </div>
-
-                    <div>
-                        <label className={LABEL}>Entidad *</label>
-                        <input type="text" placeholder="Nombre completo de la entidad que celebra la junta…" value={draft.entidad} onChange={e => handleDraft('entidad', e.target.value)} className={INPUT} />
                     </div>
 
                     <div>
@@ -564,7 +568,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                                 <table className="w-full border-collapse text-left text-[10px]">
                                                                     <thead>
                                                                         <tr className="bg-amber-50">
-                                                                            {['Industria', 'Fecha', 'Hora', 'Entidad', 'Lugar', 'Responsable', 'Tipo/Nombre de Junta'].map(h => (
+                                                                            {['Industria', 'Fecha', 'Hora', 'Lugar', 'Responsable', 'Tipo/Nombre de Junta'].map(h => (
                                                                                 <th key={h} className="py-2 px-3 font-black text-amber-700 uppercase tracking-widest whitespace-nowrap border-b border-amber-100">{h}</th>
                                                                             ))}
                                                                         </tr>
@@ -575,7 +579,6 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                                                 <td className="py-2 px-3 font-bold text-slate-600">{j.industria || '—'}</td>
                                                                                 <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{formatDate(j.fechaCelebracion)}</td>
                                                                                 <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{j.hora || '—'}</td>
-                                                                                <td className="py-2 px-3 font-bold text-slate-700 max-w-[160px]"><span className="line-clamp-2">{j.entidad}</span></td>
                                                                                 <td className="py-2 px-3 text-slate-500 max-w-[200px]"><span className="line-clamp-2">{j.lugar || '—'}</span></td>
                                                                                 <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.responsable || '—'}</td>
                                                                                 <td className="py-2 px-3 font-bold text-amber-700 max-w-[200px]"><span className="line-clamp-2">{j.tipoJunta}</span></td>
