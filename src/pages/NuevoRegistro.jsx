@@ -291,7 +291,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                         className="w-5 h-5 rounded-lg border-slate-300 text-primary focus:ring-primary cursor-pointer transition-all"
                                     />
                                     <label htmlFor="esVehiculoGlobal" className="text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer select-none">
-                                        ¿Toda la auditoría es sobre un fondo?
+                                        ¿Toda la auditoría es sobre un fondo o entidad de titularización?
                                     </label>
                                 </div>
                                 
@@ -306,7 +306,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                             }}
                                             className="w-full px-5 py-3 rounded-2xl border border-primary/20 bg-white text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-sm shadow-primary/5"
                                         >
-                                            <option value="">— SELECCIONE EL FONDO PARA ESTA AUDITORÍA —</option>
+                                            <option value="">— SELECCIONE EL VEHÍCULO DE INVERSIÓN / TITULARIZACIÓN —</option>
                                             {(catalogos.fondos || []).map(f => (
                                                 <option key={f.id} value={f.nombre}>{f.nombre}</option>
                                             ))}
