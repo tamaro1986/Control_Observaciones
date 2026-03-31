@@ -581,7 +581,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                                                 <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{j.hora || '—'}</td>
                                                                                 <td className="py-2 px-3 text-slate-500 max-w-[200px]"><span className="line-clamp-2">{j.lugar || '—'}</span></td>
                                                                                 <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.responsable || '—'}</td>
-                                                                                <td className="py-2 px-3 font-bold text-amber-700 max-w-[200px]"><span className="line-clamp-2">{j.tipoJunta}</span></td>
+                                                                                 <td className="py-2 px-3 font-bold text-amber-700 max-w-[200px]"><span className="line-clamp-2">{typeof j.tipoJunta === 'object' && j.tipoJunta !== null ? (j.tipoJunta.nombre || j.tipoJunta.codigo) : String(j.tipoJunta || '—')}</span></td>
                                                                             </tr>
                                                                         ))}
                                                                     </tbody>

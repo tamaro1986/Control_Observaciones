@@ -267,7 +267,9 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears, f
                 <option value="direct">Entidades Directas</option>
                 <optgroup label="Fondos de Inversión y Titularización">
                     {fondos.map(f => (
-                        <option key={f} value={f}>{f}</option>
+                        <option key={typeof f === 'object' ? f.codigo : f} value={typeof f === 'object' ? f.codigo : f}>
+                            {typeof f === 'object' ? f.nombre : f}
+                        </option>
                     ))}
                 </optgroup>
             </select>

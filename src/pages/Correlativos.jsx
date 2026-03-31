@@ -382,7 +382,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                                 </span>
                                                 {c.esVehiculoInversion && c.fondoInversion && (
                                                     <span className="text-[9px] font-black text-amber-600 uppercase tracking-tighter mt-0.5">
-                                                        {c.fondoInversion}
+                                                        {typeof c.fondoInversion === 'object' ? (c.fondoInversion.nombre || c.fondoInversion.codigo) : c.fondoInversion}
                                                     </span>
                                                 )}
                                             </div>

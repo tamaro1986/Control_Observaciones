@@ -115,7 +115,7 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
     const totalPages = Math.ceil(filtrados.length / ITEMS_PER_PAGE);
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-6 animate-fade-in pb-10">
+        <div className="max-w-400 mx-auto space-y-6 animate-fade-in pb-10">
             {/* Header with quick stats */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                 <div>
@@ -232,7 +232,7 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                                         <EstadoBadge estado={obs.estado} />
                                         {obs.fondoInversion && (
                                             <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 uppercase tracking-widest">
-                                                {obs.fondoInversion}
+                                                {typeof obs.fondoInversion === 'object' && obs.fondoInversion !== null ? (obs.fondoInversion.nombre || obs.fondoInversion.codigo) : (obs.fondoInversion || 'AUDITORÍA DIRECTA')}
                                             </span>
                                         )}
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -283,7 +283,7 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                                     </div>
 
                                     {/* Responsable Area */}
-                                    <div className="flex flex-col items-end gap-1 min-w-[140px]">
+                                    <div className="flex flex-col items-end gap-1 min-w-35">
                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                             Responsable
                                             {editingResponsable !== obs.id && (

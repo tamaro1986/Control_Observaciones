@@ -59,7 +59,7 @@ export function Avatar({ nombre, size = 'md', className = '' }) {
     return (
         <div
             className={`${sizeClasses[size]} rounded-2xl ${color} text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-black/5 ring-4 ring-white border border-black/5 hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer ${className}`}
-            title={nombre}
+            title={typeof nombre === 'object' && nombre !== null ? (nombre.nombre || nombre.codigo) : String(nombre || '')}
         >
             {initials}
         </div>
@@ -128,8 +128,8 @@ export function EmptyState({ icon, title, description }) {
 
 export function SuccessToast({ message, onClose }) {
     return (
-        <div className="fixed bottom-10 right-10 z-[100] animate-slide-in">
-            <div className="bg-slate-900 text-white pl-6 pr-4 py-5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/5 flex items-center gap-6 group hover:translate-y-[-4px] transition-all duration-500">
+        <div className="fixed bottom-10 right-10 z-100 animate-slide-in">
+            <div className="bg-slate-900 text-white pl-6 pr-4 py-5 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/5 flex items-center gap-6 group hover:-translate-y-1 transition-all duration-500">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

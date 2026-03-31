@@ -497,17 +497,19 @@ export function getEstadoStyle(estado) {
 }
 
 export function getInitials(name) {
-    return name?.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '';
+    const text = typeof name === 'object' && name !== null ? (name.nombre || name.codigo || '') : String(name || '');
+    return text.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '';
 }
 
 export function getAvatarColor(name) {
-    if (!name) return 'bg-gray-400';
+    const text = typeof name === 'object' && name !== null ? (name.nombre || name.codigo || '') : String(name || '');
+    if (!text) return 'bg-gray-400';
     const colors = [
         'bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500',
         'bg-violet-500', 'bg-cyan-500', 'bg-orange-500', 'bg-teal-500',
     ];
     let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
 }
 
