@@ -656,7 +656,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                                 >
                                                     <option value="">— Seleccionar Fondo del Catálogo —</option>
                                                     {catalogos.fondosInversion && catalogos.fondosInversion.map(f => (
-                                                        <option key={f} value={f}>{f}</option>
+                                                        <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
                                                     ))}
                                                 </select>
                                             </div>
