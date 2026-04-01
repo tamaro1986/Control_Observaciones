@@ -64,7 +64,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
     };
 
     return (
-        <div className="max-w-[1440px] mx-auto animate-fade-in pb-20">
+        <div className="max-w-360 mx-auto animate-fade-in pb-20">
 
             {/* ── Headline Section ── */}
             <div className="mb-3">
@@ -223,10 +223,10 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
             </div>
 
             {/* ── Sticky FAB (Matching snippet) ── */}
-            <div className="fixed bottom-8 right-8 z-[100]">
+            <div className="fixed bottom-8 right-8 z-100">
                 <button
                     onClick={() => onNavigate('nuevo')}
-                    className="size-14 bg-primary text-white rounded-full shadow-[0_0_20px_rgba(59,130,246,0.6)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all outline outline-1 outline-white/20 outline-offset-2"
+                    className="size-14 bg-primary text-white rounded-full shadow-[0_0_20px_rgba(59,130,246,0.6)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all outline-1 outline-white/20 outline-offset-2"
                 >
                     <span className="material-symbols-outlined text-2xl">add</span>
                 </button>

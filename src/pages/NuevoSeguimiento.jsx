@@ -61,14 +61,14 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
     const sortedHistory = [...(observacion.historialEstados || [])].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
     return (
-        <div className="animate-fade-in max-w-[1600px] mx-auto pb-24 h-full flex flex-col pt-2">
+        <div className="animate-fade-in max-w-400 mx-auto pb-24 h-full flex flex-col pt-2">
 
             {/* Split Pane Container */}
             <div className="flex flex-col lg:flex-row gap-6 flex-1 items-stretch">
 
                 {/* LEFT PANE: Context & History */}
                 <div className="w-full lg:w-5/12 xl:w-1/3 flex flex-col gap-4">
-                    <Card className="flex-shrink-0 bg-slate-900 text-white border-0 shadow-xl overflow-hidden relative">
+                    <Card className="shrink-0 bg-slate-900 text-white border-0 shadow-xl overflow-hidden relative">
                         {/* Status glowing bar */}
                         <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${estadoStyle.bg.replace('bg-', 'bg-').replace('-bg', '')} shadow-[2px_0_15px_rgba(255,255,255,0.2)]`} />
                         <div className="p-6 pl-8">
@@ -92,13 +92,13 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
                         </div>
                     </Card>
 
-                    <Card className="flex-1 bg-white border-slate-200 overflow-y-auto min-h-[400px]">
+                    <Card className="flex-1 bg-white border-slate-200 overflow-y-auto min-h-100">
                         <div className="p-5">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1 flex items-center gap-2">
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 Línea de Tiempo del Hallazgo
                             </h3>
-                            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-slate-200 before:to-transparent">
                                 {sortedHistory.map((h, i) => {
                                     const hStyle = getEstadoStyle(h.estadoNuevo);
                                     return (
