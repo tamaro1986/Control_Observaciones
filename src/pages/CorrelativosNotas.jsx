@@ -39,7 +39,6 @@ const emptyForm = {
     tipoCorrespondencia: '',
     cantidadUnidades: 1,
     industria: '',
-    accionSupervision: 'Extra Sitio',
     descripcionAccion: '',
     responsable: '',
     entidad: '',
@@ -50,6 +49,7 @@ const emptyForm = {
     juntas: [],
     historial: [],
     anulado: false,
+    accionSupervision: '',
 };
 
 const INPUT = 'w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-500 bg-slate-50';
@@ -269,11 +269,13 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
     }
 
     async function handleGuardar() {
-        if (!form.fecha || !form.clasificacion || !form.industria || !form.responsable || !form.entidad) {
-            alert('Por favor complete los campos obligatorios (*).');
-            return;
+        // REQUERIMIENTO 1: Si la nota está anulada, omitimos la validación de campos obligatorios.
+        if (!form.anulado) {
+            if (!form.fecha || !form.responsable || !form.entidad || !form.tipoCorrespondencia || !form.accionSupervision) {
+                alert('Por favor complete los campos obligatorios marcados con *.');
+                return;
+            }
         }
-
         try {
             let finalForm = { ...form, cantidadUnidades: Number(form.cantidadUnidades) };
             
@@ -323,6 +325,9 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
     }
 
     const stats = useMemo(() => {
+        // REQUERIMIENTO 2: Los registros anulados no deben tomarse en cuenta para las estadísticas.
+        const notasActivas = notas.filter(n => !n.anulado);
+
         const getTop = (arr, key, limit = 5) => {
             const counts = arr.reduce((acc, curr) => {
                 const val = curr[key] || 'N/A';
@@ -335,11 +340,12 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
         };
 
         return {
-            total: notas.length,
-            esteAño: notas.filter(n => n.año === new Date().getFullYear()).length,
-            porClasif: getTop(notas, 'clasificacion'),
-            porIndustria: getTop(notas, 'industria'),
-            porResponsable: getTop(notas, 'responsable'),
+            total: notasActivas.length,
+            esteAño: notasActivas.filter(n => n.año === new Date().getFullYear()).length,
+            porClasif: getTop(notasActivas, 'clasificacion'),
+            porIndustria: getTop(notasActivas, 'industria'),
+            porResponsable: getTop(notasActivas, 'responsable'),
+            totalUnidades: notasActivas.reduce((a, n) => a + (Number(n.cantidadUnidades) || 1), 0),
         };
     }, [notas]);
 
@@ -423,7 +429,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Carga Unidades</p>
                     <div className="flex flex-col items-center justify-center flex-1">
                         <p className="text-3xl font-black text-slate-800">
-                            {notas.reduce((a, n) => a + (Number(n.cantidadUnidades) || 1), 0)}
+                            {stats.totalUnidades}
                         </p>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Unidades Reportadas</p>
                     </div>
@@ -802,9 +808,10 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
 
                             <div className="grid grid-cols-1">
                                 <div>
-                                    <label className={LABEL}>Acción Supervisión</label>
+                                    <label className={LABEL}>Acción Supervisión *</label>
                                     <select value={form.accionSupervision} onChange={e => handleField('accionSupervision', e.target.value)} className={SELECT}>
-                                        {(catalogos.accionesSupervision || []).map(a => <option key={a}>{a}</option>)}
+                                        <option value="">— Seleccionar —</option>
+                                        {(catalogos.accionesSupervision || []).map(a => <option key={a} value={a}>{a}</option>)}
                                     </select>
                                 </div>
                             </div>

@@ -549,12 +549,13 @@ export default function useObservaciones() {
     }, [observaciones]);
 
     const getEstadisticas = useCallback(() => {
-        const total = observaciones.length;
+        const activas = observaciones.filter(o => !o.anulado);
+        const total = activas.length;
         const porEstado = {};
         const porEntidad = {};
         const porRiesgo = {};
 
-        observaciones.forEach(o => {
+        activas.forEach(o => {
             porEstado[o.estado] = (porEstado[o.estado] || 0) + 1;
             porEntidad[o.entidadId] = porEntidad[o.entidadId] || { total: 0, subsanadas: 0 };
             porEntidad[o.entidadId].total++;

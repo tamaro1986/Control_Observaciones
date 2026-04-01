@@ -35,7 +35,7 @@ const emptyForm = {
     clasificacion: '',
     industria: '',
     tipoInforme: '',
-    accionSupervision: 'In Situ',
+    accionSupervision: '',
     descripcionAccion: '',
     responsable: '',
     asunto: '',
@@ -113,8 +113,8 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                     return;
                 }
             } else {
-                if (!form.fecha || !form.clasificacion || !form.industria || !form.tipoInforme || !form.responsable || !form.entidad) {
-                    alert('Por favor complete los campos obligatorios marcados con *.');
+                if (!form.fecha || !form.clasificacion || !form.industria || !form.tipoInforme || !form.responsable || !form.entidad || !form.accionSupervision) {
+                    alert('Por favor complete los campos obligatorios marcados con * (incluyendo Acción de Supervisión).');
                     return;
                 }
             }
@@ -669,7 +669,8 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Acción de Supervisión *</label>
                                         <select value={form.accionSupervision} onChange={e => handleField('accionSupervision', e.target.value)}
                                             className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 cursor-pointer">
-                                            {(catalogos.accionesSupervision || []).map(a => <option key={a}>{a}</option>)}
+                                            <option value="">— Seleccionar —</option>
+                                            {(catalogos.accionesSupervision || []).map(a => <option key={a} value={a}>{a}</option>)}
                                         </select>
                                     </div>
                                 )}

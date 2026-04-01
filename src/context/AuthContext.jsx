@@ -9,40 +9,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    const checkUser = async () => {
-      // Mock user for testing
-      const mockUser = {
-        id: 'mock-id-123',
-        email: 'test@example.com',
-        user_metadata: { full_name: 'Test Auditor' }
-      };
-      setUser(mockUser);
-      setProfile(mockUser.user_metadata);
-      setLoading(false);
+    // Ensure mock user is ALWAYS set first
+    const mockUser = {
+      id: 'mock-id-123',
+      email: 'test@example.com',
+      user_metadata: { full_name: 'Test Auditor' }
     };
+    setUser(mockUser);
+    setProfile(mockUser.user_metadata);
+    setLoading(false);
 
-    checkUser();
+    // Optional: Only listen for real changes if supabase is ready
+    let subscription;
+    try {
+      const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          setProfile(session.user.user_metadata);
+        } else {
+          // Re-affirm mock if session is lost
+          setUser(mockUser);
+          setProfile(mockUser.user_metadata);
+        }
+      });
+      subscription = data?.subscription;
+    } catch (e) {
+      console.warn('Auth state listener failed', e);
+    }
 
-    // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        setProfile(session.user.user_metadata);
-      } else {
-        // Keep mock user during testing
-        const mockUser = {
-          id: 'mock-id-123',
-          email: 'test@example.com',
-          user_metadata: { full_name: 'Test Auditor' }
-        };
-        setUser(mockUser);
-        setProfile(mockUser.user_metadata);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email, password) => {

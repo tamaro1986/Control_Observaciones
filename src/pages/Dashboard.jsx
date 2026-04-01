@@ -7,7 +7,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
     const entidadesDisponibles = entidades || [];
 
     const entidadCards = entidadesDisponibles.map(ent => {
-        const obs = observaciones.filter(o => o.entidadId === ent.id);
+        const obs = observaciones.filter(o => o.entidadId === ent.id && !o.anulado);
         const total = obs.length;
         const subsanadas = obs.filter(o => o.estado === 'Subsanada').length;
         const pendientes = obs.filter(o => o.estado === 'Pendiente').length;
@@ -30,7 +30,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
     }).filter(e => e.total > 0);
 
     const alertas = observaciones
-        .filter(o => o.estado !== 'Subsanada' && o.fechaPlanAccion)
+        .filter(o => !o.anulado && o.estado !== 'Subsanada' && o.fechaPlanAccion)
         .map(o => ({ ...o, diasRestantes: daysUntil(o.fechaPlanAccion) }))
         .filter(a => a.diasRestantes !== null && a.diasRestantes <= 30)
         .sort((a, b) => a.diasRestantes - b.diasRestantes)
