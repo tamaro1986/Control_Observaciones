@@ -5,9 +5,8 @@ import {
     MOCK_OBSERVACIONES, MOCK_CORRELATIVOS, MOCK_CORRELATIVOS_NOTAS,
     CLASIFICACIONES_CORR, INDUSTRIAS_CORR, TIPOS_INFORME_CORR,
     ACCIONES_SUPERVISION, NORMAS_CORR, RESPONSABLES, ENTIDADES,
-    TIPOS_CORRESPONDENCIA, NORMAS_NOTAS_EXTRA,
-    NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA, FONDOS_INVERSION,
-    UNIDADES_AUDITABLES, PUNTOS_NORMATIVOS,
+    TIPOS_CORRESPONDENCIA,
+    NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA,
     TIPOS_OPERACION, TIPOS_ENTIDAD, CATEGORIAS_ENTIDAD
 } from '../data';
 
@@ -30,15 +29,13 @@ export default function useObservaciones() {
         responsables: RESPONSABLES,
         tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
         normasExtra: [],
-        fondosInversion: FONDOS_INVERSION,
+        fondosInversion: [],
         fondosTitularizacion: [],
         nivelesRiesgo: NIVELES_RIESGO.map(n => n.value),
         estados: ESTADOS.map(e => e.value),
         tiposRiesgo: TIPOS_RIESGO,
         tiposVisita: TIPOS_VISITA,
-        unidadesAuditables: UNIDADES_AUDITABLES,
-        secciones: UNIDADES_AUDITABLES,
-        puntosNormativos: PUNTOS_NORMATIVOS,
+        unidadesAuditables: [],
         tiposOperacion: TIPOS_OPERACION,
         tiposEntidad: TIPOS_ENTIDAD,
         categoriasEntidad: CATEGORIAS_ENTIDAD,
@@ -84,11 +81,6 @@ export default function useObservaciones() {
             fechaPlanAccion: item.fecha_plan_accion,
             respuestaEntidad: ensureString(item.respuesta_entidad),
             fechaRespuesta: item.fecha_respuesta,
-            esVehiculoInversion: item.es_vehiculo_inversion || false,
-            fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
-            criterioAdministrativo: ensureString(item.criterio_administrativo),
-            criterioLegal: ensureString(item.criterio_legal),
-            seccionId: ensureString(item.seccion_id),
             historialEstados: item.historial_estados || []
         };
     };
@@ -117,6 +109,63 @@ export default function useObservaciones() {
             fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
             año: item.año || item.an_io || 2025
         };
+    };
+
+    const mapNotaFromDB = (item) => {
+        if (!item) return null;
+        return {
+            id: item.id,
+            fecha: item.fecha,
+            codigo: item.codigo,
+            numero: item.numero,
+            año: item.año,
+            asunto: ensureString(item.asunto),
+            responsable: ensureString(item.responsable),
+            entidad: ensureString(item.entidad),
+            tipoCorrespondencia: ensureString(item.tipo_correspondencia || item.tipoCorrespondencia),
+            normaExtra: ensureString(item.norma_extra || item.normaExtra),
+            descripcion: ensureString(item.descripcion),
+            esInterno: item.es_interno || false,
+            anulado: item.anulado || false,
+            // Campos extendidos que pueden estar en la tabla o no
+            clasificacion: ensureString(item.clasificacion || ''),
+            industria: ensureString(item.industria || ''),
+            accionSupervision: ensureString(item.accion_supervision || ''),
+            vinculado: ensureString(item.vinculado || ''),
+            vieneDeInforme: ensureString(item.viene_de_informe || 'NO'),
+            normas: item.normas || [],
+            juntas: item.juntas || [],
+            cantidadUnidades: item.cantidad_unidades || 1
+        };
+    };
+
+    const mapNotaToDB = (item) => {
+        if (!item) return null;
+        const mapped = {
+            fecha: item.fecha,
+            codigo: item.codigo,
+            numero: item.numero,
+            año: item.año,
+            asunto: item.asunto,
+            responsable: item.responsable,
+            entidad: item.entidad,
+            tipo_correspondencia: item.tipoCorrespondencia,
+            norma_extra: item.normaExtra || (item.normas && item.normas.length > 0 ? item.normas[0].codigo : ''),
+            descripcion: (item.descripcion || item.descripcionAccion || '').substring(0, 5000),
+            es_interno: item.esInterno !== undefined ? item.esInterno : true,
+            anulado: item.anulado || false,
+            
+            // Campos extendidos soportados tras actualización de esquema en Supabase
+            clasificacion: item.clasificacion || '',
+            industria: item.industria || '',
+            normas: item.normas || [],
+            juntas: item.juntas || [],
+            vinculado: item.vinculado || '',
+            viene_de_informe: item.vieneDeInforme || 'NO',
+            accion_supervision: item.accionSupervision || '',
+            cantidad_unidades: item.cantidadUnidades || 1
+        };
+        return mapped;
     };
 
     // Helper: convierte cadenas vacías a null para campos DATE de PostgreSQL
@@ -173,12 +222,8 @@ export default function useObservaciones() {
         if (item.normativa !== undefined) mapped.normativa = item.normativa;
         if (item.nota !== undefined) mapped.nota = item.nota;
         if (item.responsable !== undefined) mapped.responsable = item.responsable;
-        if (item.esVehiculoInversion !== undefined) mapped.es_vehiculo_inversion = item.esVehiculoInversion;
-        if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
-        if (item.tipoVehiculo !== undefined) mapped.tipo_vehiculo = item.tipoVehiculo;
         if (item.criterioAdministrativo !== undefined) mapped.criterio_administrativo = item.criterioAdministrativo;
         if (item.criterioLegal !== undefined) mapped.criterio_legal = item.criterioLegal;
-        if (item.seccionId !== undefined) mapped.seccion_id = item.seccionId;
         return mapped;
     };
 
@@ -226,7 +271,7 @@ export default function useObservaciones() {
 
             if (obsRes.data) setObservaciones(obsRes.data.map(mapFromDB));
             if (corrRes.data) setCorrelativos(corrRes.data.map(mapCorrelativoFromDB));
-            if (notasRes.data) setNotas(notasRes.data.map(ensureString));
+            if (notasRes.data) setNotas(notasRes.data.map(mapNotaFromDB));
             if (entitiesRes.data.length > 0) {
                 setEntidades(entitiesRes.data);
             }
@@ -414,20 +459,35 @@ export default function useObservaciones() {
 
     // --- Notas Actions ---
     const agregarNota = useCallback(async (nuevo) => {
-        const { data, error } = await supabase.from('correlativos_notas').insert([nuevo]).select();
-        if (error) console.error('Error adding nota:', error);
-        return data ? data[0] : null;
-    }, []);
+        const payload = mapNotaToDB(nuevo);
+        const { data, error } = await supabase.from('correlativos_notas').insert([payload]).select();
+        if (error) {
+            console.error('Error adding nota:', error);
+            throw error;
+        }
+        await fetchData(true);
+        return data ? mapNotaFromDB(data[0]) : null;
+    }, [fetchData]);
 
-    const editarNota = useCallback(async (id, data) => {
-        const { error } = await supabase.from('correlativos_notas').update(data).eq('id', id);
-        if (error) console.error('Error editing nota:', error);
-    }, []);
+    const editarNota = useCallback(async (id, editado) => {
+        const payload = mapNotaToDB(editado);
+        const { data, error } = await supabase.from('correlativos_notas').update(payload).eq('id', id).select();
+        if (error) {
+            console.error('Error updating nota:', error);
+            throw error;
+        }
+        await fetchData(true);
+        return data ? mapNotaFromDB(data[0]) : null;
+    }, [fetchData]);
 
     const eliminarNota = useCallback(async (id) => {
         const { error } = await supabase.from('correlativos_notas').delete().eq('id', id);
-        if (error) console.error('Error deleting nota:', error);
-    }, []);
+        if (error) {
+            console.error('Error deleting nota:', error);
+        } else {
+            await fetchData(true);
+        }
+    }, [fetchData]);
 
     const getObservacion = useCallback((id) => {
         return observaciones.find(o => o.id === id) || null;

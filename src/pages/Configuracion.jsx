@@ -36,10 +36,6 @@ export default function Configuracion({
         ],
         normativo: [
             { id: 'normas', label: 'Normas Principales (Código | Nombre)', isComplex: true },
-            { id: 'normasExtra', label: 'Normas Complementarias (Código | Nombre)', isComplex: true },
-            { id: 'puntosNormativos', label: 'Puntos de Control Normativo' },
-            { id: 'secciones', label: 'Secciones (Código | Nombre)', isComplex: true },
-            { id: 'unidadesAuditables', label: 'Unidades Auditables (Código | Nombre)', isComplex: true },
         ],
         clasificacion: [
             { id: 'tiposOperacion', label: 'Tipos de Operación' },

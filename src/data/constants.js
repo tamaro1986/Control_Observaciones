@@ -21,32 +21,6 @@ export const NIVELES_RIESGO = [
 export const TIPOS_RIESGO = ['Operacional', 'LA/FT/PADM', 'Cumplimiento', 'Crédito', 'Liquidez', 'Mercado', 'Legal'];
 
 // ===== Catálogos Adicionales =====
-export const UNIDADES_AUDITABLES = [
-    { codigo: 'RO', nombre: 'Riesgo Operativo' },
-    { codigo: 'RM', nombre: 'Riesgo de Mercado' },
-    { codigo: 'RC', nombre: 'Riesgo de Crédito' },
-    { codigo: 'RL', nombre: 'Riesgo de Liquidez' },
-    { codigo: 'CIBER', nombre: 'Ciberseguridad' },
-    { codigo: 'PLD', nombre: 'Prevención de Lavado de Dinero' },
-    { codigo: 'GC', nombre: 'Gobierno Corporativo' },
-    { codigo: 'CN', nombre: 'Cumplimiento Normativo' },
-    { codigo: 'TI', nombre: 'Tecnología de la Información' },
-    { codigo: 'OPP', nombre: 'Operaciones y Procesos' },
-];
-
-export const PUNTOS_NORMATIVOS = [
-    'Art. 20 - Gestión de Riesgos',
-    'Art. 45 - Control Interno',
-    'Art. 12 - Capital Mínimo',
-    'NRP-33 - Manual de Riesgos',
-    'NCMC-10 - Divulgación de Información',
-    'LFI Art. 15 - Inversiones Permitidas',
-    'LTA Art. 8 - Patrimonios Separados',
-    'Gobierno Corporativo - Mejores Prácticas',
-    'Seguridad de la Información - ISO 27001',
-    'Continuidad del Negocio',
-];
-
 export const ESTADOS = [
     { value: 'Pendiente', color: 'estado-pendiente' },
     { value: 'En Curso', color: 'estado-encurso' },
@@ -67,14 +41,6 @@ export const RESPONSABLES = [
     'José Castellanos',
     'AUDITORIA_INTERNA',
     'COMITE_AUDITORIA',
-];
-
-export const FONDOS_INVERSION = [
-    { codigo: 'LIQP1', nombre: 'Fondo de Inversión Abierto Liquidez de Corto Plazo' },
-    { codigo: 'CRECI', nombre: 'Fondo de Inversión Abierto de Crecimiento' },
-    { codigo: 'INMO1', nombre: 'Fondo de Inversión Cerrado Inmobiliario No. 1' },
-    { codigo: 'INMO2', nombre: 'Fondo de Inversión Cerrado Inmobiliario No. 2' },
-    { codigo: 'CRISC', nombre: 'Fondo de Inversión Cerrado de Capital de Riesgo' },
 ];
 
 // ===== Correlativos — Catálogos =====
@@ -134,9 +100,3 @@ export const NORMAS_CORR = [
 // ===== Correlativos Notas — Catálogos =====
 export const TIPOS_CORRESPONDENCIA = ['Carta', 'Memo'];
 
-export const NORMAS_NOTAS_EXTRA = [
-    { codigo: 'LFI', nombre: 'Ley de Fondos de Inversión' },
-    { codigo: 'LSPEF', nombre: 'Ley del Sistema de Pensiones y Fondo de Empleados' },
-    { codigo: 'MRP-33', nombre: 'Manual de Riesgos y Procedimientos NRP-33' },
-    { codigo: 'NCMC-10', nombre: 'Normas Técnicas para la Remisión y Divulgación de Información de Fondos de Inversión' },
-];

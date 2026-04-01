@@ -266,28 +266,34 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
         setShowForm(true);
     }
 
-    function handleGuardar() {
+    async function handleGuardar() {
         if (!form.fecha || !form.clasificacion || !form.industria || !form.responsable || !form.entidad) {
             alert('Por favor complete los campos obligatorios (*).');
             return;
         }
 
-        if (editingId) {
-            onEditarNota({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
-        } else {
-            const año = new Date(form.fecha + 'T00:00:00').getFullYear();
-            const { codigo, numero } = getNextCorrelativoNota(notas, año);
-            const nuevo = {
-                ...form, id: `nota-${Date.now()}`, codigo, numero, año,
-                cantidadUnidades: Number(form.cantidadUnidades),
-            };
-            onAgregarNota(nuevo);
-        }
+        try {
+            if (editingId) {
+                await onEditarNota({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
+            } else {
+                const año = new Date(form.fecha + 'T00:00:00').getFullYear();
+                const { codigo, numero } = getNextCorrelativoNota(notas, año);
+                const nuevo = {
+                    ...form, codigo, numero, año,
+                    cantidadUnidades: Number(form.cantidadUnidades),
+                };
+                await onAgregarNota(nuevo);
+                alert('Nota guardada exitosamente.');
+            }
 
-        setForm(emptyForm);
-        setEditingId(null);
-        setShowForm(false);
-        setCurrentPage(1);
+            setForm(emptyForm);
+            setEditingId(null);
+            setShowForm(false);
+            setCurrentPage(1);
+        } catch (error) {
+            console.error("Error saving note:", error);
+            alert("Error al guardar: " + (error.message || "Ocurrió un problema inesperado."));
+        }
     }
 
     const stats = useMemo(() => {

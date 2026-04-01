@@ -13,10 +13,6 @@ const EMPTY_TARJETA = {
     nota: '',
     responsable: '',
     fechaPlanAccion: '',
-    esVehiculoInversion: false,
-    tipoVehiculo: 'Inversión', // New
-    fondoInversion: '',
-    seccionId: '', // Added
     // Cycle finishing fields
     fechaRespuesta: '',
     respuestaEntidad: '',
@@ -36,9 +32,6 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
     const [fechaCierre, setFechaCierre] = useState('');
     const [fechaEvalInicio, setFechaEvalInicio] = useState('');
     const [fechaEvalFinal, setFechaEvalFinal] = useState('');
-    const [esVehiculoGlobal, setEsVehiculoGlobal] = useState(false);
-    const [tipoVehiculoGlobal, setTipoVehiculoGlobal] = useState('Inversión');
-    const [fondoGlobal, setFondoGlobal] = useState('');
     // Items States
     const [tarjetas, setTarjetas] = useState([{ ...EMPTY_TARJETA }]);
     const [showToast, setShowToast] = useState(false);
@@ -276,86 +269,6 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                 </div>
                             </div>
                         </div>
-
-                        {/* Global Investment Vehicle Selection */}
-                        <div className="pt-2 px-1">
-                            <div className="flex flex-col gap-4 p-5 rounded-3xl bg-primary/3 border border-primary/10 shadow-sm transition-all hover:bg-primary/5">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
-                                            <input
-                                                type="checkbox"
-                                                id="esVehiculoGlobal"
-                                                checked={esVehiculoGlobal}
-                                                onChange={e => {
-                                                    const val = e.target.checked;
-                                                    setEsVehiculoGlobal(val);
-                                                    setTarjetas(prev => prev.map(t => ({ ...t, esVehiculoInversion: val, fondoInversion: val ? fondoGlobal : '', tipoVehiculo: tipoVehiculoGlobal })));
-                                                }}
-                                                className="peer absolute h-full w-full opacity-0 cursor-pointer z-10"
-                                            />
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${esVehiculoGlobal ? 'translate-x-6' : 'translate-x-1'}`} />
-                                        </div>
-                                        <label htmlFor="esVehiculoGlobal" className="text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer select-none">
-                                            ¿Toda la auditoría es sobre un vehículo de inversión / titularización?
-                                        </label>
-                                    </div>
-
-                                    {esVehiculoGlobal && (
-                                        <div className="flex items-center p-1 bg-slate-100 rounded-xl animate-in fade-in zoom-in duration-300">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setTipoVehiculoGlobal('Inversión');
-                                                    setTarjetas(prev => prev.map(t => ({ ...t, tipoVehiculo: 'Inversión', fondoInversion: '' })));
-                                                    setFondoGlobal('');
-                                                }}
-                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${tipoVehiculoGlobal === 'Inversión' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                                            >
-                                                Fondos de Inversión
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setTipoVehiculoGlobal('Titularización');
-                                                    setTarjetas(prev => prev.map(t => ({ ...t, tipoVehiculo: 'Titularización', fondoInversion: '' })));
-                                                    setFondoGlobal('');
-                                                }}
-                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${tipoVehiculoGlobal === 'Titularización' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                                            >
-                                                Fondos de Titularización
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                {esVehiculoGlobal && (
-                                    <div className="animate-in slide-in-from-top-2 duration-300">
-                                        <div className="relative">
-                                            <select
-                                                value={fondoGlobal}
-                                                onChange={e => {
-                                                    const val = e.target.value;
-                                                    setFondoGlobal(val);
-                                                    setTarjetas(prev => prev.map(t => ({ ...t, fondoInversion: val })));
-                                                }}
-                                                className="w-full px-5 py-3.5 rounded-2xl border-2 border-primary/20 bg-white text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-xl shadow-primary/5 appearance-none pr-10"
-                                            >
-                                                <option value="">— SELECCIONE {tipoVehiculoGlobal === 'Inversión' ? 'EL FONDO DE INVERSIÓN' : 'EL FONDO DE TITULARIZACIÓN'} —</option>
-                                                {(tipoVehiculoGlobal === 'Inversión' ? (catalogos.fondosInversion || []) : (catalogos.fondosTitularizacion || [])).map(f => (
-                                                    <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                <svg className="w-5 h-5 text-primary/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 </Card>
             </section>
@@ -442,42 +355,33 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                             {errors[`desc_${index}`] && <p className="text-[10px] font-black text-rose-500 mt-2 px-1 uppercase tracking-tighter">⚠️ {errors[`desc_${index}`]}</p>}
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Estado</label>
                                                 <select
                                                     value={tarjeta.estado}
                                                     onChange={e => updateTarjeta(index, 'estado', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all"
+                                                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all appearance-none"
                                                 >
-                                                    {catalogos?.estados?.map(e => (
-                                                        <option key={e.id} value={e.nombre}>{e.nombre}</option>
-                                                    )) || ESTADOS.map(e => (
-                                                        <option key={e.value} value={e.value}>{e.label}</option>
-                                                    ))}
+                                                    {catalogos?.estados?.length > 0 ? (
+                                                        catalogos.estados.map(e => (
+                                                            <option key={e.id} value={e.nombre}>{e.nombre}</option>
+                                                        ))
+                                                    ) : (
+                                                        ESTADOS.map(e => (
+                                                            <option key={e.value} value={e.value}>{e.label || e.value}</option>
+                                                        ))
+                                                    )}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Riesgo</label>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Riesgo / Origen</label>
                                                 <select
                                                     value={tarjeta.tipoRiesgo}
                                                     onChange={e => updateTarjeta(index, 'tipoRiesgo', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all"
+                                                    className="w-full px-5 py-3 rounded-2xl border border-slate-100 text-[11px] font-black uppercase text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary cursor-pointer hover:bg-slate-50 transition-all appearance-none shadow-sm"
                                                 >
                                                     {(catalogos.tiposRiesgo || TIPOS_RIESGO.map(t => t.value || t)).map(t => <option key={t} value={t}>{t}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Sección</label>
-                                                <select
-                                                    value={tarjeta.seccionId}
-                                                    onChange={e => updateTarjeta(index, 'seccionId', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all font-mono"
-                                                >
-                                                    <option value="">— SELEC —</option>
-                                                    {(catalogos.secciones || []).map(u => (
-                                                        <option key={u.codigo} value={u.codigo}>{u.codigo} - {u.nombre}</option>
-                                                    ))}
                                                 </select>
                                             </div>
                                         </div>
@@ -509,60 +413,6 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                             <p className="text-[9px] font-medium text-slate-400 mt-2 px-1">Seleccione la base legal o normativa transgredida.</p>
                                         </div>
 
-                                        {/* Investment Vehicle (New) */}
-                                        <div className="pt-2">
-                                            <div className="flex items-center justify-between mb-3 px-1">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-200 transition-colors">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`esVehiculo_${index}`}
-                                                            checked={tarjeta.esVehiculoInversion}
-                                                            onChange={e => updateTarjeta(index, 'esVehiculoInversion', e.target.checked)}
-                                                            className="peer absolute h-full w-full opacity-0 cursor-pointer z-10"
-                                                        />
-                                                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${tarjeta.esVehiculoInversion ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                                                    </div>
-                                                    <label htmlFor={`esVehiculo_${index}`} className="text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer">
-                                                        VINCULAR VEHÍCULO
-                                                    </label>
-                                                </div>
-
-                                                {tarjeta.esVehiculoInversion && (
-                                                    <div className="flex p-0.5 bg-slate-100 rounded-lg scale-90">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateTarjeta(index, 'tipoVehiculo', 'Inversión')}
-                                                            className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${tarjeta.tipoVehiculo === 'Inversión' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}
-                                                        >
-                                                            Inv
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateTarjeta(index, 'tipoVehiculo', 'Titularización')}
-                                                            className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${tarjeta.tipoVehiculo === 'Titularización' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}
-                                                        >
-                                                            Tit
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            
-                                            {tarjeta.esVehiculoInversion && (
-                                                <div className="animate-in slide-in-from-top-1 duration-300">
-                                                    <select
-                                                        value={tarjeta.fondoInversion}
-                                                        onChange={e => updateTarjeta(index, 'fondoInversion', e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-2xl border-2 border-primary/20 bg-primary/5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer"
-                                                    >
-                                                        <option value="">— SELECCIONE {tarjeta.tipoVehiculo === 'Inversión' ? 'FONDO INV.' : 'FONDO TIT.'} —</option>
-                                                        {(tarjeta.tipoVehiculo === 'Inversión' ? (catalogos.fondosInversion || []) : (catalogos.fondosTitularizacion || [])).map(f => (
-                                                            <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
 
                                     {/* 03. Respuesta de la Entidad */}
