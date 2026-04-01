@@ -328,6 +328,14 @@ export default function useObservaciones() {
     const crearAuditoria = useCallback(async (form) => {
         const { entidadId, tipoVisita, fechaApertura, fechaCierre, fechaEvalInicio, fechaEvalFinal, nroInforme, tarjetas } = form;
         
+        // --- Auth Check (Step 1 Backend) ---
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            const authError = new Error('No hay una sesión activa. Por favor, inicie sesión.');
+            authError.code = '401';
+            throw authError;
+        }
+
         const nuevas = tarjetas.map((t) => mapToDB({
             entidadId: parseInt(entidadId),
             tipoVisita,
@@ -363,10 +371,14 @@ export default function useObservaciones() {
             ],
         }));
 
-        const { data, error } = await supabase.from('observaciones').insert(nuevas).select();
-        if (error) throw error;
+        const { data, error: insertError } = await supabase.from('observaciones').insert(nuevas).select();
         
-        await fetchData(true); // Refrescar de forma silenciosa para no interrumpir el flujo del usuario
+        if (insertError) {
+            console.error('DB Insert Error (Step 1 Log):', insertError);
+            throw insertError;
+        }
+        
+        await fetchData(true);
         return data.map(n => n.id);
     }, [fetchData]);
 

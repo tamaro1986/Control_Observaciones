@@ -65,33 +65,43 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
         return Object.keys(errs).length === 0;
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validate()) return;
-        crearAuditoria({
-            entidadId: Number(entidadId),
-            tipoVisita,
-            nroInforme,
-            esInformeManual,
-            fechaApertura,
-            fechaCierre,
-            fechaEvalInicio,
-            fechaEvalFinal,
-            tarjetas,
-        });
+        
+        try {
+            await crearAuditoria({
+                entidadId: Number(entidadId),
+                tipoVisita,
+                nroInforme,
+                esInformeManual,
+                fechaApertura,
+                fechaCierre,
+                fechaEvalInicio,
+                fechaEvalFinal,
+                tarjetas,
+            });
 
-        // Reset
-        setEntidadId('');
-        setNroInforme('');
-        setEsInformeManual(false);
-        setFechaApertura('');
-        setFechaCierre('');
-        setFechaEvalInicio('');
-        setFechaEvalFinal('');
-        setTarjetas([{ ...EMPTY_TARJETA }]);
-        setErrors({});
-        setShowToast(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setTimeout(() => setShowToast(false), 4000);
+            // Reset only on success
+            setEntidadId('');
+            setNroInforme('');
+            setEsInformeManual(false);
+            setFechaApertura('');
+            setFechaCierre('');
+            setFechaEvalInicio('');
+            setFechaEvalFinal('');
+            setTarjetas([{ ...EMPTY_TARJETA }]);
+            setErrors({});
+            setShowToast(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => setShowToast(false), 4000);
+        } catch (error) {
+            console.error('Error al guardar expediente:', error);
+            if (error.code === 'PGRST301' || error.message?.includes('Unauthorized') || String(error.status) === '401') {
+                alert('Error de sesión: Por favor, vuelve a iniciar sesión o verifica tus permisos.');
+            } else {
+                alert('Error inesperado al guardar: ' + (error.message || 'Consulte al administrador.'));
+            }
+        }
     };
 
     return (

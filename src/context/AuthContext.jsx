@@ -27,9 +27,9 @@ export const AuthProvider = ({ children }) => {
           setUser(session.user);
           setProfile(session.user.user_metadata);
         } else {
-          // Re-affirm mock if session is lost
-          setUser(mockUser);
-          setProfile(mockUser.user_metadata);
+          // No actual session: redirect to login!
+          setUser(null);
+          setProfile(null);
         }
       });
       subscription = data?.subscription;
