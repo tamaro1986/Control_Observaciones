@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card } from './SharedComponents';
+import { Card } from '../ui/SharedComponents';
 
 /**
  * Componente para gestionar listas de catálogos (tags, strings, o código|nombre)

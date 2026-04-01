@@ -1,4 +1,4 @@
-import { getRiesgoStyle, getEstadoStyle, getInitials, getAvatarColor } from '../data/data';
+import { getRiesgoStyle, getEstadoStyle, getInitials, getAvatarColor } from '../../data';
 
 export function Card({ children, className = '', noPadding = false, animate = true }) {
     return (

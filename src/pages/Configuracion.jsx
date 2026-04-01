@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Card } from '../components/SharedComponents';
-import CatalogManager from '../components/CatalogManager';
+import { Card } from '../components/ui/SharedComponents';
+import CatalogManager from '../components/config/CatalogManager';
 
 export default function Configuracion({ 
     catalogos, 

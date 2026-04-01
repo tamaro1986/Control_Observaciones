@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Card, SuccessToast, Badge } from '../components/SharedComponents';
-import { getEstadoStyle, getRiesgoStyle, formatDate, ESTADOS } from '../data/data';
+import { Card, SuccessToast, Badge } from '../components/ui/SharedComponents';
+import { getEstadoStyle, getRiesgoStyle, formatDate, ESTADOS } from '../data';
 
 export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, catalogos, correlativos }) {
     const [nuevoEstado, setNuevoEstado] = useState(observacion.estado);

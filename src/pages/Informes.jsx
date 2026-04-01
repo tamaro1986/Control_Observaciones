@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { NIVELES_RIESGO, ESTADOS } from '../data/data';
-import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/SharedComponents';
+import { NIVELES_RIESGO, ESTADOS } from '../data';
+import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/ui/SharedComponents';
 
 const ITEMS_PER_PAGE = 10;
 

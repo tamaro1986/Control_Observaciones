@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Card, Avatar } from '../components/SharedComponents.jsx';
-import { getNextCorrelativoNota, formatDate } from '../data/data.js';
+import { Card, Avatar } from '../components/ui/SharedComponents.jsx';
+import { getNextCorrelativoNota, formatDate } from '../data';
 import { Mail, FileText, Download, Briefcase, Globe, Activity, CheckCircle, AlertCircle, Calendar, Award } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 15;

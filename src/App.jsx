@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import Sidebar from './components/Sidebar';
+import Sidebar from './components/layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import NuevoRegistro from './pages/NuevoRegistro';
 import SeguimientoList from './pages/SeguimientoList';
@@ -17,7 +17,7 @@ import {
     ACCIONES_SUPERVISION, NORMAS_CORR, RESPONSABLES, ENTIDADES,
     TIPOS_CORRESPONDENCIA, NORMAS_NOTAS_EXTRA,
     NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA
-} from './data/data.js';
+} from './data';
 import Configuracion from './pages/Configuracion.jsx';
 import { useConfirm } from './context/ConfirmContext';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { NIVELES_RIESGO, TIPOS_RIESGO, ESTADOS, TIPOS_VISITA } from '../data/data';
-import { RiskBadge, SuccessToast, Card } from '../components/SharedComponents';
+import { NIVELES_RIESGO, TIPOS_RIESGO, ESTADOS, TIPOS_VISITA } from '../data';
+import { RiskBadge, SuccessToast, Card } from '../components/ui/SharedComponents';
 import { useConfirm } from '../context/ConfirmContext';
 
 const EMPTY_TARJETA = {

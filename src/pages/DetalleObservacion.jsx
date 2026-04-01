@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { formatDate, ESTADOS, RESPONSABLES, TIPOS_VISITA, NIVELES_RIESGO, TIPOS_RIESGO } from '../data/data';
-import { RiskBadge, EstadoBadge, Avatar, SuccessToast, Card } from '../components/SharedComponents';
+import { formatDate, ESTADOS, RESPONSABLES, TIPOS_VISITA, NIVELES_RIESGO, TIPOS_RIESGO } from '../data';
+import { RiskBadge, EstadoBadge, Avatar, SuccessToast, Card } from '../components/ui/SharedComponents';
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 function SectionHeader({ number, label, color = 'slate', icon }) {

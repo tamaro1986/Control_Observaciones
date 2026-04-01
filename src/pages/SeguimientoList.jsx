@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/SharedComponents';
+import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/ui/SharedComponents';
 import { Search, Filter, Calendar, Briefcase, FileText, Trash2, Edit2, ChevronDown, Check, X } from 'lucide-react';
-import { ESTADOS } from '../data/data';
+import { ESTADOS } from '../data';
 
 const ITEMS_PER_PAGE = 8;
 

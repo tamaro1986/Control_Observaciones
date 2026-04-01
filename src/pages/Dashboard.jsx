@@ -1,5 +1,5 @@
-import { daysUntil } from '../data/data';
-import { RiskBadge, Avatar } from '../components/SharedComponents';
+import { daysUntil } from '../data';
+import { RiskBadge, Avatar } from '../components/ui/SharedComponents';
 
 export default function Dashboard({ observaciones, getEstadisticas, onNavigate, onSelectObservacion, catalogos, entidades }) {
     const stats = getEstadisticas();

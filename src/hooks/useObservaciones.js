@@ -9,7 +9,7 @@ import {
     NIVELES_RIESGO, ESTADOS, TIPOS_RIESGO, TIPOS_VISITA, FONDOS_INVERSION,
     UNIDADES_AUDITABLES, PUNTOS_NORMATIVOS,
     TIPOS_OPERACION, TIPOS_ENTIDAD, CATEGORIAS_ENTIDAD
-} from '../data/data';
+} from '../data';
 
 export default function useObservaciones() {
     const confirm = useConfirm();
