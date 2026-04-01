@@ -31,6 +31,7 @@ export default function useObservaciones() {
         tiposCorrespondencia: TIPOS_CORRESPONDENCIA,
         normasExtra: [],
         fondosInversion: FONDOS_INVERSION,
+        fondosTitularizacion: [],
         nivelesRiesgo: NIVELES_RIESGO.map(n => n.value),
         estados: ESTADOS.map(e => e.value),
         tiposRiesgo: TIPOS_RIESGO,
@@ -174,6 +175,7 @@ export default function useObservaciones() {
         if (item.responsable !== undefined) mapped.responsable = item.responsable;
         if (item.esVehiculoInversion !== undefined) mapped.es_vehiculo_inversion = item.esVehiculoInversion;
         if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
+        if (item.tipoVehiculo !== undefined) mapped.tipo_vehiculo = item.tipoVehiculo;
         if (item.criterioAdministrativo !== undefined) mapped.criterio_administrativo = item.criterioAdministrativo;
         if (item.criterioLegal !== undefined) mapped.criterio_legal = item.criterioLegal;
         if (item.seccionId !== undefined) mapped.seccion_id = item.seccionId;

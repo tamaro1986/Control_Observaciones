@@ -31,7 +31,8 @@ export default function Configuracion({
         operativo: [
             { id: 'entidades', label: 'Entidades / Sujetos Obligados', custom: true },
             { id: 'responsables', label: 'Responsables / Auditores' },
-            { id: 'fondosInversion', label: 'Fondos de Inversión y Titularización (Código | Nombre)', isComplex: true },
+            { id: 'fondosInversion', label: 'Fondos de Inversión (Código | Nombre)', isComplex: true },
+            { id: 'fondosTitularizacion', label: 'Fondos de Titularización (Código | Nombre)', isComplex: true },
         ],
         normativo: [
             { id: 'normas', label: 'Normas Principales (Código | Nombre)', isComplex: true },
@@ -211,7 +212,7 @@ export default function Configuracion({
                             {/* Catalog Editor Area */}
                             <div className="md:col-span-8">
                                 {!selectedCatalog ? (
-                                    <Card className="min-h-[400px] flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50 bg-slate-50! border-slate-200/60 shadow-none">
+                                    <Card className="min-h-96 flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50 bg-slate-50! border-slate-200/60 shadow-none">
                                         <i className="ri-layout-left-line text-6xl"></i>
                                         <p className="text-xs font-black uppercase tracking-widest">Seleccione un elemento para gestionar</p>
                                     </Card>
@@ -233,7 +234,7 @@ export default function Configuracion({
                                                 </button>
                                             </div>
 
-                                            <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 space-y-4">
+                                            <div className="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 min-h-96">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="sm:col-span-2 space-y-1.5">
                                                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nombre de la Entidad</label>
@@ -268,13 +269,13 @@ export default function Configuracion({
                                                 </div>
                                                 <button
                                                     onClick={handleSaveEntity}
-                                                    className="w-full h-12 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+                                                    className="w-full h-12 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-95 mt-6"
                                                 >
                                                     {editingEntity ? 'Actualizar Registro' : 'Inscribir Entidad'}
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            <div className="overflow-y-auto max-h-96 pr-2 custom-scrollbar">
                                                 {entidades.map(ent => (
                                                     <div key={ent.id} className="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-slate-300 hover:shadow-md transition-all">
                                                         <div className="flex items-center gap-3">

@@ -88,7 +88,7 @@ export default function App() {
         const sorted = { ...catalogos };
         Object.keys(sorted).forEach(key => {
             if (Array.isArray(sorted[key])) {
-                if (['normas', 'normasExtra', 'unidadesAuditables', 'secciones', 'fondosInversion'].includes(key)) {
+                if (['normas', 'normasExtra', 'unidadesAuditables', 'secciones', 'fondosInversion', 'fondosTitularizacion'].includes(key)) {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
                 } else if (key === 'entidades') {
                     sorted[key] = [...sorted[key]].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));

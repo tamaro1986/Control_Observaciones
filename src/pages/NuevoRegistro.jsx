@@ -14,6 +14,7 @@ const EMPTY_TARJETA = {
     responsable: '',
     fechaPlanAccion: '',
     esVehiculoInversion: false,
+    tipoVehiculo: 'Inversión', // New
     fondoInversion: '',
     seccionId: '', // Added
     // Cycle finishing fields
@@ -36,6 +37,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
     const [fechaEvalInicio, setFechaEvalInicio] = useState('');
     const [fechaEvalFinal, setFechaEvalFinal] = useState('');
     const [esVehiculoGlobal, setEsVehiculoGlobal] = useState(false);
+    const [tipoVehiculoGlobal, setTipoVehiculoGlobal] = useState('Inversión');
     const [fondoGlobal, setFondoGlobal] = useState('');
     // Items States
     const [tarjetas, setTarjetas] = useState([{ ...EMPTY_TARJETA }]);
@@ -100,7 +102,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
     };
 
     return (
-        <div className="animate-fade-in max-w-[1600px] mx-auto space-y-4 pb-24 text-slate-800">
+        <div className="animate-fade-in max-w-400 mx-auto space-y-4 pb-24 text-slate-800">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
                 <div className="space-y-1.5">
@@ -277,40 +279,79 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
 
                         {/* Global Investment Vehicle Selection */}
                         <div className="pt-2 px-1">
-                            <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-3xl bg-primary/3 border border-primary/10 shadow-sm transition-all hover:bg-primary/5">
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        id="esVehiculoGlobal"
-                                        checked={esVehiculoGlobal}
-                                        onChange={e => {
-                                            const val = e.target.checked;
-                                            setEsVehiculoGlobal(val);
-                                            setTarjetas(prev => prev.map(t => ({ ...t, esVehiculoInversion: val, fondoInversion: val ? fondoGlobal : '' })));
-                                        }}
-                                        className="w-5 h-5 rounded-lg border-slate-300 text-primary focus:ring-primary cursor-pointer transition-all"
-                                    />
-                                    <label htmlFor="esVehiculoGlobal" className="text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer select-none">
-                                        ¿Toda la auditoría es sobre un fondo o entidad de titularización?
-                                    </label>
+                            <div className="flex flex-col gap-4 p-5 rounded-3xl bg-primary/3 border border-primary/10 shadow-sm transition-all hover:bg-primary/5">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                                            <input
+                                                type="checkbox"
+                                                id="esVehiculoGlobal"
+                                                checked={esVehiculoGlobal}
+                                                onChange={e => {
+                                                    const val = e.target.checked;
+                                                    setEsVehiculoGlobal(val);
+                                                    setTarjetas(prev => prev.map(t => ({ ...t, esVehiculoInversion: val, fondoInversion: val ? fondoGlobal : '', tipoVehiculo: tipoVehiculoGlobal })));
+                                                }}
+                                                className="peer absolute h-full w-full opacity-0 cursor-pointer z-10"
+                                            />
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${esVehiculoGlobal ? 'translate-x-6' : 'translate-x-1'}`} />
+                                        </div>
+                                        <label htmlFor="esVehiculoGlobal" className="text-xs font-black text-slate-700 uppercase tracking-widest cursor-pointer select-none">
+                                            ¿Toda la auditoría es sobre un vehículo de inversión / titularización?
+                                        </label>
+                                    </div>
+
+                                    {esVehiculoGlobal && (
+                                        <div className="flex items-center p-1 bg-slate-100 rounded-xl animate-in fade-in zoom-in duration-300">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setTipoVehiculoGlobal('Inversión');
+                                                    setTarjetas(prev => prev.map(t => ({ ...t, tipoVehiculo: 'Inversión', fondoInversion: '' })));
+                                                    setFondoGlobal('');
+                                                }}
+                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${tipoVehiculoGlobal === 'Inversión' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                            >
+                                                Fondos de Inversión
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setTipoVehiculoGlobal('Titularización');
+                                                    setTarjetas(prev => prev.map(t => ({ ...t, tipoVehiculo: 'Titularización', fondoInversion: '' })));
+                                                    setFondoGlobal('');
+                                                }}
+                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${tipoVehiculoGlobal === 'Titularización' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                            >
+                                                Fondos de Titularización
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 {esVehiculoGlobal && (
-                                    <div className="flex-1 animate-slide-in">
-                                        <select
-                                            value={fondoGlobal}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                setFondoGlobal(val);
-                                                setTarjetas(prev => prev.map(t => ({ ...t, fondoInversion: val })));
-                                            }}
-                                            className="w-full px-5 py-3 rounded-2xl border border-primary/20 bg-white text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-sm shadow-primary/5"
-                                        >
-                                            <option value="">— SELECCIONE EL VEHÍCULO DE INVERSIÓN / TITULARIZACIÓN —</option>
-                                            {(catalogos.fondos || []).map(f => (
-                                                <option key={f.id} value={f.nombre}>{f.nombre}</option>
-                                            ))}
-                                        </select>
+                                    <div className="animate-in slide-in-from-top-2 duration-300">
+                                        <div className="relative">
+                                            <select
+                                                value={fondoGlobal}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    setFondoGlobal(val);
+                                                    setTarjetas(prev => prev.map(t => ({ ...t, fondoInversion: val })));
+                                                }}
+                                                className="w-full px-5 py-3.5 rounded-2xl border-2 border-primary/20 bg-white text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-xl shadow-primary/5 appearance-none pr-10"
+                                            >
+                                                <option value="">— SELECCIONE {tipoVehiculoGlobal === 'Inversión' ? 'EL FONDO DE INVERSIÓN' : 'EL FONDO DE TITULARIZACIÓN'} —</option>
+                                                {(tipoVehiculoGlobal === 'Inversión' ? (catalogos.fondosInversion || []) : (catalogos.fondosTitularizacion || [])).map(f => (
+                                                    <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <svg className="w-5 h-5 text-primary/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -366,7 +407,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                             <select
                                                 value={tarjeta.nivelRiesgo}
                                                 onChange={e => updateTarjeta(index, 'nivelRiesgo', e.target.value)}
-                                                className="px-5 py-2 rounded-full border border-slate-200 text-[11px] font-black uppercase text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary cursor-pointer hover:bg-slate-50 transition-all appearance-none text-center min-w-[120px]"
+                                                className="px-5 py-2 rounded-full border border-slate-200 text-[11px] font-black uppercase text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary cursor-pointer hover:bg-slate-50 transition-all appearance-none text-center min-w-30"
                                             >
                                                 {(catalogos.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value)).map(n => <option key={n} value={n}>{n}</option>)}
                                             </select>
@@ -470,28 +511,52 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
 
                                         {/* Investment Vehicle (New) */}
                                         <div className="pt-2">
-                                            <div className="flex items-center gap-3 mb-3 px-1">
-                                                <input
-                                                    type="checkbox"
-                                                    id={`esVehiculo_${index}`}
-                                                    checked={tarjeta.esVehiculoInversion}
-                                                    onChange={e => updateTarjeta(index, 'esVehiculoInversion', e.target.checked)}
-                                                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
-                                                />
-                                                <label htmlFor={`esVehiculo_${index}`} className="text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer">
-                                                    VINCULAR CON VEHÍCULO DE INVERSIÓN
-                                                </label>
+                                            <div className="flex items-center justify-between mb-3 px-1">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-200 transition-colors">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`esVehiculo_${index}`}
+                                                            checked={tarjeta.esVehiculoInversion}
+                                                            onChange={e => updateTarjeta(index, 'esVehiculoInversion', e.target.checked)}
+                                                            className="peer absolute h-full w-full opacity-0 cursor-pointer z-10"
+                                                        />
+                                                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${tarjeta.esVehiculoInversion ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                                    </div>
+                                                    <label htmlFor={`esVehiculo_${index}`} className="text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer">
+                                                        VINCULAR VEHÍCULO
+                                                    </label>
+                                                </div>
+
+                                                {tarjeta.esVehiculoInversion && (
+                                                    <div className="flex p-0.5 bg-slate-100 rounded-lg scale-90">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateTarjeta(index, 'tipoVehiculo', 'Inversión')}
+                                                            className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${tarjeta.tipoVehiculo === 'Inversión' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}
+                                                        >
+                                                            Inv
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateTarjeta(index, 'tipoVehiculo', 'Titularización')}
+                                                            className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${tarjeta.tipoVehiculo === 'Titularización' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}
+                                                        >
+                                                            Tit
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                             
                                             {tarjeta.esVehiculoInversion && (
-                                                <div className="animate-fade-in">
+                                                <div className="animate-in slide-in-from-top-1 duration-300">
                                                     <select
                                                         value={tarjeta.fondoInversion}
                                                         onChange={e => updateTarjeta(index, 'fondoInversion', e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer"
+                                                        className="w-full px-4 py-3 rounded-2xl border-2 border-primary/20 bg-primary/5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer"
                                                     >
-                                                        <option value="">— SELECCIONE FONDO —</option>
-                                                        {(catalogos.fondosInversion || []).map(f => (
+                                                        <option value="">— SELECCIONE {tarjeta.tipoVehiculo === 'Inversión' ? 'FONDO INV.' : 'FONDO TIT.'} —</option>
+                                                        {(tarjeta.tipoVehiculo === 'Inversión' ? (catalogos.fondosInversion || []) : (catalogos.fondosTitularizacion || [])).map(f => (
                                                             <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
                                                         ))}
                                                     </select>
@@ -579,8 +644,8 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
             </section>
 
             {/* Sticky Actions Bar */}
-            <div className="fixed bottom-0 left-[220px] right-0 bg-white/70 backdrop-blur-2xl border-t border-slate-200/50 px-6 py-4 z-40 transition-all shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.1)]">
-                <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+            <div className="fixed bottom-0 left-55 right-0 bg-white/70 backdrop-blur-2xl border-t border-slate-200/50 px-6 py-4 z-40 transition-all shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.1)]">
+                <div className="max-w-400 mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-10">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capacidad de Registro</span>
@@ -594,7 +659,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
 
                         <div className="h-10 w-px bg-slate-200" />
 
-                        <div className="flex flex-col text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic max-w-[200px]">
+                        <div className="flex flex-col text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic max-w-50">
                             <span>* Valide las fechas de corte</span>
                             <span>* El informe es obligatorio</span>
                         </div>
