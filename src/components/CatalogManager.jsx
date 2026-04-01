@@ -86,7 +86,7 @@ export default function CatalogManager({ title, items = [], onUpdate, isComplex 
                     <p className="text-[10px] font-bold text-slate-400 mt-0.5">{items.length} elementos registrados</p>
                 </div>
                 <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                    <i className="ri-list-settings-line"></i>
+                    <span className="material-symbols-outlined text-lg">settings_suggest</span>
                 </div>
             </div>
 
@@ -149,7 +149,7 @@ export default function CatalogManager({ title, items = [], onUpdate, isComplex 
                 </div>
 
                 {/* List Section */}
-                <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto max-h-96 pr-2 custom-scrollbar">
                     <div className="grid grid-cols-1 gap-2">
                         {items.map((item, idx) => {
                             const isEditing = editingIndex === idx;
@@ -217,31 +217,31 @@ export default function CatalogManager({ title, items = [], onUpdate, isComplex 
                                                     className="w-8 h-8 rounded-lg text-emerald-500 hover:bg-emerald-50 flex items-center justify-center transition-all cursor-pointer"
                                                     title="Guardar cambios"
                                                 >
-                                                    <i className="ri-check-line text-lg"></i>
+                                                    <span className="material-symbols-outlined text-lg">check</span>
                                                 </button>
                                                 <button 
                                                     onClick={() => setEditingIndex(null)}
                                                     className="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center transition-all cursor-pointer"
                                                     title="Cancelar"
                                                 >
-                                                    <i className="ri-close-line text-lg"></i>
+                                                    <span className="material-symbols-outlined text-lg">close</span>
                                                 </button>
                                             </>
                                         ) : (
                                             <>
                                                 <button 
                                                     onClick={() => startEditing(idx, item)}
-                                                    className="w-8 h-8 rounded-lg text-slate-300 hover:text-primary hover:bg-primary/5 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                                                    className="w-9 h-9 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-all cursor-pointer border border-transparent hover:border-slate-200"
                                                     title="Editar este elemento"
                                                 >
-                                                    <i className="ri-pencil-line"></i>
+                                                    <span className="material-symbols-outlined text-[20px]">edit</span>
                                                 </button>
                                                 <button 
                                                     onClick={() => handleRemove(idx)}
-                                                    className="w-8 h-8 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                                                    className="w-9 h-9 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer border border-transparent hover:border-rose-100"
                                                     title="Eliminar este elemento"
                                                 >
-                                                    <i className="ri-delete-bin-line"></i>
+                                                    <span className="material-symbols-outlined text-[20px]">delete</span>
                                                 </button>
                                             </>
                                         )}
@@ -251,7 +251,7 @@ export default function CatalogManager({ title, items = [], onUpdate, isComplex 
                         })}
                         {items.length === 0 && (
                             <div className="h-32 flex flex-col items-center justify-center text-slate-300 space-y-2">
-                                <i className="ri-inbox-line text-3xl"></i>
+                                <span className="material-symbols-outlined text-3xl">inbox</span>
                                 <p className="text-[10px] font-black uppercase tracking-widest italic opacity-50">Sin registros</p>
                             </div>
                         )}
@@ -261,3 +261,4 @@ export default function CatalogManager({ title, items = [], onUpdate, isComplex 
         </Card>
     );
 }
+

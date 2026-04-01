@@ -185,7 +185,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
     }, [correlativos]);
 
     return (
-        <div className="max-w-[1700px] mx-auto space-y-4 animate-fade-in">
+        <div className="max-w-screen-2xl mx-auto space-y-4 animate-fade-in">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
@@ -213,7 +213,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
 
             {/* Dashboard Visual */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
-                <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden">
+                <div className="bg-slate-900 rounded-4xl p-6 text-white shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <FileText className="w-20 h-20" />
                     </div>
@@ -224,7 +224,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="bg-white rounded-4xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Top 3 Categorías</p>
                     <div className="space-y-3 flex-1">
                         {stats.porTipo.slice(0, 3).map(([name, count]) => (
@@ -241,7 +241,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="bg-white rounded-4xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Normas Frecuentes</p>
                     <div className="space-y-3 flex-1">
                         {stats.porNorma.slice(0, 3).map(([name, count]) => (
@@ -258,7 +258,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="bg-white rounded-4xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Distribución Unidades</p>
                     <div className="flex flex-col items-center justify-center flex-1">
                         <p className="text-3xl font-black text-slate-800">
@@ -270,9 +270,9 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
             </div>
 
             {/* Filters */}
-            <Card className="!p-0 overflow-visible">
+            <Card className="p-0! overflow-visible">
                 <div className="px-4 py-3 flex flex-wrap gap-3 items-center border-b border-border bg-slate-50/50">
-                    <div className="relative flex-1 min-w-[180px]">
+                    <div className="relative flex-1 min-w-44">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -327,7 +327,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                             ) : paginated.map((c, idx) => (
                                 <React.Fragment key={c.id}>
                                     <tr
-                                        className={`group cursor-pointer transition-colors ${expandedRow === c.id ? 'bg-slate-50' : 'hover:bg-primary/[0.02]'}`}
+                                        className={`group cursor-pointer transition-colors ${expandedRow === c.id ? 'bg-slate-50' : 'hover:bg-primary/5'}`}
                                     >
                                         <td className="py-2 px-3 align-middle" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-[10px] font-black text-slate-300">
@@ -350,14 +350,14 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                                     {c.normas.map((n, i) => (
                                                         <div key={i}>
                                                             <span className="text-[10px] font-black text-text-primary">{n.codigo}</span>
-                                                            <p className="text-[9px] text-slate-400 max-w-[140px] truncate" title={n.nombre}>{n.nombre}</p>
+                                                            <p className="text-[9px] text-slate-400 max-w-45 truncate" title={n.nombre}>{n.nombre}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
                                                 <div>
                                                     <span className="text-[10px] font-black text-text-primary">{c.codigoNorma || '—'}</span>
-                                                    <p className="text-[9px] text-slate-400 max-w-[140px] truncate">{c.nombreNorma || ''}</p>
+                                                    <p className="text-[9px] text-slate-400 max-w-35 truncate">{c.nombreNorma || ''}</p>
                                                 </div>
                                             )}
                                         </td>
@@ -398,7 +398,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                                 <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{c.responsable?.split(' ').slice(0, 2).join(' ')}</span>
                                             </div>
                                         </td>
-                                        <td className="py-2 px-3 align-middle max-w-[180px]" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
+                                        <td className="py-2 px-3 align-middle max-w-45" onClick={() => setExpandedRow(expandedRow === c.id ? null : c.id)}>
                                             <span className="text-[10px] font-bold text-text-primary line-clamp-2">{c.esInterno ? '—' : c.entidad}</span>
                                         </td>
                                         <td className="py-2 px-3 align-middle">
@@ -480,7 +480,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                         </div>
 
                         {/* Scrollable form body */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                        <div className="flex-1 overflow-y-auto max-h-96 pr-2 custom-scrollbar p-6 space-y-5">
 
                             {/* Toggle Es Interno */}
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -555,7 +555,7 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                                 <div key={n.codigo} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg">
                                                     <div className="flex flex-col">
                                                         <span className="text-[10px] font-black text-slate-700 leading-none">{n.codigo}</span>
-                                                        <span className="text-[9px] font-medium text-slate-500 max-w-[200px] truncate mt-0.5">{n.nombre}</span>
+                                                        <span className="text-[9px] font-medium text-slate-500 max-w-50 truncate mt-0.5">{n.nombre}</span>
                                                     </div>
                                                     <button
                                                         onClick={() => setForm(f => ({ ...f, normas: f.normas.filter(x => x.codigo !== n.codigo) }))}

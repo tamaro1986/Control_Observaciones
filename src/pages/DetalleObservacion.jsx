@@ -566,11 +566,11 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         </div>
 
                         <div className="relative pl-6 space-y-4">
-                            <div className="absolute left-[3px] top-4 bottom-4 w-[2px] bg-slate-100" />
+                            <div className="absolute left-0.75 top-4 bottom-4 w-0.5 bg-slate-100" />
 
                             {[...observacion.historialEstados].reverse().map((h, i) => (
                                 <div key={i} className="relative animate-fade-in group">
-                                    <div className="absolute -left-[30px] top-1.5 w-[12px] h-[12px] rounded-full bg-white border-2 border-slate-900 group-hover:scale-125 transition-transform z-10" />
+                                    <div className="absolute -left-7.5 top-1.5 w-3 h-3 rounded-full bg-white border-2 border-slate-900 group-hover:scale-125 transition-transform z-10" />
 
                                     <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm group-hover:shadow-lg transition-all border-l-4 border-l-slate-900">
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">

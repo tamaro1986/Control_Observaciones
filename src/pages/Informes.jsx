@@ -15,7 +15,7 @@ function CustomMultiSelect({ label, options, selected, onChange, placeholder = "
             </label>
             <div
                 onClick={() => setIsOpen(!isOpen)}
-                className={`min-h-[46px] w-full px-4 py-2 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-wrap gap-1.5 items-center 
+                className={`min-h-11.5 w-full px-4 py-2 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-wrap gap-1.5 items-center 
                     ${isOpen ? 'border-primary bg-white shadow-md ring-4 ring-primary/5' : 'border-border bg-white hover:border-text-muted'}`}
             >
                 {selected.length === 0 ? (
@@ -98,7 +98,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
     const years = [...new Set(observaciones.map(o => o.fechaApertura?.substring(0, 4)).filter(Boolean))].sort().reverse();
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-4 animate-fade-in">
+        <div className="max-w-400 mx-auto space-y-4 animate-fade-in">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 pb-1">
                 <div>
@@ -138,7 +138,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
             </div>
 
             {/* Filters Section */}
-            <Card className="!p-0 overflow-visible">
+            <Card className="p-0! overflow-visible">
                 <div
                     className="px-6 py-4 border-b border-border flex items-center justify-between bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors"
                     onClick={() => setIsFilterVisible(!isFilterVisible)}
@@ -187,7 +187,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                                 type="date"
                                 value={fechaInicio}
                                 onChange={e => setFechaInicio(e.target.value)}
-                                className="w-full h-[46px] px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
+                                className="w-full h-11.5 px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
                             />
                         </div>
                         <div className="relative">
@@ -196,7 +196,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                                 type="date"
                                 value={fechaFin}
                                 onChange={e => setFechaFin(e.target.value)}
-                                className="w-full h-[46px] px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
+                                className="w-full h-11.5 px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
                             />
                         </div>
                         <CustomMultiSelect
@@ -265,7 +265,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                                         <tr
                                             key={obs.id}
                                             onClick={() => onSelectObservacion(obs.id)}
-                                            className="group hover:bg-primary/[0.02] cursor-pointer transition-colors"
+                                            className="group hover:bg-primary/2 cursor-pointer transition-colors"
                                         >
                                             <td className="py-2 px-4 align-middle">
                                                 <span className="text-xs font-black text-slate-400 group-hover:text-primary transition-colors">
@@ -355,7 +355,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
 
             {/* Bottom Insight Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="flex flex-col items-center justify-center text-center !bg-slate-900 !text-white border-0 shadow-2xl">
+                <Card className="flex flex-col items-center justify-center text-center bg-slate-900! text-white! border-0 shadow-2xl">
                     <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-2">
                         <svg className="w-7 h-7 text-primary-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -384,7 +384,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                                     </div>
                                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner border border-slate-200/50">
                                         <div
-                                            className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-1000 ease-out flex items-center justify-end px-1"
+                                            className="h-full bg-linear-to-r from-primary to-primary-light rounded-full transition-all duration-1000 ease-out flex items-center justify-end px-1"
                                             style={{ width: `${pct}%` }}
                                         >
                                             <div className="w-1 h-1 rounded-full bg-white opacity-40 shadow-sm" />

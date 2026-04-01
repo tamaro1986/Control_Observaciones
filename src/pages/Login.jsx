@@ -67,7 +67,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#07142e] relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-primary-dark relative overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
@@ -78,14 +78,14 @@ export default function Login() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full max-w-md px-6 z-10"
       >
-        <div className="glass-panel p-8 rounded-[2rem] border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="glass-panel p-8 rounded-4xl border-white/10 shadow-2xl relative overflow-hidden">
           {/* Decorative Sparkle */}
           <div className="absolute top-4 right-4 text-emerald-500/40">
             <Sparkles size={24} />
           </div>
 
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light rounded-2xl flex items-center justify-center shadow-lg mb-4 border border-white/20">
+            <div className="w-16 h-16 bg-linear-to-br from-primary to-primary-light rounded-2xl flex items-center justify-center shadow-lg mb-4 border border-white/20">
               <Shield className="text-white" size={32} />
             </div>
             <h1 className="text-2xl font-black text-white tracking-tight">AuditFlow <span className="text-emerald-400">Pro</span></h1>
@@ -165,7 +165,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 transform active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="w-full bg-linear-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 transform active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {loading ? (
                 <Loader2 className="animate-spin" size={20} />

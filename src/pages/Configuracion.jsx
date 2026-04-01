@@ -20,11 +20,11 @@ export default function Configuracion({
     const [entityForm, setEntityForm] = useState({ nombre: '', tipo: 'Banco', categoria: 'General' });
 
     const categories = [
-        { id: 'general', label: 'Sistema', icon: '⚙️' },
-        { id: 'operativo', label: 'Operación', icon: '💼' },
-        { id: 'normativo', label: 'Normativa', icon: '⚖️' },
-        { id: 'clasificacion', label: 'Parámetros', icon: '📋' },
-        { id: 'hallazgos', label: 'Seguimiento', icon: '🔍' },
+        { id: 'general', label: 'Sistema', icon: 'settings' },
+        { id: 'operativo', label: 'Operación', icon: 'business_center' },
+        { id: 'normativo', label: 'Normativa', icon: 'gavel' },
+        { id: 'clasificacion', label: 'Parámetros', icon: 'list_alt' },
+        { id: 'hallazgos', label: 'Seguimiento', icon: 'search_check' },
     ];
 
     const catalogsByCategory = {
@@ -134,7 +134,7 @@ export default function Configuracion({
                             onClick={() => { setActiveTab(cat.id); setSelectedCatalog(null); }}
                             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === cat.id ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 translate-x-1' : 'text-slate-500 hover:bg-slate-100'}`}
                         >
-                            <span className="text-xl">{cat.icon}</span>
+                            <span className="material-symbols-outlined text-xl">{cat.icon}</span>
                             {cat.label}
                         </button>
                     ))}
@@ -146,7 +146,7 @@ export default function Configuracion({
                         <div className="space-y-6">
                             <Card className="p-10! text-center space-y-8">
                                 <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center text-5xl mx-auto border-2 border-emerald-100 shadow-sm">
-                                    💾
+                                    <span className="material-symbols-outlined text-5xl">database</span>
                                 </div>
                                 <div className="max-w-md mx-auto space-y-2">
                                     <h2 className="text-2xl font-black text-slate-900 tracking-tight">Respaldo y Recuperación</h2>
@@ -159,7 +159,7 @@ export default function Configuracion({
                                         className="group flex flex-col items-center justify-center p-8 bg-slate-900 hover:bg-slate-800 text-white rounded-[2.5rem] transition-all hover:shadow-2xl hover:shadow-slate-200 active:scale-95 cursor-pointer"
                                     >
                                         <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                            <i className="ri-download-cloud-2-line text-2xl text-emerald-400"></i>
+                                            <span className="material-symbols-outlined text-3xl text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">cloud_download</span>
                                         </div>
                                         <span className="text-sm font-black uppercase tracking-widest">Generar Respaldo</span>
                                         <span className="text-[10px] text-slate-400 mt-2 font-bold opacity-70">Formato .json unificado</span>
@@ -168,7 +168,7 @@ export default function Configuracion({
                                     <label className="group flex flex-col items-center justify-center p-8 bg-white border-2 border-dashed border-slate-200 hover:border-slate-900 hover:bg-slate-50 rounded-[2.5rem] transition-all hover:shadow-xl active:scale-95 cursor-pointer">
                                         <input type="file" accept=".json" onChange={handleImport} className="hidden" />
                                         <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-slate-100 group-hover:scale-110 transition-transform border border-slate-100">
-                                            <i className="ri-upload-cloud-2-line text-2xl text-slate-600"></i>
+                                            <span className="material-symbols-outlined text-3xl text-slate-600">upload_file</span>
                                         </div>
                                         <span className="text-sm font-black uppercase tracking-widest text-slate-700">Restaurar Datos</span>
                                         <span className="text-[10px] text-slate-400 mt-2 font-bold opacity-70">Sobrescribe base actual</span>
@@ -177,7 +177,7 @@ export default function Configuracion({
 
                                 <div className="bg-amber-50 border border-amber-100 p-6 rounded-3xl flex gap-5 text-left items-start">
                                     <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                                        <i className="ri-error-warning-fill text-2xl"></i>
+                                        <span className="material-symbols-outlined text-2xl">error</span>
                                     </div>
                                     <div>
                                         <p className="text-xs font-black text-amber-900 uppercase tracking-widest mb-1">Aviso Importante</p>
@@ -213,7 +213,7 @@ export default function Configuracion({
                             <div className="md:col-span-8">
                                 {!selectedCatalog ? (
                                     <Card className="min-h-96 flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50 bg-slate-50! border-slate-200/60 shadow-none">
-                                        <i className="ri-layout-left-line text-6xl"></i>
+                                        <span className="material-symbols-outlined text-6xl">settings_suggest</span>
                                         <p className="text-xs font-black uppercase tracking-widest">Seleccione un elemento para gestionar</p>
                                     </Card>
                                 ) : selectedCatalog.id === 'entidades' ? (
@@ -230,7 +230,7 @@ export default function Configuracion({
                                                     className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center shadow-sm active:scale-95"
                                                     title="Nuevo Registro"
                                                 >
-                                                    <i className="ri-add-line text-xl"></i>
+                                                    <span className="material-symbols-outlined text-xl">add</span>
                                                 </button>
                                             </div>
 
@@ -290,18 +290,20 @@ export default function Configuracion({
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className="flex gap-2 transition-all">
                                                             <button 
                                                                 onClick={() => { setEditingEntity(ent); setEntityForm({nombre: ent.nombre, tipo: ent.tipo, categoria: ent.categoria}); }}
-                                                                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center"
+                                                                className="w-9 h-9 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-all border border-transparent hover:border-slate-200"
+                                                                title="Editar entidad"
                                                             >
-                                                                <i className="ri-edit-line"></i>
+                                                                <span className="material-symbols-outlined text-[20px]">edit</span>
                                                             </button>
                                                             <button 
                                                                 onClick={() => { if(window.confirm('¿Eliminar entidad?')) eliminarEntidad(ent.id); }}
-                                                                className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all flex items-center justify-center"
+                                                                className="w-9 h-9 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all border border-transparent hover:border-rose-100"
+                                                                title="Eliminar entidad"
                                                             >
-                                                                <i className="ri-delete-bin-line"></i>
+                                                                <span className="material-symbols-outlined text-[20px]">delete</span>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -326,3 +328,4 @@ export default function Configuracion({
         </div>
     );
 }
+

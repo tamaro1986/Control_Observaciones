@@ -105,7 +105,7 @@ const filterByPeriod = (data, dateField, period, specificValue) => {
 
 function ChartCard({ title, subtitle, children, className = '', height = 300 }) {
     return (
-        <div className={`bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 ${className} flex flex-col`}>
+        <div className={`bg-white rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/40 p-6 ${className} flex flex-col`}>
             <div className="mb-6">
                 <p className="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-1">{title}</p>
                 {subtitle && <p className="text-[10px] text-slate-400 font-semibold tracking-wide">{subtitle}</p>}
@@ -119,7 +119,7 @@ function ChartCard({ title, subtitle, children, className = '', height = 300 }) 
 
 function KPI({ label, value, icon: Icon, colorClass, subText }) {
     return (
-        <div className={`relative overflow-hidden rounded-[2rem] p-6 shadow-2xl transition-all hover:scale-[1.02] ${colorClass}`}>
+        <div className={`relative overflow-hidden rounded-4xl p-6 shadow-2xl transition-all hover:scale-[1.02] ${colorClass}`}>
             <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
             <div className="relative z-10 flex items-start justify-between">
                 <div>
@@ -252,7 +252,7 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears, f
     ];
 
     return (
-        <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-[1.5rem] border border-slate-100 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
             <div className="flex items-center gap-2 mr-2">
                 <Filter className="w-4 h-4 text-slate-400" />
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtros</span>
@@ -599,11 +599,11 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
     }, [observaciones, correlativos, notas]);
 
     return (
-        <div className="max-w-[1700px] mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="max-w-425 mx-auto space-y-8 animate-fade-in pb-20">
 
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
                 <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-600 to-violet-800 shadow-2xl shadow-indigo-500/20 flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 rounded-3xl bg-linear-to-br from-indigo-600 to-violet-800 shadow-2xl shadow-indigo-500/20 flex items-center justify-center shrink-0">
                         <Activity className="w-8 h-8 text-white" />
                     </div>
                     <div>
@@ -630,12 +630,12 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
             </div>
 
             {/* Tab Search/Switcher */}
-            <div className="bg-white/40 backdrop-blur-xl p-2 rounded-[2rem] border border-white/40 shadow-xl flex flex-wrap gap-2 sticky top-4 z-50">
+            <div className="bg-white/40 backdrop-blur-xl p-2 rounded-4xl border border-white/40 shadow-xl flex flex-wrap gap-2 sticky top-4 z-50">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-3 px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/40 ring-4 ring-slate-900/10' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}
+                        className={`flex items-center gap-3 px-8 py-4 rounded-3xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/40 ring-4 ring-slate-900/10' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}
                     >
                         {tab.icon}
                         {tab.label}
@@ -654,7 +654,7 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                     <TabSeguimiento observaciones={obsData} period="all" values={{}} />
                 )}
                 {activeTab === 'correspondencia' && (
-                    <div className="py-20 text-center bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                    <div className="py-20 text-center bg-white rounded-4xl border border-slate-100 shadow-sm">
                         <Download className="w-12 h-12 text-slate-200 mx-auto mb-4" />
                         <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Analítica de Correspondencia</p>
                         <p className="text-xs text-slate-300 mt-2 font-medium">Próximamente métricas de flujo documental</p>

@@ -106,13 +106,13 @@ function JuntasSubForm({ juntas, onChange, catalogos }) {
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.industria || '—'}</td>
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{formatDate(j.fechaCelebracion)}</td>
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.hora || '—'}</td>
-                                        <td className="py-2 px-3 text-slate-500 max-w-[140px]">
+                                        <td className="py-2 px-3 text-slate-500 max-w-35">
                                             <span className="line-clamp-2">{j.lugar || '—'}</span>
                                         </td>
                                         <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">
                                             {j.responsable ? j.responsable.split(' ').slice(0, 2).join(' ') : '—'}
                                         </td>
-                                        <td className="py-2 px-3 font-bold text-amber-700 max-w-[160px]">
+                                        <td className="py-2 px-3 font-bold text-amber-700 max-w-40">
                                             <span className="line-clamp-2">{j.tipoJunta}</span>
                                         </td>
                                         <td className="py-2 px-3">
@@ -318,7 +318,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
     }, [notas, form.fecha, editingId, form.codigo]);
 
     return (
-        <div className="max-w-[1800px] mx-auto space-y-4 animate-fade-in">
+        <div className="max-w-450 mx-auto space-y-4 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-600 shadow-lg flex items-center justify-center shrink-0">
@@ -342,7 +342,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
 
             {/* Stats Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
-                <div className="bg-amber-600 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden">
+                <div className="bg-amber-600 rounded-4xl p-6 text-white shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <Mail className="w-20 h-20" />
                     </div>
@@ -353,7 +353,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="bg-white rounded-4xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Clasificación Principal</p>
                     <div className="space-y-3 flex-1">
                         {stats.porClasif.slice(0, 3).map(([name, count]) => (
@@ -370,7 +370,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="bg-white rounded-4xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Industrias Frecuentes</p>
                     <div className="space-y-3 flex-1">
                         {stats.porIndustria.slice(0, 3).map(([name, count]) => (
@@ -387,7 +387,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="bg-white rounded-4xl p-6 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Carga Unidades</p>
                     <div className="flex flex-col items-center justify-center flex-1">
                         <p className="text-3xl font-black text-slate-800">
@@ -398,9 +398,9 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                 </div>
             </div>
 
-            <Card className="!p-0 overflow-visible">
+            <Card className="p-0! overflow-visible">
                 <div className="px-4 py-3 flex flex-wrap gap-3 items-center border-b border-border bg-slate-50/50">
-                    <div className="relative flex-1 min-w-[180px]">
+                    <div className="relative flex-1 min-w-45">
                         <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                         <input
                             type="text"
@@ -480,14 +480,14 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                     {n.normas.map((norm, i) => (
                                                         <div key={i}>
                                                             <span className="text-[10px] font-black text-text-primary">{norm.codigo}</span>
-                                                            <p className="text-[9px] text-slate-400 max-w-[110px] truncate" title={norm.nombre}>{norm.nombre}</p>
+                                                            <p className="text-[9px] text-slate-400 max-w-27.5 truncate" title={norm.nombre}>{norm.nombre}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
                                                 <div>
                                                     <span className="text-[10px] font-black text-text-primary">{n.codigoNorma || '—'}</span>
-                                                    <p className="text-[9px] text-slate-400 max-w-[110px] truncate">{n.nombreNorma || ''}</p>
+                                                    <p className="text-[9px] text-slate-400 max-w-27.5 truncate">{n.nombreNorma || ''}</p>
                                                 </div>
                                             )}
                                         </td>
@@ -511,7 +511,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                 <span className="text-[10px] font-bold text-text-primary whitespace-nowrap">{n.responsable?.split(' ').slice(0, 2).join(' ')}</span>
                                             </div>
                                         </td>
-                                        <td className="py-2 px-3 align-middle max-w-[160px]" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
+                                        <td className="py-2 px-3 align-middle max-w-40" onClick={() => setExpandedRow(expandedRow === n.id ? null : n.id)}>
                                             <span className="text-[10px] font-bold text-text-primary line-clamp-2">{n.entidad}</span>
                                         </td>
                                         <td className="py-2 px-3 align-middle">
@@ -579,9 +579,9 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                                                 <td className="py-2 px-3 font-bold text-slate-600">{j.industria || '—'}</td>
                                                                                 <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{formatDate(j.fechaCelebracion)}</td>
                                                                                 <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{j.hora || '—'}</td>
-                                                                                <td className="py-2 px-3 text-slate-500 max-w-[200px]"><span className="line-clamp-2">{j.lugar || '—'}</span></td>
+                                                                                <td className="py-2 px-3 text-slate-500 max-w-50"><span className="line-clamp-2">{j.lugar || '—'}</span></td>
                                                                                 <td className="py-2 px-3 font-bold text-slate-600 whitespace-nowrap">{j.responsable || '—'}</td>
-                                                                                 <td className="py-2 px-3 font-bold text-amber-700 max-w-[200px]"><span className="line-clamp-2">{typeof j.tipoJunta === 'object' && j.tipoJunta !== null ? (j.tipoJunta.nombre || j.tipoJunta.codigo) : String(j.tipoJunta || '—')}</span></td>
+                                                                                 <td className="py-2 px-3 font-bold text-amber-700 max-w-50"><span className="line-clamp-2">{typeof j.tipoJunta === 'object' && j.tipoJunta !== null ? (j.tipoJunta.nombre || j.tipoJunta.codigo) : String(j.tipoJunta || '—')}</span></td>
                                                                             </tr>
                                                                         ))}
                                                                     </tbody>
@@ -677,7 +677,7 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                             <div key={n.codigo} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg">
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] font-black text-slate-700 leading-none">{n.codigo}</span>
-                                                    <span className="text-[9px] font-medium text-slate-500 max-w-[200px] truncate mt-0.5">{n.nombre}</span>
+                                                    <span className="text-[9px] font-medium text-slate-500 max-w-50 truncate mt-0.5">{n.nombre}</span>
                                                 </div>
                                                 <button
                                                     onClick={() => setForm(f => ({ ...f, normas: f.normas.filter(x => x.codigo !== n.codigo) }))}

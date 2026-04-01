@@ -199,9 +199,9 @@ export default function useObservaciones() {
     };
 
     // 2. Fetch Initial Data
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async (isSilent = false) => {
         try {
-            setLoading(true);
+            if (!isSilent && !observaciones.length) setLoading(true);
             setError(null);
             
             // Parallel fetch — each query is resilient; a missing table won't crash the app
@@ -259,11 +259,11 @@ export default function useObservaciones() {
         
         // Subscription for Realtime
         const channel = supabase.channel('schema-db-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'observaciones' }, () => fetchData())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos' }, () => fetchData())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos_notas' }, () => fetchData())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'entidades' }, () => fetchData())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'observaciones' }, () => fetchData(true))
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos' }, () => fetchData(true))
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'correlativos_notas' }, () => fetchData(true))
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'entidades' }, () => fetchData(true))
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => fetchData(true))
             .subscribe();
 
         return () => supabase.removeChannel(channel);
@@ -317,7 +317,7 @@ export default function useObservaciones() {
         const { data, error } = await supabase.from('observaciones').insert(nuevas).select();
         if (error) throw error;
         
-        await fetchData(); // Refrescar para ver los nuevos registros
+        await fetchData(true); // Refrescar de forma silenciosa para no interrumpir el flujo del usuario
         return data.map(n => n.id);
     }, [fetchData]);
 
@@ -357,7 +357,7 @@ export default function useObservaciones() {
         if (error) {
             console.error('Error updating state:', error);
         } else {
-            await fetchData();
+            await fetchData(true);
         }
     }, [observaciones, fetchData]);
 
@@ -368,7 +368,7 @@ export default function useObservaciones() {
         if (error) {
             console.error('Error editing observation:', error);
         } else {
-            await fetchData();
+            await fetchData(true);
         }
     }, [fetchData]);
 
@@ -378,7 +378,7 @@ export default function useObservaciones() {
             .delete()
             .eq('id', id);
         if (error) console.error('Error deleting observation:', error);
-        else await fetchData(); // Explicitly call fetchData after delete
+        else await fetchData(true); // Explicitly call fetchData after delete
     }, [fetchData, confirm]);
 
     // --- Correlativos Actions ---
@@ -391,7 +391,7 @@ export default function useObservaciones() {
             setError(`Error al guardar: ${error.message}`);
         }
         
-        if (!error) await fetchData();
+        if (!error) await fetchData(true);
         return data ? mapCorrelativoFromDB(data[0]) : null;
     }, [fetchData]);
 
@@ -404,7 +404,7 @@ export default function useObservaciones() {
             setError(`Error al actualizar: ${error.message}`);
         }
         
-        if (!error) await fetchData();
+        if (!error) await fetchData(true);
     }, [fetchData]);
 
     const eliminarCorrelativo = useCallback(async (id) => {
@@ -709,25 +709,25 @@ export default function useObservaciones() {
             console.error(`Error actualizando configuracion [${key}]:`, error);
             throw error;
         }
-        await fetchData();
+        await fetchData(true);
     }, [fetchData]);
 
     const agregarEntidad = useCallback(async (nueva) => {
         const { error } = await supabase.from('entidades').insert([nueva]);
         if (error) throw error;
-        await fetchData();
+        await fetchData(true);
     }, [fetchData]);
 
     const editarEntidad = useCallback(async (id, data) => {
         const { error } = await supabase.from('entidades').update(data).eq('id', id);
         if (error) throw error;
-        await fetchData();
+        await fetchData(true);
     }, [fetchData]);
 
     const eliminarEntidad = useCallback(async (id) => {
         const { error } = await supabase.from('entidades').delete().eq('id', id);
         if (error) throw error;
-        await fetchData();
+        await fetchData(true);
     }, [fetchData]);
 
     return {
