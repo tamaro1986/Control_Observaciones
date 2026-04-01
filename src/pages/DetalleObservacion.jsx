@@ -121,7 +121,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
         setTimeout(() => setShowToast(false), 4000);
     };
 
-    const estados = catalogos?.estados?.map(e => e.nombre) || ESTADOS.map(e => e.value);
+    const estados = catalogos?.estados || ESTADOS.map(e => e.value);
     const responsables = catalogos?.responsables || RESPONSABLES;
     const tiposVisita = catalogos?.tiposVisita || TIPOS_VISITA;
     const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value);
@@ -239,7 +239,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                             onChange={e => setEditData({ ...editData, responsable: e.target.value })}
                                             className="w-full bg-slate-800 text-white font-black text-sm p-1.5 rounded-lg border-none focus:ring-2 focus:ring-primary/40 uppercase"
                                         >
-                                            {responsables.map(r => <option key={r} value={r}>{r}</option>)}
+                                             {responsables.map(r => <option key={r} value={r}>{r}</option>)}
                                         </select>
                                     ) : (
                                         <p className="text-white font-black text-lg leading-none">{observacion.responsable}</p>

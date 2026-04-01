@@ -242,7 +242,9 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
                                                 onChange={e => setNuevoEstado(e.target.value)}
                                                 className="w-full px-2 py-1 bg-transparent border-0 text-sm font-black text-primary focus:outline-none cursor-pointer appearance-none relative z-10"
                                             >
-                                                {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.value}</option>)}
+                                                {(catalogos?.estados?.length > 0 ? catalogos.estados : ESTADOS.map(e => e.value)).map(e => (
+                                                    <option key={e} value={e}>{e}</option>
+                                                ))}
                                             </select>
                                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                                                 <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>

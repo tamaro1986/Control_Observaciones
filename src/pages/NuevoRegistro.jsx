@@ -320,9 +320,11 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                             <select
                                                 value={tarjeta.nivelRiesgo}
                                                 onChange={e => updateTarjeta(index, 'nivelRiesgo', e.target.value)}
-                                                className="px-5 py-2 rounded-full border border-slate-200 text-[11px] font-black uppercase text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary cursor-pointer hover:bg-slate-50 transition-all appearance-none text-center min-w-30"
+                                                className="font-black text-[12px] text-primary focus:outline-none bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 uppercase cursor-pointer hover:border-primary/50 transition-all appearance-none"
                                             >
-                                                {(catalogos.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value)).map(n => <option key={n} value={n}>{n}</option>)}
+                                                {(catalogos?.nivelesRiesgo?.length > 0 ? catalogos.nivelesRiesgo : NIVELES_RIESGO.map(n => n.value)).map(n => (
+                                                    <option key={n} value={n}>{n}</option>
+                                                ))}
                                             </select>
                                         </div>
 
@@ -363,15 +365,9 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                                     onChange={e => updateTarjeta(index, 'estado', e.target.value)}
                                                     className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-[11px] font-black text-text-primary uppercase focus:outline-none bg-white cursor-pointer shadow-sm hover:border-primary/30 transition-all appearance-none"
                                                 >
-                                                    {catalogos?.estados?.length > 0 ? (
-                                                        catalogos.estados.map(e => (
-                                                            <option key={e.id} value={e.nombre}>{e.nombre}</option>
-                                                        ))
-                                                    ) : (
-                                                        ESTADOS.map(e => (
-                                                            <option key={e.value} value={e.value}>{e.label || e.value}</option>
-                                                        ))
-                                                    )}
+                                                    {(catalogos?.estados?.length > 0 ? catalogos.estados : ESTADOS.map(e => e.value)).map(e => (
+                                                        <option key={e} value={e}>{e}</option>
+                                                    ))}
                                                 </select>
                                             </div>
                                             <div>

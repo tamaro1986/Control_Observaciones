@@ -135,7 +135,9 @@ export default function useObservaciones() {
             vieneDeInforme: ensureString(item.viene_de_informe || 'NO'),
             normas: item.normas || [],
             juntas: item.juntas || [],
-            cantidadUnidades: item.cantidad_unidades || 1
+            cantidadUnidades: item.cantidad_unidades || 1,
+            dsfitDespacho: ensureString(item.dsfit_despacho || ''),
+            historial: item.historial || []
         };
     };
 
@@ -163,7 +165,9 @@ export default function useObservaciones() {
             vinculado: item.vinculado || '',
             viene_de_informe: item.vieneDeInforme || 'NO',
             accion_supervision: item.accionSupervision || '',
-            cantidad_unidades: item.cantidadUnidades || 1
+            cantidad_unidades: item.cantidadUnidades || 1,
+            dsfit_despacho: item.dsfitDespacho || '',
+            historial: item.historial || []
         };
         return mapped;
     };

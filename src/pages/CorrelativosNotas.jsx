@@ -45,8 +45,10 @@ const emptyForm = {
     entidad: '',
     asunto: '',
     vinculado: '',
+    dsfitDespacho: '',
     vieneDeInforme: 'NO',
     juntas: [],
+    historial: [],
     anulado: false,
 };
 
@@ -273,16 +275,40 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
         }
 
         try {
+            let finalForm = { ...form, cantidadUnidades: Number(form.cantidadUnidades) };
+            
+            // Lógica de Historial: Alerta si falta DSFIT Despacho
+            if (!finalForm.dsfitDespacho?.trim()) {
+                const yaTieneAlerta = finalForm.historial?.some(h => h.detalle.includes('DSFIT Despacho'));
+                if (!yaTieneAlerta) {
+                    const alerta = {
+                        fecha: new Date().toISOString(),
+                        tipo: 'ALERTA',
+                        detalle: 'Pendiente completar campo DSFIT Despacho (Dato posterior a generación de correlativo).',
+                        autor: form.responsable || 'Sistema'
+                    };
+                    finalForm.historial = [...(finalForm.historial || []), alerta];
+                }
+            } else {
+                // Si ya tiene el dato, podríamos registrar que se completó
+                const yaTieneRegistro = finalForm.historial?.some(h => h.detalle.includes('DSFIT Despacho completado'));
+                if (finalForm.dsfitDespacho.trim() && !yaTieneRegistro) {
+                     const registro = {
+                        fecha: new Date().toISOString(),
+                        tipo: 'SISTEMA',
+                        detalle: `DSFIT Despacho completado: ${finalForm.dsfitDespacho}`,
+                        autor: form.responsable || 'Sistema'
+                    };
+                    finalForm.historial = [...(finalForm.historial || []), registro];
+                }
+            }
+
             if (editingId) {
-                await onEditarNota({ ...form, id: editingId, cantidadUnidades: Number(form.cantidadUnidades) });
+                await onEditarNota({ ...finalForm, id: editingId });
             } else {
                 const año = new Date(form.fecha + 'T00:00:00').getFullYear();
                 const { codigo, numero } = getNextCorrelativoNota(notas, año);
-                const nuevo = {
-                    ...form, codigo, numero, año,
-                    cantidadUnidades: Number(form.cantidadUnidades),
-                };
-                await onAgregarNota(nuevo);
+                await onAgregarNota({ ...finalForm, codigo, numero, año });
                 alert('Nota guardada exitosamente.');
             }
 
@@ -560,6 +586,40 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Vinculado a</p>
                                                             <p className="text-xs font-medium text-text-secondary leading-relaxed bg-white p-3 rounded-xl border border-slate-100 whitespace-pre-line">{n.vinculado || '—'}</p>
                                                         </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Código DSFIT Despacho</p>
+                                                            <p className={`text-xs font-black leading-relaxed p-3 rounded-xl border ${n.dsfitDespacho ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                                {n.dsfitDespacho || 'PENDIENTE DE ASIGNAR'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Historial de la Nota */}
+                                                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-4">
+                                                            <Activity className="w-4 h-4 text-slate-400" />
+                                                            <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Historial y Auditoría</h3>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            {(!n.historial || n.historial.length === 0) ? (
+                                                                <p className="text-[10px] text-slate-400 italic">No hay historial registrado para este documento.</p>
+                                                            ) : (
+                                                                [...n.historial].reverse().map((h, hi) => (
+                                                                    <div key={hi} className="flex gap-4 items-start pl-2 border-l-2 border-slate-100">
+                                                                        <div className="shrink-0 w-max">
+                                                                            <p className="text-[9px] font-black text-slate-400">{formatDate(h.fecha)}</p>
+                                                                            <span className={`text-[8px] font-black px-1 rounded uppercase ${h.tipo === 'ALERTA' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                                                {h.tipo}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <p className="text-[11px] font-bold text-slate-700 leading-tight">{h.detalle}</p>
+                                                                            <p className="text-[9px] text-slate-400 mt-1">Autor: {h.autor}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))
+                                                            )}
+                                                        </div>
                                                     </div>
 
                                                     {n.juntas?.length > 0 && (
@@ -657,6 +717,21 @@ export default function CorrelativosNotas({ notas, onAgregarNota, onEliminarNota
                                     <label className={LABEL}>Cantidad Unidades</label>
                                     <input type="number" min="1" value={form.cantidadUnidades} onChange={e => handleField('cantidadUnidades', e.target.value)} className={INPUT} />
                                 </div>
+                            </div>
+
+                            <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+                                <label className={LABEL}>Código DSFIT Despacho (Opcional)</label>
+                                <div className="relative">
+                                    <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-amber-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="Ingrese código de despacho (ej. DSFIT-EXT-001)"
+                                        value={form.dsfitDespacho}
+                                        onChange={e => handleField('dsfitDespacho', e.target.value)}
+                                        className={INPUT + " pl-9 h-11"}
+                                    />
+                                </div>
+                                <p className="text-[9px] text-amber-600/70 mt-2 font-medium italic">Nota: Si se deja vacío, el sistema registrará una alerta de pendiente en el historial.</p>
                             </div>
 
                             <div className="space-y-2">
