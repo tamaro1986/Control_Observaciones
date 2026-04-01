@@ -71,6 +71,17 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
     const [estado, setEstado] = useState(null);
     const [selectedFondo, setSelectedFondo] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [expandedRows, setExpandedRows] = useState(new Set());
+
+    const toggleRow = (id, e) => {
+        if (e) e.stopPropagation();
+        setExpandedRows(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     const [editingResponsable, setEditingResponsable] = useState(null);
     const [nuevoResponsable, setNuevoResponsable] = useState('');
@@ -205,7 +216,7 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                     {/* Estado */}
                     <CustomSelect
                         label="Estado de Hallazgo"
-                        options={ESTADOS}
+                        options={catalogos?.estados || ESTADOS.map(e => e.value)}
                         selected={estado}
                         onChange={(val) => { setEstado(val); setCurrentPage(1); }}
                         icon={FileText}
@@ -216,125 +227,198 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
             {/* Content List */}
             {paginatedResults.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                    {paginatedResults.map((obs) => (
+                    {paginatedResults.map((obs) => {
+                        const isExpanded = expandedRows.has(obs.id);
+                        return (
                         <Card
                             key={obs.id}
-                            className="bg-white hover:border-indigo-200 transition-all hover:shadow-2xl hover:shadow-indigo-500/5 group"
-                            onClick={() => onSelectObservacion(obs.id)}
+                            className={`bg-white transition-all duration-300 border overflow-hidden ${isExpanded ? 'border-indigo-300 shadow-xl shadow-indigo-500/10' : 'border-slate-100/60 hover:border-indigo-200 hover:shadow-lg group'}`}
                         >
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-6 p-1">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 uppercase tracking-widest ring-4 ring-indigo-500/5">
-                                            {obs.numReferencia}
-                                        </span>
-                                        <RiskBadge nivel={obs.nivelRiesgo} />
-                                        <EstadoBadge estado={obs.estado} />
-                                        {obs.fondoInversion && (
-                                            <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 uppercase tracking-widest">
-                                                {typeof obs.fondoInversion === 'object' && obs.fondoInversion !== null ? (obs.fondoInversion.nombre || obs.fondoInversion.codigo) : (obs.fondoInversion || 'AUDITORÍA DIRECTA')}
-                                            </span>
-                                        )}
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                            {obs.seccionId}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-lg font-black text-slate-800 mb-2 truncate group-hover:text-indigo-700 transition-colors">
-                                        {obs.titulo}
-                                    </h3>
-                                    <p className="text-sm text-slate-500 line-clamp-1 mb-4 leading-relaxed font-medium">
-                                        {obs.observacion}
-                                    </p>
-                                    <div className="flex flex-wrap items-center gap-6">
-                                        <div className="flex items-center gap-2">
-                                            <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                                                {obs.entidadNombre}
-                                            </span>
+                            {/* Header / Main Compact Row */}
+                            <div 
+                                className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 cursor-pointer select-none"
+                                onClick={(e) => toggleRow(obs.id, e)}
+                            >
+                                <div className="flex-1 min-w-0 flex items-center justify-between">
+                                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                                        {/* Badges on left */}
+                                        <div className="flex items-center gap-2 shrink-0">
+                                           <RiskBadge nivel={obs.nivelRiesgo} />
+                                           <EstadoBadge estado={obs.estado} />
+                                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:block">
+                                               {obs.numReferencia}
+                                           </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                                                Apertura: {new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}
-                                            </span>
-                                        </div>
+                                        {/* Title */}
+                                        <h3 className={`text-sm font-black truncate transition-colors ${isExpanded ? 'text-indigo-700' : 'text-slate-700 group-hover:text-indigo-600'}`}>
+                                            {obs.titulo}
+                                        </h3>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-50">
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-row items-center gap-1 mr-4">
-                                         <button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onSelectObservacion(obs.id);
-                                            }}
-                                            className="p-2.5 rounded-xl bg-indigo-50/50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                                            title="Editar hallazgo completo"
-                                         >
-                                             <Edit2 className="w-4 h-4" />
-                                         </button>
-                                         <button 
-                                            onClick={(e) => handleDelete(e, obs.id)}
-                                            className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                                            title="Eliminar hallazgo"
-                                         >
-                                             <Trash2 className="w-4 h-4" />
-                                         </button>
-                                    </div>
+                                
+                                {/* Chevron & Date */}
+                                <div className="shrink-0 flex items-center gap-3 justify-end">
+                                   <span className="hidden sm:inline-flex text-[10px] font-bold text-slate-400 uppercase tracking-wider items-center gap-1">
+                                      <Calendar className="w-3 h-3"/> {new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}
+                                   </span>
+                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-indigo-100 text-indigo-600 rotate-180 shadow-inner' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'}`}>
+                                       <ChevronDown className="w-5 h-5" />
+                                   </div>
+                                </div>
+                            </div>
 
-                                    {/* Responsable Area */}
-                                    <div className="flex flex-col items-end gap-1 min-w-35">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                            Responsable
-                                            {editingResponsable !== obs.id && (
-                                                <button onClick={(e) => handleEditResponsable(e, obs)} className="text-slate-300 hover:text-indigo-600 p-0.5 rounded-md hover:bg-indigo-50" title="Editar Responsable">
-                                                    <Edit2 className="w-3 h-3" />
-                                                </button>
-                                            )}
-                                        </span>
-                                        {editingResponsable === obs.id ? (
-                                            <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 w-full bg-slate-50 p-1 rounded-xl shadow-inner border border-slate-200">
-                                                <select
-                                                    value={nuevoResponsable}
-                                                    onChange={(e) => setNuevoResponsable(e.target.value)}
-                                                    className="w-full bg-white text-xs font-bold text-slate-700 py-1.5 px-2 rounded-lg border-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                                                >
-                                                    <option value="">Seleccionar...</option>
-                                                    {catalogos?.responsables?.map((resp, i) => (
-                                                        <option key={i} value={typeof resp === 'string' ? resp : (resp.nombre || resp.value)}>
-                                                            {typeof resp === 'string' ? resp : (resp.nombre || resp.value)}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <button onClick={(e) => handleSaveResponsable(e, obs.id)} className="p-1.5 text-green-600 hover:bg-green-100 rounded-lg">
-                                                    <Check className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={handleCancelResponsable} className="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg">
-                                                    <X className="w-4 h-4" />
-                                                </button>
+                            {/* Expandable Content Area */}
+                            <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                    <div className="p-5 pt-2 border-t border-slate-100/60 bg-slate-50/30">
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            
+                                            {/* Left Col: Details */}
+                                            <div className="lg:col-span-2 space-y-4">
+                                                <div>
+                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5"/> Descripción del Hallazgo</h4>
+                                                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                                        {obs.observacion}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-3">
+                                                     <div className="bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5">
+                                                          <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0"><Calendar className="w-4 h-4" /></div>
+                                                          <div>
+                                                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-tight">Apertura</p>
+                                                              <p className="text-xs font-bold text-slate-700 leading-tight">{new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}</p>
+                                                          </div>
+                                                     </div>
+                                                     {obs.fondoInversion && (
+                                                     <div className="bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5">
+                                                          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0"><Briefcase className="w-4 h-4" /></div>
+                                                          <div className="min-w-0">
+                                                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-tight">Fondo de Invers.</p>
+                                                              <p className="text-xs font-bold text-slate-700 leading-tight truncate max-w-37.5">{typeof obs.fondoInversion === 'object' && obs.fondoInversion !== null ? (obs.fondoInversion.nombre || obs.fondoInversion.codigo) : (obs.fondoInversion || 'AUDITORÍA DIRECTA')}</p>
+                                                          </div>
+                                                     </div>
+                                                     )}
+                                                     <div className="bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5">
+                                                          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 shrink-0"><FileText className="w-4 h-4" /></div>
+                                                          <div className="min-w-0">
+                                                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-tight">Ref / Sección</p>
+                                                              <p className="text-xs font-bold text-slate-700 leading-tight truncate max-w-30">{obs.seccionId || obs.numReferencia}</p>
+
+                                                          </div>
+                                                     </div>
+                                                </div>
                                             </div>
-                                        ) : (
-                                            <Avatar name={obs.responsable} />
-                                        )}
-                                    </div>
 
-                                    {/* Arrow Navigation */}
-                                    <button
-                                        className="w-10 h-10 ml-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm group/btn shrink-0"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onSelectObservacion(obs.id);
-                                        }}
-                                        title="Abrir seguimiento"
-                                    >
-                                        <svg className="w-5 h-5 group-hover/btn:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
+                                            {/* Right Col: Entity & Actions */}
+                                            <div className="space-y-4">
+                                                {/* Entity Filter Card */}
+                                                <div>
+                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5"/> Entidad y Responsable</h4>
+                                                    
+                                                    <div className="w-full flex items-start text-left group/entity relative overflow-hidden premium-card p-4 rounded-2xl bg-white border border-slate-200 transition-all shadow-sm">
+                                                        <div className="flex-1 min-w-0 pr-4">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="text-xs font-black text-slate-800 truncate block">
+                                                                    {obs.entidadNombre}
+                                                                </span>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <div className="flex items-center justify-between group/resp">
+                                                                    <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                                                                        <Avatar name={obs.responsable} size="sm" /> 
+                                                                        <span className="text-[11px] font-bold text-slate-600 truncate">{obs.responsable || "Sin Asignar"}</span>
+                                                                    </div>
+                                                                    <button 
+                                                                        className="shrink-0 p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all opacity-100 lg:opacity-0 group-hover/entity:opacity-100"
+                                                                        onClick={(e) => handleEditResponsable(e, obs)}
+                                                                        title="Cambiar Responsable"
+                                                                    >
+                                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                                
+                                                                {/* Edit Overlay */}
+                                                                {editingResponsable === obs.id && (
+                                                                    <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-10 bg-white/95 backdrop-blur-sm p-3 flex flex-col justify-center gap-2">
+                                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reasignar:</span>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <select
+                                                                                value={nuevoResponsable}
+                                                                                onChange={(e) => setNuevoResponsable(e.target.value)}
+                                                                                className="flex-1 bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                            >
+                                                                                <option value="">Seleccionar...</option>
+                                                                                {catalogos?.responsables?.map((resp, i) => (
+                                                                                    <option key={i} value={typeof resp === 'string' ? resp : (resp.nombre || resp.value)}>
+                                                                                        {typeof resp === 'string' ? resp : (resp.nombre || resp.value)}
+                                                                                    </option>
+                                                                                ))}
+                                                                            </select>
+                                                                            <button onClick={(e) => handleSaveResponsable(e, obs.id)} className="p-1.5 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg shrink-0">
+                                                                                <Check className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button onClick={handleCancelResponsable} className="p-1.5 bg-slate-500 text-white hover:bg-slate-600 rounded-lg shrink-0">
+                                                                                <X className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Filter trigger side-button */}
+                                                        <div className="absolute right-0 top-0 bottom-0 w-12 border-l border-slate-100 bg-slate-50/50 flex flex-col items-center justify-center group-hover/entity:bg-indigo-50 transition-colors">
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    const clickedEntity = entidades.find(e => e.id === obs.entidadId);
+                                                                    if (clickedEntity) {
+                                                                        setEntidad(clickedEntity);
+                                                                        // Usually "Pendiente" is used for pending issues.
+                                                                        setEstado("Pendiente");
+                                                                        setCurrentPage(1);
+                                                                    }
+                                                                }}
+                                                                className="w-full h-full flex flex-col items-center justify-center gap-1 text-slate-400 group-hover/entity:text-indigo-600 transition-colors"
+                                                                title="Filtrar pendientes por entidad"
+                                                            >
+                                                                <Filter className="w-4 h-4" />
+                                                                <span className="text-[8px] font-black writing-vertical-lr uppercase tracking-widest text-transparent group-hover/entity:text-indigo-400 mt-1 transition-all">Solo Pendientes</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div>
+                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><Edit2 className="w-3.5 h-3.5"/> Documentar Avances</h4>
+                                                    <div className="flex flex-col gap-2.5">
+                                                         <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onSelectObservacion(obs.id);
+                                                            }}
+                                                            className="w-full py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group/btn"
+                                                         >
+                                                             <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg> Realizar Seguimiento
+                                                         </button>
+                                                         
+                                                         <button 
+                                                            onClick={(e) => handleDelete(e, obs.id)}
+                                                            className="w-full py-2.5 rounded-xl bg-white border border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 group/del"
+                                                         >
+                                                             <Trash2 className="w-3.5 h-3.5 group-hover/del:scale-110 transition-transform" /> Eliminar Observación
+                                                         </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </Card>
-                    ))}
+                    )})}
                 </div>
             ) : (
                 <EmptyState
