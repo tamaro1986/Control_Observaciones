@@ -236,34 +236,56 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                         >
                             {/* Header / Main Compact Row */}
                             <div 
-                                className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 cursor-pointer select-none"
+                                className="flex flex-col xl:flex-row xl:items-center gap-4 p-4 lg:p-5 cursor-pointer select-none group-hover:bg-slate-50/40 transition-colors"
                                 onClick={(e) => toggleRow(obs.id, e)}
                             >
-                                <div className="flex-1 min-w-0 flex items-center justify-between">
-                                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                                        {/* Badges on left */}
-                                        <div className="flex items-center gap-2 shrink-0">
-                                           <RiskBadge nivel={obs.nivelRiesgo} />
-                                           <EstadoBadge estado={obs.estado} />
-                                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:block">
-                                               {obs.numReferencia}
-                                           </span>
-                                        </div>
-                                        {/* Title */}
-                                        <h3 className={`text-sm font-black truncate transition-colors ${isExpanded ? 'text-indigo-700' : 'text-slate-700 group-hover:text-indigo-600'}`}>
-                                            {obs.titulo}
-                                        </h3>
+                                {/* Part 1: Redesigned Status & Title */}
+                                <div className="flex-1 min-w-0 pr-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <RiskBadge nivel={obs.nivelRiesgo} />
+                                        <EstadoBadge estado={obs.estado} />
+                                        {(obs.numReferencia && obs.numReferencia !== 'S/R') && (
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:inline-block border-l border-slate-200 pl-2">
+                                                {obs.numReferencia}
+                                            </span>
+                                        )}
                                     </div>
+                                    <h3 className={`text-[15px] leading-tight font-black truncate transition-colors ${isExpanded ? 'text-indigo-700' : 'text-slate-800 group-hover:text-indigo-600'}`}>
+                                        {obs.titulo}
+                                    </h3>
                                 </div>
                                 
-                                {/* Chevron & Date */}
-                                <div className="shrink-0 flex items-center gap-3 justify-end">
-                                   <span className="hidden sm:inline-flex text-[10px] font-bold text-slate-400 uppercase tracking-wider items-center gap-1">
-                                      <Calendar className="w-3 h-3"/> {new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}
-                                   </span>
-                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-indigo-100 text-indigo-600 rotate-180 shadow-inner' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'}`}>
-                                       <ChevronDown className="w-5 h-5" />
-                                   </div>
+                                {/* Part 2: Entity & Responsable explicitly on the row */}
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-5 xl:gap-8 shrink-0 border-t xl:border-t-0 pt-4 xl:pt-0 border-slate-100">
+                                    
+                                    {/* Entidad */}
+                                    <div className="flex items-center gap-3 w-full sm:w-48 xl:w-56">
+                                        <div className="w-9 h-9 rounded-xl bg-indigo-50/80 flex items-center justify-center shrink-0 border border-indigo-100/50 text-indigo-500">
+                                            <Briefcase className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Entidad Involucrada</span>
+                                            <span className="text-xs font-bold text-slate-700 truncate" title={obs.entidadNombre}>{obs.entidadNombre}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Responsable */}
+                                    <div className="flex items-center gap-3 w-full sm:w-48 xl:w-56">
+                                        <div className="shrink-0 flex border border-slate-200 p-0.5 rounded-full">
+                                           <Avatar name={obs.responsable || "S A"} size="sm" />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Responsable</span>
+                                            <span className="text-xs font-bold text-slate-700 truncate" title={obs.responsable || "Sin Asignar"}>{obs.responsable || "Sin Asignar"}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Chevron Expander */}
+                                    <div className="shrink-0 flex items-center justify-end sm:w-auto absolute right-4 top-4 xl:static">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180 shadow-md shadow-indigo-500/20' : 'bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200'}`}>
+                                            <ChevronDown className="w-4 h-4" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
