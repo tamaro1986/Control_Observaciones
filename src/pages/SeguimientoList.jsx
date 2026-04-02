@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { RiskBadge, EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/ui/SharedComponents';
+import { EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/ui/SharedComponents';
 import { Search, Filter, Calendar, Briefcase, FileText, Trash2, Edit2, ChevronDown, Check, X } from 'lucide-react';
 import { ESTADOS } from '../data';
 
@@ -226,216 +226,217 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
 
             {/* Content List */}
             {paginatedResults.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                     {paginatedResults.map((obs) => {
                         const isExpanded = expandedRows.has(obs.id);
+                        const entidadObj = entidades.find(e => String(e.id) === String(obs.entidadId));
+                        const entidadNombre = entidadObj?.nombre || 'Sin entidad';
+                        const lastHistorial = obs.historialEstados?.length > 0
+                            ? obs.historialEstados[obs.historialEstados.length - 1]
+                            : null;
+
                         return (
                         <Card
                             key={obs.id}
-                            className={`bg-white transition-all duration-300 border overflow-hidden ${isExpanded ? 'border-indigo-300 shadow-xl shadow-indigo-500/10' : 'border-slate-100/60 hover:border-indigo-200 hover:shadow-lg group'}`}
+                            className={`bg-white transition-all duration-300 border overflow-hidden relative ${isExpanded ? 'border-indigo-300 shadow-xl shadow-indigo-500/10' : 'border-slate-100/60 hover:border-indigo-200 hover:shadow-lg group'}`}
                         >
-                            {/* Header / Main Compact Row */}
+                            {/* ─── COMPACT ROW (always visible) ─── */}
                             <div 
-                                className="flex flex-col xl:flex-row xl:items-center gap-4 p-4 lg:p-5 cursor-pointer select-none group-hover:bg-slate-50/40 transition-colors"
+                                className="flex flex-col xl:flex-row xl:items-center gap-4 p-4 lg:p-5 cursor-pointer select-none transition-colors hover:bg-slate-50/40"
                                 onClick={(e) => toggleRow(obs.id, e)}
                             >
-                                {/* Part 1: Redesigned Status & Title */}
-                                <div className="flex-1 min-w-0 pr-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <RiskBadge nivel={obs.nivelRiesgo} />
-                                        <EstadoBadge estado={obs.estado} />
-                                        {(obs.numReferencia && obs.numReferencia !== 'S/R') && (
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:inline-block border-l border-slate-200 pl-2">
-                                                {obs.numReferencia}
-                                            </span>
-                                        )}
+                                {/* Col 1: Entity + Title */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        <div className="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                                            <Briefcase className="w-3 h-3 text-indigo-500" />
+                                        </div>
+                                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest truncate" title={entidadNombre}>
+                                            {entidadNombre}
+                                        </span>
                                     </div>
-                                    <h3 className={`text-[15px] leading-tight font-black truncate transition-colors ${isExpanded ? 'text-indigo-700' : 'text-slate-800 group-hover:text-indigo-600'}`}>
+                                    <h3 className={`text-[15px] leading-snug font-black truncate transition-colors ${isExpanded ? 'text-indigo-700' : 'text-slate-800 group-hover:text-indigo-600'}`}>
                                         {obs.titulo}
                                     </h3>
                                 </div>
-                                
-                                {/* Part 2: Entity & Responsable explicitly on the row */}
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-5 xl:gap-8 shrink-0 border-t xl:border-t-0 pt-4 xl:pt-0 border-slate-100">
-                                    
-                                    {/* Entidad */}
-                                    <div className="flex items-center gap-3 w-full sm:w-48 xl:w-56">
-                                        <div className="w-9 h-9 rounded-xl bg-indigo-50/80 flex items-center justify-center shrink-0 border border-indigo-100/50 text-indigo-500">
-                                            <Briefcase className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Entidad Involucrada</span>
-                                            <span className="text-xs font-bold text-slate-700 truncate" title={obs.entidadNombre}>{obs.entidadNombre}</span>
-                                        </div>
-                                    </div>
 
-                                    {/* Responsable */}
-                                    <div className="flex items-center gap-3 w-full sm:w-48 xl:w-56">
-                                        <div className="shrink-0 flex border border-slate-200 p-0.5 rounded-full">
-                                           <Avatar name={obs.responsable || "S A"} size="sm" />
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Responsable</span>
-                                            <span className="text-xs font-bold text-slate-700 truncate" title={obs.responsable || "Sin Asignar"}>{obs.responsable || "Sin Asignar"}</span>
-                                        </div>
+                                {/* Col 2: Riesgo Origen */}
+                                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-44 xl:w-48">
+                                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100/60 flex items-center justify-center shrink-0">
+                                        <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
                                     </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Riesgo Origen</span>
+                                        <span className="text-xs font-bold text-amber-700 truncate">{obs.tipoRiesgo || 'No definido'}</span>
+                                    </div>
+                                </div>
 
-                                    {/* Chevron Expander */}
-                                    <div className="shrink-0 flex items-center justify-end sm:w-auto absolute right-4 top-4 xl:static">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180 shadow-md shadow-indigo-500/20' : 'bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200'}`}>
-                                            <ChevronDown className="w-4 h-4" />
-                                        </div>
+                                {/* Col 3: Estado (dinámico del catálogo) */}
+                                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-48 xl:w-52">
+                                    <EstadoBadge estado={obs.estado} />
+                                </div>
+
+                                {/* Col 4: Chevron */}
+                                <div className="shrink-0 hidden xl:flex items-center">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180 shadow-md shadow-indigo-500/20' : 'bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200'}`}>
+                                        <ChevronDown className="w-4 h-4" />
+                                    </div>
+                                </div>
+
+                                {/* Mobile Chevron (positioned absolutely) */}
+                                <div className="xl:hidden absolute right-4 top-4">
+                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180' : 'bg-slate-100 text-slate-400'}`}>
+                                        <ChevronDown className="w-3.5 h-3.5" />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Expandable Content Area */}
+                            {/* ─── EXPANDED ACCORDION (click to reveal all narrative detail) ─── */}
                             <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
-                                    <div className="p-5 pt-2 border-t border-slate-100/60 bg-slate-50/30">
-                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                            
-                                            {/* Left Col: Details */}
-                                            <div className="lg:col-span-2 space-y-4">
-                                                <div>
-                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5"/> Descripción del Hallazgo</h4>
-                                                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                                        {obs.observacion}
-                                                    </p>
-                                                </div>
-                                                <div className="flex flex-wrap gap-3">
-                                                     <div className="bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5">
-                                                          <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0"><Calendar className="w-4 h-4" /></div>
-                                                          <div>
-                                                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-tight">Apertura</p>
-                                                              <p className="text-xs font-bold text-slate-700 leading-tight">{new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}</p>
-                                                          </div>
-                                                     </div>
-                                                     {obs.fondoInversion && (
-                                                     <div className="bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5">
-                                                          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0"><Briefcase className="w-4 h-4" /></div>
-                                                          <div className="min-w-0">
-                                                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-tight">Fondo de Invers.</p>
-                                                              <p className="text-xs font-bold text-slate-700 leading-tight truncate max-w-37.5">{typeof obs.fondoInversion === 'object' && obs.fondoInversion !== null ? (obs.fondoInversion.nombre || obs.fondoInversion.codigo) : (obs.fondoInversion || 'AUDITORÍA DIRECTA')}</p>
-                                                          </div>
-                                                     </div>
-                                                     )}
-                                                     <div className="bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5">
-                                                          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 shrink-0"><FileText className="w-4 h-4" /></div>
-                                                          <div className="min-w-0">
-                                                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-tight">Ref / Sección</p>
-                                                              <p className="text-xs font-bold text-slate-700 leading-tight truncate max-w-30">{obs.seccionId || obs.numReferencia}</p>
+                                    <div className="px-5 pb-5 pt-3 border-t border-slate-100/80 bg-linear-to-b from-slate-50/60 to-white">
 
-                                                          </div>
-                                                     </div>
-                                                </div>
+                                        {/* Narrative Detail Sections */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+                                            {/* 1. Detalle Narrativo */}
+                                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <FileText className="w-3.5 h-3.5 text-indigo-400" /> Detalle Narrativo
+                                                </h4>
+                                                <p className="text-[13px] text-slate-600 font-medium leading-relaxed whitespace-pre-line">
+                                                    {obs.descripcion || '—  Sin detalle registrado.'}
+                                                </p>
                                             </div>
 
-                                            {/* Right Col: Entity & Actions */}
-                                            <div className="space-y-4">
-                                                {/* Entity Filter Card */}
-                                                <div>
-                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5"/> Entidad y Responsable</h4>
-                                                    
-                                                    <div className="w-full flex items-start text-left group/entity relative overflow-hidden premium-card p-4 rounded-2xl bg-white border border-slate-200 transition-all shadow-sm">
-                                                        <div className="flex-1 min-w-0 pr-4">
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <span className="text-xs font-black text-slate-800 truncate block">
-                                                                    {obs.entidadNombre}
-                                                                </span>
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <div className="flex items-center justify-between group/resp">
-                                                                    <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                                                                        <Avatar name={obs.responsable} size="sm" /> 
-                                                                        <span className="text-[11px] font-bold text-slate-600 truncate">{obs.responsable || "Sin Asignar"}</span>
-                                                                    </div>
-                                                                    <button 
-                                                                        className="shrink-0 p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all opacity-100 lg:opacity-0 group-hover/entity:opacity-100"
-                                                                        onClick={(e) => handleEditResponsable(e, obs)}
-                                                                        title="Cambiar Responsable"
-                                                                    >
-                                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                </div>
-                                                                
-                                                                {/* Edit Overlay */}
-                                                                {editingResponsable === obs.id && (
-                                                                    <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-10 bg-white/95 backdrop-blur-sm p-3 flex flex-col justify-center gap-2">
-                                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reasignar:</span>
-                                                                        <div className="flex items-center gap-1">
-                                                                            <select
-                                                                                value={nuevoResponsable}
-                                                                                onChange={(e) => setNuevoResponsable(e.target.value)}
-                                                                                className="flex-1 bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                                            >
-                                                                                <option value="">Seleccionar...</option>
-                                                                                {catalogos?.responsables?.map((resp, i) => (
-                                                                                    <option key={i} value={typeof resp === 'string' ? resp : (resp.nombre || resp.value)}>
-                                                                                        {typeof resp === 'string' ? resp : (resp.nombre || resp.value)}
-                                                                                    </option>
-                                                                                ))}
-                                                                            </select>
-                                                                            <button onClick={(e) => handleSaveResponsable(e, obs.id)} className="p-1.5 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg shrink-0">
-                                                                                <Check className="w-4 h-4" />
-                                                                            </button>
-                                                                            <button onClick={handleCancelResponsable} className="p-1.5 bg-slate-500 text-white hover:bg-slate-600 rounded-lg shrink-0">
-                                                                                <X className="w-4 h-4" />
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Filter trigger side-button */}
-                                                        <div className="absolute right-0 top-0 bottom-0 w-12 border-l border-slate-100 bg-slate-50/50 flex flex-col items-center justify-center group-hover/entity:bg-indigo-50 transition-colors">
-                                                            <button 
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    const clickedEntity = entidades.find(e => e.id === obs.entidadId);
-                                                                    if (clickedEntity) {
-                                                                        setEntidad(clickedEntity);
-                                                                        // Usually "Pendiente" is used for pending issues.
-                                                                        setEstado("Pendiente");
-                                                                        setCurrentPage(1);
-                                                                    }
-                                                                }}
-                                                                className="w-full h-full flex flex-col items-center justify-center gap-1 text-slate-400 group-hover/entity:text-indigo-600 transition-colors"
-                                                                title="Filtrar pendientes por entidad"
-                                                            >
-                                                                <Filter className="w-4 h-4" />
-                                                                <span className="text-[8px] font-black writing-vertical-lr uppercase tracking-widest text-transparent group-hover/entity:text-indigo-400 mt-1 transition-all">Solo Pendientes</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Actions */}
-                                                <div>
-                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><Edit2 className="w-3.5 h-3.5"/> Documentar Avances</h4>
-                                                    <div className="flex flex-col gap-2.5">
-                                                         <button 
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                onSelectObservacion(obs.id);
-                                                            }}
-                                                            className="w-full py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group/btn"
-                                                         >
-                                                             <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg> Realizar Seguimiento
-                                                         </button>
-                                                         
-                                                         <button 
-                                                            onClick={(e) => handleDelete(e, obs.id)}
-                                                            className="w-full py-2.5 rounded-xl bg-white border border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 group/del"
-                                                         >
-                                                             <Trash2 className="w-3.5 h-3.5 group-hover/del:scale-110 transition-transform" /> Eliminar Observación
-                                                         </button>
-                                                    </div>
-                                                </div>
+                                            {/* 2. Normativa Aplicable */}
+                                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                    Normativa Aplicable
+                                                </h4>
+                                                <p className="text-[13px] text-slate-600 font-medium leading-relaxed whitespace-pre-line">
+                                                    {obs.normativa || '—  Sin normativa declarada.'}
+                                                </p>
                                             </div>
 
+                                            {/* 3. Respuesta de la Entidad */}
+                                            <div className="bg-blue-50/40 rounded-2xl border border-blue-100/60 shadow-sm p-4">
+                                                <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                                    Respuesta de la Entidad
+                                                </h4>
+                                                <p className="text-[13px] text-blue-800/80 font-medium leading-relaxed italic whitespace-pre-line">
+                                                    {obs.respuestaEntidad || lastHistorial?.respuestaEntidad || '—  Sin respuesta registrada.'}
+                                                </p>
+                                                {(obs.fechaRespuesta || lastHistorial?.fechaRespuesta) && (
+                                                    <span className="inline-block mt-2 text-[10px] font-bold text-blue-500 bg-blue-100/60 px-2 py-0.5 rounded-lg">
+                                                        Fecha: {new Date(obs.fechaRespuesta || lastHistorial?.fechaRespuesta).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* 4. Contenido Oficial */}
+                                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                                    Contenido Oficial
+                                                </h4>
+                                                <p className="text-[13px] text-slate-600 font-medium leading-relaxed whitespace-pre-line">
+                                                    {obs.nota || '—  Sin contenido oficial.'}
+                                                </p>
+                                            </div>
                                         </div>
+
+                                        {/* 5. Análisis de Seguimiento (from latest historial entry) */}
+                                        {lastHistorial?.analisisAuditor && (
+                                            <div className="bg-violet-50/40 rounded-2xl border border-violet-100/60 shadow-sm p-4 mb-5">
+                                                <h4 className="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                                    Análisis de Seguimiento (Último Ciclo)
+                                                </h4>
+                                                <p className="text-[13px] text-violet-800/80 font-medium leading-relaxed whitespace-pre-line">
+                                                    {lastHistorial.analisisAuditor}
+                                                </p>
+                                                {lastHistorial.fecha && (
+                                                    <span className="inline-block mt-2 text-[10px] font-bold text-violet-500 bg-violet-100/60 px-2 py-0.5 rounded-lg">
+                                                        Fecha: {new Date(lastHistorial.fecha).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Meta chips + Action row */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
+                                            {/* Left: Compact meta info chips */}
+                                            <div className="flex flex-wrap gap-2">
+                                                <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
+                                                    <Calendar className="w-3 h-3 text-slate-400" />
+                                                    <span className="text-[10px] font-bold text-slate-500">Apertura: {new Date(obs.fechaApertura || obs.fechaInicio).toLocaleDateString()}</span>
+                                                </div>
+                                                {obs.nroInforme && (
+                                                    <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
+                                                        <FileText className="w-3 h-3 text-slate-400" />
+                                                        <span className="text-[10px] font-bold text-slate-500">Ref: {obs.nroInforme}</span>
+                                                    </div>
+                                                )}
+                                                <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
+                                                    <Avatar nombre={obs.responsable || "S A"} size="xs" />
+                                                    <span className="text-[10px] font-bold text-slate-500">{obs.responsable || 'Sin Asignar'}</span>
+                                                    <button 
+                                                        className="p-0.5 rounded text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                                                        onClick={(e) => handleEditResponsable(e, obs)}
+                                                        title="Cambiar responsable"
+                                                    >
+                                                        <Edit2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+
+                                                {/* Inline edit for responsible */}
+                                                {editingResponsable === obs.id && (
+                                                    <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 bg-white p-1 rounded-xl shadow-lg border border-slate-200">
+                                                        <select
+                                                            value={nuevoResponsable}
+                                                            onChange={(e) => setNuevoResponsable(e.target.value)}
+                                                            className="bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                        >
+                                                            <option value="">Seleccionar...</option>
+                                                            {catalogos?.responsables?.map((resp, i) => (
+                                                                <option key={i} value={typeof resp === 'string' ? resp : (resp.nombre || resp.value)}>
+                                                                    {typeof resp === 'string' ? resp : (resp.nombre || resp.value)}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <button onClick={(e) => handleSaveResponsable(e, obs.id)} className="p-1.5 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg shrink-0">
+                                                            <Check className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button onClick={handleCancelResponsable} className="p-1.5 bg-slate-400 text-white hover:bg-slate-500 rounded-lg shrink-0">
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Right: Action Buttons */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onSelectObservacion(obs.id);
+                                                    }}
+                                                    className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                                    Seguimiento
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => handleDelete(e, obs.id)}
+                                                    className="px-3 py-2.5 rounded-xl bg-white border border-rose-100 text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                                                </button>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
