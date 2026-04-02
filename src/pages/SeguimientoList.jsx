@@ -260,23 +260,52 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                                     </h3>
                                 </div>
 
-                                {/* Col 2: Riesgo Origen */}
-                                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-44 xl:w-48">
-                                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100/60 flex items-center justify-center shrink-0">
-                                        <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                                    </div>
+                                {/* Col 2: Responsable */}
+                                <div className="flex items-center gap-3 shrink-0 w-full sm:w-48 xl:w-52">
+                                    <Avatar nombre={obs.responsable || "S A"} size="sm" />
                                     <div className="flex flex-col min-w-0">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Riesgo Origen</span>
-                                        <span className="text-xs font-bold text-amber-700 truncate">{obs.tipoRiesgo || 'No definido'}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Responsable</span>
+                                        <span className="text-[11px] font-bold text-slate-700 truncate" title={obs.responsable || 'Sin Asignar'}>
+                                            {obs.responsable || 'Sin Asignar'}
+                                        </span>
                                     </div>
                                 </div>
 
-                                {/* Col 3: Estado (dinámico del catálogo) */}
+                                {/* Col 3: Riesgo Origen (Dynamic style) */}
+                                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-44 xl:w-48">
+                                    {(() => {
+                                        // Estilos dinámicos para Tipo de Riesgo
+                                        const riesgoStyles = {
+                                            'Operacional': 'bg-blue-50 border-blue-100 text-blue-600',
+                                            'Liquidez': 'bg-cyan-50 border-cyan-100 text-cyan-600',
+                                            'LA/FT/PADM': 'bg-rose-50 border-rose-100 text-rose-600',
+                                            'Legal': 'bg-violet-50 border-violet-100 text-violet-600',
+                                            'Crédito': 'bg-emerald-50 border-emerald-100 text-emerald-600',
+                                            'Mercado': 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-600',
+                                            'Cumplimiento': 'bg-amber-50 border-amber-100 text-amber-600'
+                                        };
+                                        const activeStyle = riesgoStyles[obs.tipoRiesgo] || 'bg-slate-50 border-slate-200 text-slate-600';
+                                        
+                                        return (
+                                            <>
+                                                <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 ${activeStyle.split(' text-')[0]}`}>
+                                                    <svg className={`w-4 h-4 ${activeStyle.match(/text-\w+-\d+/)?.[0] || 'text-slate-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Riesgo Origen</span>
+                                                    <span className={`text-[11px] font-bold truncate ${activeStyle.match(/text-\w+-\d+/)?.[0] || 'text-slate-600'}`}>{obs.tipoRiesgo || 'No definido'}</span>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+
+                                {/* Col 4: Estado (dinámico del catálogo) */}
                                 <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-48 xl:w-52">
                                     <EstadoBadge estado={obs.estado} />
                                 </div>
 
-                                {/* Col 4: Chevron */}
+                                {/* Col 5: Chevron */}
                                 <div className="shrink-0 hidden xl:flex items-center">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180 shadow-md shadow-indigo-500/20' : 'bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200'}`}>
                                         <ChevronDown className="w-4 h-4" />

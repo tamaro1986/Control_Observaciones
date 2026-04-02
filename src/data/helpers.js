@@ -17,14 +17,30 @@ export function getRiesgoStyle(nivel) {
 }
 
 export function getEstadoStyle(estado) {
+    const estadoLower = String(estado || '').toLowerCase();
+    
+    // Explicit mappings for common/new statuses
     const map = {
-        'Pendiente': { bg: 'bg-estado-pendiente-bg', text: 'text-estado-pendiente', dot: 'bg-estado-pendiente' },
-        'En Curso': { bg: 'bg-estado-encurso-bg', text: 'text-estado-encurso', dot: 'bg-estado-encurso' },
-        'Subsanada': { bg: 'bg-estado-subsanada-bg', text: 'text-estado-subsanada', dot: 'bg-estado-subsanada' },
-        'Parcialmente Subsanada': { bg: 'bg-estado-parcial-bg', text: 'text-estado-parcial', dot: 'bg-estado-parcial' },
-        'Vencida': { bg: 'bg-estado-vencida-bg', text: 'text-estado-vencida', dot: 'bg-estado-vencida' },
+        'pendiente': { bg: 'bg-estado-pendiente-bg', text: 'text-estado-pendiente', dot: 'bg-estado-pendiente' },
+        'en curso': { bg: 'bg-estado-encurso-bg', text: 'text-estado-encurso', dot: 'bg-estado-encurso' },
+        'subsanada': { bg: 'bg-estado-subsanada-bg', text: 'text-estado-subsanada', dot: 'bg-estado-subsanada' },
+        'parcialmente subsanada': { bg: 'bg-estado-parcial-bg', text: 'text-estado-parcial', dot: 'bg-estado-parcial' },
+        'vencida': { bg: 'bg-estado-vencida-bg', text: 'text-estado-vencida', dot: 'bg-estado-vencida' },
+        'no subsanada': { bg: 'bg-rose-100', text: 'text-rose-600', dot: 'bg-rose-500' }
     };
-    return map[estado] || { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400' };
+    
+    if (map[estadoLower]) return map[estadoLower];
+    
+    // Generic colorful fallback for dynamic catalog keys
+    const colors = [
+        { bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-500' },
+        { bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', dot: 'bg-fuchsia-500' },
+        { bg: 'bg-teal-50', text: 'text-teal-600', dot: 'bg-teal-500' },
+        { bg: 'bg-sky-50', text: 'text-sky-600', dot: 'bg-sky-500' },
+    ];
+    let hash = 0;
+    for (let i = 0; i < estadoLower.length; i++) hash = estadoLower.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
 }
 
 export function getInitials(name) {

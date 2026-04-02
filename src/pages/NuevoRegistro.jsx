@@ -21,6 +21,12 @@ const EMPTY_TARJETA = {
 
 export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidades = [], correlativos = [] }) {
     const confirm = useConfirm();
+    
+    // Función para obtener la tarjeta inicial dinámica según el catálogo de estados
+    const getInitialTarjeta = () => ({
+        ...EMPTY_TARJETA,
+        estado: catalogos?.estados?.[0] || 'Pendiente'
+    });
     // Header Data States
     const [entidadId, setEntidadId] = useState('');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
@@ -33,12 +39,12 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
     const [fechaEvalInicio, setFechaEvalInicio] = useState('');
     const [fechaEvalFinal, setFechaEvalFinal] = useState('');
     // Items States
-    const [tarjetas, setTarjetas] = useState([{ ...EMPTY_TARJETA }]);
+    const [tarjetas, setTarjetas] = useState([getInitialTarjeta()]);
     const [showToast, setShowToast] = useState(false);
     const [errors, setErrors] = useState({});
 
     const addTarjeta = () => {
-        setTarjetas(prev => [...prev, { ...EMPTY_TARJETA }]);
+        setTarjetas(prev => [...prev, getInitialTarjeta()]);
     };
 
     const removeTarjeta = (index) => {
@@ -89,7 +95,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
             setFechaCierre('');
             setFechaEvalInicio('');
             setFechaEvalFinal('');
-            setTarjetas([{ ...EMPTY_TARJETA }]);
+            setTarjetas([getInitialTarjeta()]);
             setErrors({});
             setShowToast(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });

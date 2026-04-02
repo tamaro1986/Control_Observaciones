@@ -10,7 +10,7 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
         const obs = observaciones.filter(o => o.entidadId === ent.id && !o.anulado);
         const total = obs.length;
         const subsanadas = obs.filter(o => o.estado === 'Subsanada').length;
-        const pendientes = obs.filter(o => o.estado === 'Pendiente').length;
+        const pendientes = obs.filter(o => o.estado === 'Pendiente' || o.estado?.toLowerCase() === 'no subsanada').length;
         const vencidas = obs.filter(o => o.estado === 'Vencida').length;
         const enCurso = obs.filter(o => o.estado === 'En Curso').length;
         const cumplimiento = total > 0 ? Math.round((subsanadas / total) * 100) : 0;

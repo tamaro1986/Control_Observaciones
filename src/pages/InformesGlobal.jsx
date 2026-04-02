@@ -523,7 +523,7 @@ function TabSeguimiento({ observaciones, period, values }) {
     const stats = useMemo(() => ({
         total: data.length,
         criticas: data.filter(o => o.nivelRiesgo === 'Crítico').length,
-        pendientes: data.filter(o => o.estado === 'Pendiente').length,
+        pendientes: data.filter(o => o.estado === 'Pendiente' || o.estado?.toLowerCase() === 'no subsanada').length,
         subsanadas: data.filter(o => o.estado === 'Subsanada').length,
         nivelData: toChartData(countBy(data, 'nivelRiesgo')),
         estadoData: toChartData(countBy(data, 'estado')),
