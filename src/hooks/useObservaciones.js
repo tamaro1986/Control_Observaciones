@@ -348,7 +348,7 @@ export default function useObservaciones() {
             descripcion: t.descripcion,
             nivelRiesgo: t.nivelRiesgo,
             tipoRiesgo: t.tipoRiesgo || 'Operacional',
-            estado: t.estado || 'Pendiente',
+            estado: t.estado || catalogos.estados?.[0] || 'No definido',
             normativa: t.normativa || '',
             nota: t.nota || '',
             responsable: t.responsable || '',
@@ -359,7 +359,7 @@ export default function useObservaciones() {
                 {
                     fecha: new Date().toISOString().split('T')[0],
                     estadoAnterior: null,
-                    estadoNuevo: t.estado || 'Pendiente',
+                    estadoNuevo: t.estado || catalogos.estados?.[0] || 'No definido',
                     nroInforme: nroInforme || t.nroInforme || '',
                     nota: t.nota || '',
                     respuestaEntidad: t.respuestaEntidad || '',
@@ -714,7 +714,7 @@ export default function useObservaciones() {
                 // 3. Observaciones — map to DB schema, insert fresh (no local IDs)
                 if (obsLS.length > 0) {
                     const obsPayload = obsLS.map(o => ({
-                        estado: o.estado || 'Pendiente',
+                        estado: o.estado || catalogos.estados?.[0] || 'No definido',
                         titulo: o.titulo || '',
                         descripcion: o.descripcion || '',
                         normativa: o.normativa || '',
