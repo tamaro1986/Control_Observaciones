@@ -242,81 +242,64 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                         >
                             {/* ─── COMPACT ROW (always visible) ─── */}
                             <div 
-                                className="flex flex-col xl:flex-row xl:items-center gap-4 p-4 lg:p-5 cursor-pointer select-none transition-colors hover:bg-slate-50/40"
+                                className="flex flex-col xl:flex-row xl:items-center gap-3 px-5 py-3 cursor-pointer select-none transition-colors hover:bg-slate-50/60"
                                 onClick={(e) => toggleRow(obs.id, e)}
                             >
                                 {/* Col 1: Entity + Title */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1.5">
-                                        <div className="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                                            <Briefcase className="w-3 h-3 text-indigo-500" />
-                                        </div>
-                                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest truncate" title={entidadNombre}>
-                                            {entidadNombre}
-                                        </span>
-                                    </div>
-                                    <h3 className={`text-[15px] leading-snug font-black truncate transition-colors ${isExpanded ? 'text-indigo-700' : 'text-slate-800 group-hover:text-indigo-600'}`}>
+                                <div className="flex-1 min-w-0 pr-4">
+                                    <span className="block text-xs font-bold text-slate-500 truncate mb-0.5" title={entidadNombre}>
+                                        {entidadNombre}
+                                    </span>
+                                    <h3 className={`text-[13px] font-medium leading-snug truncate transition-colors ${isExpanded ? 'text-indigo-700 font-bold' : 'text-slate-800 group-hover:text-indigo-600'}`}>
                                         {obs.titulo}
                                     </h3>
                                 </div>
 
                                 {/* Col 2: Responsable */}
-                                <div className="flex items-center gap-3 shrink-0 w-full sm:w-48 xl:w-52">
-                                    <Avatar nombre={obs.responsable || "S A"} size="sm" />
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Responsable</span>
-                                        <span className="text-[11px] font-bold text-slate-700 truncate" title={obs.responsable || 'Sin Asignar'}>
-                                            {obs.responsable || 'Sin Asignar'}
-                                        </span>
-                                    </div>
+                                <div className="flex items-center gap-2 shrink-0 w-full sm:w-40 xl:w-48">
+                                    <Avatar nombre={obs.responsable || "S A"} size="xs" />
+                                    <span className="text-xs font-bold text-slate-700 truncate" title={obs.responsable || 'Sin Asignar'}>
+                                        {obs.responsable || 'Sin Asignar'}
+                                    </span>
                                 </div>
 
-                                {/* Col 3: Riesgo Origen (Dynamic style) */}
-                                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-44 xl:w-48">
+                                {/* Col 3: Riesgo Origen (Compact, Dynamic style) */}
+                                <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-28 xl:w-32">
                                     {(() => {
                                         // Estilos dinámicos para Tipo de Riesgo
                                         const riesgoStyles = {
-                                            'Operacional': 'bg-blue-50 border-blue-100 text-blue-600',
-                                            'Liquidez': 'bg-cyan-50 border-cyan-100 text-cyan-600',
-                                            'LA/FT/PADM': 'bg-rose-50 border-rose-100 text-rose-600',
-                                            'Legal': 'bg-violet-50 border-violet-100 text-violet-600',
-                                            'Crédito': 'bg-emerald-50 border-emerald-100 text-emerald-600',
-                                            'Mercado': 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-600',
-                                            'Cumplimiento': 'bg-amber-50 border-amber-100 text-amber-600'
+                                            'Operacional': 'text-blue-600',
+                                            'Liquidez': 'text-cyan-600',
+                                            'LA/FT/PADM': 'text-rose-600',
+                                            'Legal': 'text-violet-600',
+                                            'Crédito': 'text-emerald-600',
+                                            'Mercado': 'text-fuchsia-600',
+                                            'Cumplimiento': 'text-amber-600'
                                         };
-                                        const activeStyle = riesgoStyles[obs.tipoRiesgo] || 'bg-slate-50 border-slate-200 text-slate-600';
+                                        const textColor = riesgoStyles[obs.tipoRiesgo] || 'text-slate-600';
                                         
                                         return (
                                             <>
-                                                <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 ${activeStyle.split(' text-')[0]}`}>
-                                                    <svg className={`w-4 h-4 ${activeStyle.match(/text-\w+-\d+/)?.[0] || 'text-slate-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                                                </div>
-                                                <div className="flex flex-col min-w-0">
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Riesgo Origen</span>
-                                                    <span className={`text-[11px] font-bold truncate ${activeStyle.match(/text-\w+-\d+/)?.[0] || 'text-slate-600'}`}>{obs.tipoRiesgo || 'No definido'}</span>
-                                                </div>
+                                                <svg className={`w-4 h-4 ${textColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                                                <span className={`text-[11px] font-bold uppercase truncate ${textColor}`}>{obs.tipoRiesgo || 'No definido'}</span>
                                             </>
                                         );
                                     })()}
                                 </div>
 
                                 {/* Col 4: Estado (dinámico del catálogo) */}
-                                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-48 xl:w-52">
+                                <div className="flex items-center shrink-0 w-full sm:w-36 xl:w-44">
                                     <EstadoBadge estado={obs.estado} />
                                 </div>
 
                                 {/* Col 5: Chevron */}
-                                <div className="shrink-0 hidden xl:flex items-center">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180 shadow-md shadow-indigo-500/20' : 'bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200'}`}>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </div>
+                                <div className="shrink-0 hidden xl:flex items-center justify-end w-6">
+                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'}`} />
                                 </div>
 
                                 {/* Mobile Chevron (positioned absolutely) */}
                                 <div className="xl:hidden absolute right-4 top-4">
-                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${isExpanded ? 'bg-indigo-600 text-white rotate-180' : 'bg-slate-100 text-slate-400'}`}>
-                                        <ChevronDown className="w-3.5 h-3.5" />
-                                    </div>
+                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-indigo-600' : 'text-slate-400'}`} />
                                 </div>
                             </div>
 
