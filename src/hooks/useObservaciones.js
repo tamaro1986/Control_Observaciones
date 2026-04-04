@@ -125,6 +125,7 @@ export default function useObservaciones() {
             tipoCorrespondencia: ensureString(item.tipo_correspondencia || item.tipoCorrespondencia),
             normaExtra: ensureString(item.norma_extra || item.normaExtra),
             descripcion: ensureString(item.descripcion),
+            descripcionAccion: ensureString(item.descripcion),
             esInterno: item.es_interno || false,
             anulado: item.anulado || false,
             // Campos extendidos que pueden estar en la tabla o no
@@ -153,7 +154,7 @@ export default function useObservaciones() {
             entidad: item.entidad,
             tipo_correspondencia: item.tipoCorrespondencia,
             norma_extra: item.normaExtra || (item.normas && item.normas.length > 0 ? item.normas[0].codigo : ''),
-            descripcion: (item.descripcion || item.descripcionAccion || '').substring(0, 5000),
+            descripcion: (item.descripcionAccion || item.descripcion || '').substring(0, 5000),
             es_interno: item.esInterno !== undefined ? item.esInterno : true,
             anulado: item.anulado || false,
             
