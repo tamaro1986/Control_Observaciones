@@ -43,6 +43,7 @@ const emptyForm = {
     anulado: false,
     esVehiculoInversion: false,
     fondoInversion: '',
+    fondoTitularizacion: '',
 };
 
 export default function Correlativos({ correlativos, onAgregarCorrelativo, onEliminarCorrelativo, onEditarCorrelativo, catalogos = {} }) {
@@ -647,18 +648,40 @@ export default function Correlativos({ correlativos, onAgregarCorrelativo, onEli
                                         </div>
 
                                         {form.esVehiculoInversion && (
-                                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1.5">Fondo de Inversión *</label>
-                                                <select
-                                                    value={form.fondoInversion}
-                                                    onChange={e => handleField('fondoInversion', e.target.value)}
-                                                    className="w-full h-9 px-3 rounded-lg border border-amber-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white cursor-pointer transition-all"
-                                                >
-                                                    <option value="">— Seleccionar Fondo del Catálogo —</option>
-                                                    {catalogos.fondosInversion && catalogos.fondosInversion.map(f => (
-                                                        <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
-                                                    ))}
-                                                </select>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="space-y-1.5">
+                                                    <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest px-1">Fondos de Inversión</label>
+                                                    <select
+                                                        value={form.fondoInversion}
+                                                        onChange={e => {
+                                                            handleField('fondoInversion', e.target.value);
+                                                            if (e.target.value) handleField('fondoTitularizacion', '');
+                                                        }}
+                                                        className="w-full h-9 px-3 rounded-lg border border-amber-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white cursor-pointer transition-all"
+                                                    >
+                                                        <option value="">— SELECCIONAR FONDO —</option>
+                                                        {(catalogos.fondosInversion || []).map(f => (
+                                                            <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div className="space-y-1.5">
+                                                    <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest px-1">Fondos de Titularización</label>
+                                                    <select
+                                                        value={form.fondoTitularizacion}
+                                                        onChange={e => {
+                                                            handleField('fondoTitularizacion', e.target.value);
+                                                            if (e.target.value) handleField('fondoInversion', '');
+                                                        }}
+                                                        className="w-full h-9 px-3 rounded-lg border border-amber-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white cursor-pointer transition-all"
+                                                    >
+                                                        <option value="">— SELECCIONAR TITULARIZADORA —</option>
+                                                        {(catalogos.fondosTitularizacion || []).map(f => (
+                                                            <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

@@ -38,6 +38,11 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
     const [fechaCierre, setFechaCierre] = useState('');
     const [fechaEvalInicio, setFechaEvalInicio] = useState('');
     const [fechaEvalFinal, setFechaEvalFinal] = useState('');
+    
+    // Investment Vehicle States
+    const [esVehiculoInversion, setEsVehiculoInversion] = useState(false);
+    const [fondoInversion, setFondoInversion] = useState('');
+    const [fondoTitularizacion, setFondoTitularizacion] = useState('');
     // Items States
     const [tarjetas, setTarjetas] = useState([getInitialTarjeta()]);
     const [showToast, setShowToast] = useState(false);
@@ -80,10 +85,12 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                 tipoVisita,
                 nroInforme,
                 esInformeManual,
-                fechaApertura,
                 fechaCierre,
                 fechaEvalInicio,
                 fechaEvalFinal,
+                esVehiculoInversion,
+                fondoInversion,
+                fondoTitularizacion,
                 tarjetas,
             });
 
@@ -93,8 +100,10 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
             setEsInformeManual(false);
             setFechaApertura('');
             setFechaCierre('');
-            setFechaEvalInicio('');
             setFechaEvalFinal('');
+            setEsVehiculoInversion(false);
+            setFondoInversion('');
+            setFondoTitularizacion('');
             setTarjetas([getInitialTarjeta()]);
             setErrors({});
             setShowToast(true);
@@ -221,6 +230,88 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                     )}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Vehículo de Inversión Logic */}
+                        <div className={`p-5 rounded-3xl transition-all duration-500 ${esVehiculoInversion ? 'bg-amber-50/50 border border-amber-100 shadow-sm' : 'bg-slate-50/30 border border-slate-100/50'}`}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${esVehiculoInversion ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-slate-100 text-slate-400'}`}>
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className={`text-[11px] font-black uppercase tracking-widest ${esVehiculoInversion ? 'text-amber-700' : 'text-slate-500'}`}>Protocolo de Vehículo de Inversión</span>
+                                        <span className="text-[9px] font-medium text-slate-400 uppercase">Habilitar si la auditoría se enfoca en fondos o titularizadoras</span>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEsVehiculoInversion(!esVehiculoInversion);
+                                        if (esVehiculoInversion) {
+                                            setFondoInversion('');
+                                            setFondoTitularizacion('');
+                                        }
+                                    }}
+                                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all focus:outline-none cursor-pointer ${esVehiculoInversion ? 'bg-amber-500 shadow-inner' : 'bg-slate-200'}`}
+                                >
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${esVehiculoInversion ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+
+                            {esVehiculoInversion && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest px-1">Fondos de Inversión</label>
+                                        <div className="relative">
+                                            <select
+                                                value={fondoInversion}
+                                                onChange={e => {
+                                                    setFondoInversion(e.target.value);
+                                                    if (e.target.value) setFondoTitularizacion('');
+                                                }}
+                                                className="w-full px-4 py-3 rounded-2xl border border-amber-200 bg-white text-sm font-bold text-amber-900 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all cursor-pointer appearance-none shadow-sm"
+                                            >
+                                                <option value="">— SELECCIONAR FONDO —</option>
+                                                {(catalogos.fondosInversion || []).map(f => (
+                                                    <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-amber-300">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest px-1">Fondos de Titularización</label>
+                                        <div className="relative">
+                                            <select
+                                                value={fondoTitularizacion}
+                                                onChange={e => {
+                                                    setFondoTitularizacion(e.target.value);
+                                                    if (e.target.value) setFondoInversion('');
+                                                }}
+                                                className="w-full px-4 py-3 rounded-2xl border border-amber-200 bg-white text-sm font-bold text-amber-900 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all cursor-pointer appearance-none shadow-sm"
+                                            >
+                                                <option value="">— SELECCIONAR TITULARIZADORA —</option>
+                                                {(catalogos.fondosTitularizacion || []).map(f => (
+                                                    <option key={f.codigo} value={f.nombre}>{f.codigo} - {f.nombre}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-amber-300">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Audit Scheduling and Evaluation Boxes */}
@@ -537,6 +628,9 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                     setFechaCierre('');
                                     setFechaEvalInicio('');
                                     setFechaEvalFinal('');
+                                    setEsVehiculoInversion(false);
+                                    setFondoInversion('');
+                                    setFondoTitularizacion('');
                                     setTarjetas([{ ...EMPTY_TARJETA }]);
                                     setErrors({});
                                     window.scrollTo({ top: 0, behavior: 'smooth' });

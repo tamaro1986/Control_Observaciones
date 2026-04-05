@@ -76,6 +76,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
     const [fechaFin, setFechaFin] = useState('');
     const [nivelesRiesgo, setNivelesRiesgo] = useState([]);
     const [estadosSeleccionados, setEstadosSeleccionados] = useState([]);
+    const [fondoInversionId, setFondoInversionId] = useState('');
     const [keyword, setKeyword] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [isFilterVisible, setIsFilterVisible] = useState(true);
@@ -88,9 +89,10 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
             estados: estadosSeleccionados.length > 0 ? estadosSeleccionados : undefined,
             fechaInicio: fechaInicio || undefined,
             fechaFin: fechaFin || undefined,
+            fondoInversionId: fondoInversionId || undefined,
             keyword: keyword || undefined,
         });
-    }, [filtrar, observaciones, entidadSeleccionadas, nivelesRiesgo, estadosSeleccionados, fechaInicio, fechaFin, keyword]);
+    }, [filtrar, observaciones, entidadSeleccionadas, nivelesRiesgo, estadosSeleccionados, fechaInicio, fechaFin, fondoInversionId, keyword]);
 
     const totalPages = Math.ceil(resultados.length / ITEMS_PER_PAGE);
     const paginatedResults = resultados.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -161,6 +163,7 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                                 setFechaFin('');
                                 setNivelesRiesgo([]);
                                 setEstadosSeleccionados([]);
+                                setFondoInversionId('');
                                 setKeyword('');
                             }}
                         >
@@ -213,6 +216,26 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                             onChange={setEstadosSeleccionados}
                             placeholder="Todos los estados"
                         />
+                        <div className="relative">
+                            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-1">Vehículo (Fondos/Tit.)</label>
+                            <select
+                                value={fondoInversionId}
+                                onChange={e => setFondoInversionId(e.target.value)}
+                                className="w-full h-11.5 px-4 py-2 rounded-2xl border border-border bg-white text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer appearance-none"
+                            >
+                                <option value="">— TODOS LOS FONDOS —</option>
+                                <optgroup label="Fondos de Inversión">
+                                    {(catalogos.fondosInversion || []).map(f => (
+                                        <option key={f.codigo} value={f.nombre}>{f.nombre}</option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="Fondos de Titularización">
+                                    {(catalogos.fondosTitularizacion || []).map(f => (
+                                        <option key={f.codigo} value={f.nombre}>{f.nombre}</option>
+                                    ))}
+                                </optgroup>
+                            </select>
+                        </div>
                         <div className="lg:col-span-4 mt-2">
                             <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-1">Búsqueda Rápida</label>
                             <div className="relative">
@@ -275,16 +298,16 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                                             <td className="py-2 px-4 align-middle">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-text-primary">{ent?.nombre?.split(',')[0]}</span>
-                                                    {obs.esVehiculoInversion && obs.fondoInversion ? (
-                                                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.05em] flex items-center gap-1">
+                                                    {obs.esVehiculoInversion && (obs.fondoInversion || obs.fondoTitularizacion) ? (
+                                                        <span className={`text-[10px] font-black uppercase tracking-[0.05em] flex items-center gap-1 ${obs.fondoTitularizacion ? 'text-amber-600' : 'text-primary'}`}>
                                                             <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                                                 <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                                                                 <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                                                             </svg>
-                                                            {typeof obs.fondoInversion === 'object' ? (obs.fondoInversion.nombre || obs.fondoInversion.codigo) : (obs.fondoInversion || 'AUDITORÍA DIRECTA')}
+                                                            {obs.fondoInversion || obs.fondoTitularizacion}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[10px] font-medium text-text-muted">{ent?.categoria}</span>
+                                                        <span className="text-[10px] font-medium text-text-muted">{ent?.categoria || 'Sin Categoría'}</span>
                                                     )}
                                                 </div>
                                             </td>

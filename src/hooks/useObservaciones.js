@@ -78,6 +78,9 @@ export default function useObservaciones() {
             nroInforme: ensureString(item.nro_informe),
             nivelRiesgo: item.nivel_riesgo,
             tipoRiesgo: item.tipo_riesgo,
+            esVehiculoInversion: item.es_vehiculo_inversion || false,
+            fondoInversion: ensureString(item.fondo_inversion),
+            fondoTitularizacion: ensureString(item.fondo_titularizacion),
             fechaPlanAccion: item.fecha_plan_accion,
             respuestaEntidad: ensureString(item.respuesta_entidad),
             fechaRespuesta: item.fecha_respuesta,
@@ -107,6 +110,7 @@ export default function useObservaciones() {
             normas: item.normas || [],
             esVehiculoInversion: item.es_vehiculo_inversion || false,
             fondoInversion: ensureString(item.fondo_inversion || item.fondoInversion),
+            fondoTitularizacion: ensureString(item.fondo_titularizacion || item.fondoTitularizacion),
             año: item.año || item.an_io || 2025
         };
     };
@@ -134,6 +138,9 @@ export default function useObservaciones() {
             accionSupervision: ensureString(item.accion_supervision || ''),
             vinculado: ensureString(item.vinculado || ''),
             vieneDeInforme: ensureString(item.viene_de_informe || 'NO'),
+            esVehiculoInversion: item.es_vehiculo_inversion || false,
+            fondoInversion: ensureString(item.fondo_inversion),
+            fondoTitularizacion: ensureString(item.fondo_titularizacion),
             normas: item.normas || [],
             juntas: item.juntas || [],
             cantidadUnidades: item.cantidad_unidades || 1,
@@ -157,6 +164,9 @@ export default function useObservaciones() {
             descripcion: (item.descripcionAccion || item.descripcion || '').substring(0, 5000),
             es_interno: item.esInterno !== undefined ? item.esInterno : true,
             anulado: item.anulado || false,
+            es_vehiculo_inversion: item.esVehiculoInversion || false,
+            fondo_inversion: item.fondoInversion || '',
+            fondo_titularizacion: item.fondoTitularizacion || '',
             
             // Campos extendidos soportados tras actualización de esquema en Supabase
             clasificacion: item.clasificacion || '',
@@ -197,6 +207,7 @@ export default function useObservaciones() {
             descripcion_accion: item.descripcionAccion || item.descripcion_accion,
             es_vehiculo_inversion: item.esVehiculoInversion || false,
             fondo_inversion: item.fondoInversion,
+            fondo_titularizacion: item.fondoTitularizacion,
             cantidad_unidades: item.cantidadUnidades || 1,
             blf_otro: item.blfOtro || '', 
             normas: item.normas || []
@@ -217,6 +228,9 @@ export default function useObservaciones() {
         if (item.nroInforme !== undefined) mapped.nro_informe = item.nroInforme;
         if (item.nivelRiesgo !== undefined) mapped.nivel_riesgo = item.nivelRiesgo;
         if (item.tipoRiesgo !== undefined) mapped.tipo_riesgo = item.tipoRiesgo;
+        if (item.esVehiculoInversion !== undefined) mapped.es_vehiculo_inversion = item.esVehiculoInversion;
+        if (item.fondoInversion !== undefined) mapped.fondo_inversion = item.fondoInversion;
+        if (item.fondoTitularizacion !== undefined) mapped.fondo_titularizacion = item.fondoTitularizacion;
         if (item.fechaPlanAccion !== undefined) mapped.fecha_plan_accion = nullIfEmptyString(item.fechaPlanAccion);
         if (item.respuestaEntidad !== undefined) mapped.respuesta_entidad = item.respuestaEntidad;
         if (item.fechaRespuesta !== undefined) mapped.fecha_respuesta = nullIfEmptyString(item.fechaRespuesta);
@@ -345,6 +359,9 @@ export default function useObservaciones() {
             fechaEvalInicio,
             fechaEvalFinal,
             nroInforme: nroInforme || t.nroInforme || '',
+            esVehiculoInversion: form.esVehiculoInversion || false,
+            fondoInversion: form.fondoInversion || '',
+            fondoTitularizacion: form.fondoTitularizacion || '',
             titulo: t.titulo,
             descripcion: t.descripcion,
             nivelRiesgo: t.nivelRiesgo,
@@ -518,7 +535,7 @@ export default function useObservaciones() {
         }
         if (filtros.fondoInversionId) {
             resultado = resultado.filter(o => 
-                o.esVehiculoInversion && o.fondoInversion === filtros.fondoInversionId
+                o.esVehiculoInversion && (o.fondoInversion === filtros.fondoInversionId || o.fondoTitularizacion === filtros.fondoInversionId)
             );
         }
         if (filtros.nivelRiesgo && filtros.nivelRiesgo.length > 0) {
@@ -535,7 +552,8 @@ export default function useObservaciones() {
                 (o.descripcion || '').toLowerCase().includes(kw) ||
                 (o.responsable || '').toLowerCase().includes(kw) ||
                 (o.normativa || '').toLowerCase().includes(kw) ||
-                (o.fondoInversion || '').toLowerCase().includes(kw)
+                (o.fondoInversion || '').toLowerCase().includes(kw) ||
+                (o.fondoTitularizacion || '').toLowerCase().includes(kw)
             );
         }
         // ... continue processing dates, etc.

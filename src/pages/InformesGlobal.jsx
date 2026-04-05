@@ -578,11 +578,16 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
     const filterByFondo = (data) => {
         if (fondoFilter === 'all') return data;
         if (fondoFilter === 'direct') return data.filter(item => !item.esVehiculoInversion);
-        return data.filter(item => item.esVehiculoInversion && item.fondoInversion === fondoFilter);
+        return data.filter(item => item.esVehiculoInversion && (item.fondoInversion === fondoFilter || item.fondoTitularizacion === fondoFilter));
     };
     const filteredObs = useMemo(() => filterByFondo(observaciones), [observaciones, fondoFilter]);
     const filteredCorr = useMemo(() => filterByFondo(correlativos), [correlativos, fondoFilter]);
     const filteredNotas = useMemo(() => filterByFondo(notas), [notas, fondoFilter]);
+
+    const allFondos = useMemo(() => [
+        ...(catalogos?.fondosInversion || []),
+        ...(catalogos?.fondosTitularizacion || [])
+    ], [catalogos]);
 
     const obsData = useMemo(() => filterByPeriod(filteredObs.filter(o => !o.anulado), 'fechaInicio', period, filterValues), [filteredObs, period, filterValues]);
     const corrData = useMemo(() => filterByPeriod(filteredCorr.filter(c => !c.anulado), 'fecha', period, filterValues), [filteredCorr, period, filterValues]);
@@ -625,7 +630,7 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                     availableYears={years}
                     fondoFilter={fondoFilter}
                     setFondoFilter={setFondoFilter}
-                    fondos={catalogos?.fondosInversion || []}
+                    fondos={allFondos}
                 />
             </div>
 
