@@ -33,7 +33,7 @@ function inputCls() {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function DetalleObservacion({ observacion, cambiarEstado, eliminarObservacion, editarObservacion, onBack, catalogos }) {
+export default function DetalleObservacion({ observacion, cambiarEstado, eliminarObservacion, editarObservacion, agregarSeguimiento, onBack, catalogos }) {
     const entidades = catalogos?.entidades || [];
     const ent = entidades.find(e => Number(e.id) === Number(observacion.entidadId));
 
@@ -121,6 +121,29 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
         setTimeout(() => setShowToast(false), 4000);
     };
 
+    // Seguimientos Form State
+    const [isAddingSeguimiento, setIsAddingSeguimiento] = useState(false);
+    const [newSeg, setNewSeg] = useState({
+        fechaRespuesta: '',
+        fechaPlanAccion: '',
+        fechaSeguimiento: '',
+        campoDetallar: '',
+        respuesta: '',
+        analisis: ''
+    });
+
+    const handleGuardarSeguimiento = async () => {
+        if (!newSeg.fechaSeguimiento) {
+            alert('La fecha de seguimiento es obligatoria.');
+            return;
+        }
+        await agregarSeguimiento(observacion.id, newSeg);
+        setNewSeg({ fechaRespuesta: '', fechaPlanAccion: '', fechaSeguimiento: '', campoDetallar: '', respuesta: '', analisis: ''});
+        setIsAddingSeguimiento(false);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+    };
+
     const estados = catalogos?.estados || ESTADOS.map(e => e.value);
     const responsables = catalogos?.responsables || RESPONSABLES;
     const tiposVisita = catalogos?.tiposVisita || TIPOS_VISITA;
@@ -146,7 +169,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                     </button>
                     <div className="flex items-center gap-3 mt-1">
                         <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200">
-                            <span className="text-sm font-black text-white">#{observacion?.id?.split('-').pop()}</span>
+                            <span className="text-sm font-black text-white">#{String(observacion?.id || '').split('-').pop()}</span>
                         </div>
                         <div className="grow">
                             {isEditing ? (
@@ -680,6 +703,145 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                 </div>
                             ))}
                         </div>
+                    </section>
+
+                    {/* ── Seguimientos Históricos y Opcionales ─────────────────────────────────── */}
+                    <section className="space-y-4 pt-6 border-t border-slate-100">
+                        <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">Seguimientos Realizados</h3>
+                            </div>
+                            <button
+                                onClick={() => setIsAddingSeguimiento(!isAddingSeguimiento)}
+                                className="px-5 py-2.5 rounded-2xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2 cursor-pointer"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={isAddingSeguimiento ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />
+                                </svg>
+                                {isAddingSeguimiento ? 'Cancelar Seguimiento' : 'Añadir Seguimiento'}
+                            </button>
+                        </div>
+
+                        {/* Formulario de Nuevo Seguimiento */}
+                        {isAddingSeguimiento && (
+                            <div className="p-6 bg-emerald-50/40 rounded-3xl border border-emerald-100/60 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                    <div>
+                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Respuesta (Entidad)</label>
+                                        <input
+                                            type="date"
+                                            value={newSeg.fechaRespuesta}
+                                            onChange={e => setNewSeg({...newSeg, fechaRespuesta: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Plan Acción</label>
+                                        <input
+                                            type="date"
+                                            value={newSeg.fechaPlanAccion}
+                                            onChange={e => setNewSeg({...newSeg, fechaPlanAccion: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Seguimiento <span className="text-rose-500">*</span></label>
+                                        <input
+                                            type="date"
+                                            value={newSeg.fechaSeguimiento}
+                                            onChange={e => setNewSeg({...newSeg, fechaSeguimiento: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-3">
+                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Campo para Detallar</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Detalle o extracto del componente evaluado..."
+                                            value={newSeg.campoDetallar}
+                                            onChange={e => setNewSeg({...newSeg, campoDetallar: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-3">
+                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Respuesta (En relación al plan)</label>
+                                        <textarea
+                                            value={newSeg.respuesta}
+                                            onChange={e => setNewSeg({...newSeg, respuesta: e.target.value})}
+                                            rows={2}
+                                            placeholder="Agregue comentarios de la entidad frente al avance..."
+                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all resize-none shadow-sm shadow-emerald-50"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-3">
+                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Análisis (Auditor)</label>
+                                        <textarea
+                                            value={newSeg.analisis}
+                                            onChange={e => setNewSeg({...newSeg, analisis: e.target.value})}
+                                            rows={3}
+                                            placeholder="Conclusión analítica actual..."
+                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all resize-none shadow-sm shadow-emerald-50"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleGuardarSeguimiento}
+                                        className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
+                                    >
+                                        Añadir Seguimiento al Expediente
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Listado de Seguimientos */}
+                        {(!observacion.seguimientos || observacion.seguimientos.length === 0) ? (
+                            <div className="py-6 flex flex-col items-center justify-center text-center opacity-70">
+                                <svg className="w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sin seguimientos registrados</span>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[...observacion.seguimientos].sort((a, b) => b.id - a.id).map(s => (
+                                    <div key={s.id} className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col gap-3 group hover:border-emerald-100 hover:shadow-md transition-all">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Fecha de Seguimiento</span>
+                                                <span className="text-sm font-black text-emerald-600">{formatDate(s.fecha_seguimiento || s.creado_at)}</span>
+                                            </div>
+                                            {s.fecha_plan_accion && (
+                                                <div className="text-right">
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Plan Acción</span>
+                                                    <span className="text-[11px] font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">{formatDate(s.fecha_plan_accion)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {s.campo_detallar && (
+                                            <div>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Extracto Evidenciado</span>
+                                                <p className="text-xs font-bold text-text-primary leading-tight">{s.campo_detallar}</p>
+                                            </div>
+                                        )}
+                                        {s.respuesta && (
+                                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Respuesta Entidad {s.fecha_respuesta && `(${formatDate(s.fecha_respuesta)})`}</span>
+                                                <p className="text-[11px] font-medium text-slate-600 italic">"{s.respuesta}"</p>
+                                            </div>
+                                        )}
+                                        {s.analisis && (
+                                            <div>
+                                                <span className="text-[9px] font-black text-emerald-500/70 uppercase tracking-widest block mb-1">Análisis Técnico</span>
+                                                <p className="text-xs font-medium text-text-secondary leading-relaxed">{s.analisis}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </section>
                 </div>
             </div>

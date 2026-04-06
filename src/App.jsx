@@ -47,6 +47,7 @@ export default function App() {
         getEstadisticas,
         editarObservacion,
         eliminarObservacion,
+        agregarSeguimiento,
         agregarCorrelativo,
         editarCorrelativo,
         eliminarCorrelativo,
@@ -176,6 +177,7 @@ export default function App() {
                     cambiarEstado={cambiarEstado}
                     eliminarObservacion={eliminarObservacion}
                     editarObservacion={editarObservacion}
+                    agregarSeguimiento={agregarSeguimiento}
                     onBack={handleBack}
                     catalogos={sortedCatalogos}
                     entidades={sortedEntidades}

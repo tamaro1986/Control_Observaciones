@@ -84,7 +84,8 @@ export default function useObservaciones() {
             fechaPlanAccion: item.fecha_plan_accion,
             respuestaEntidad: ensureString(item.respuesta_entidad),
             fechaRespuesta: item.fecha_respuesta,
-            historialEstados: item.historial_estados || []
+            historialEstados: item.historial_estados || [],
+            seguimientos: item.seguimientos || []
         };
     };
 
@@ -270,7 +271,7 @@ export default function useObservaciones() {
             
             // Parallel fetch — each query is resilient; a missing table won't crash the app
             const [obsRes, corrRes, notasRes, entitiesRes, settingsRes] = await Promise.all([
-                safeFetch(supabase.from('observaciones').select('*').order('creado_at', { ascending: false })),
+                safeFetch(supabase.from('observaciones').select('*, seguimientos(*)').order('creado_at', { ascending: false })),
                 safeFetch(supabase.from('correlativos').select('*').order('creado_at', { ascending: false })),
                 safeFetch(supabase.from('correlativos_notas').select('*').order('creado_at', { ascending: false })),
                 safeFetch(supabase.from('entidades').select('*')),
@@ -396,8 +397,49 @@ export default function useObservaciones() {
             throw insertError;
         }
         
+        // Insert seguimientos if any inside tarjetas
+        const seguimientosToInsert = [];
+        tarjetas.forEach((t, idx) => {
+            if (t.seguimiento && Object.keys(t.seguimiento).length > 0 && data[idx]) {
+                seguimientosToInsert.push({
+                    observacion_id: data[idx].id,
+                    fecha_respuesta: nullIfEmptyString(t.seguimiento.fechaRespuesta),
+                    campo_detallar: t.seguimiento.campoDetallar || '',
+                    fecha_plan_accion: nullIfEmptyString(t.seguimiento.fechaPlanAccion),
+                    respuesta: t.seguimiento.respuesta || '',
+                    fecha_seguimiento: nullIfEmptyString(t.seguimiento.fechaSeguimiento),
+                    analisis: t.seguimiento.analisis || ''
+                });
+            }
+        });
+        
+        if (seguimientosToInsert.length > 0) {
+            const { error: segError } = await supabase.from('seguimientos').insert(seguimientosToInsert);
+            if (segError) {
+                console.error('DB Insert Seguimientos Error:', segError);
+            }
+        }
+        
         await fetchData(true);
         return data.map(n => n.id);
+    }, [fetchData]);
+    
+    const agregarSeguimiento = useCallback(async (id, seguimientoData) => {
+        const payload = {
+            observacion_id: id,
+            fecha_respuesta: nullIfEmptyString(seguimientoData.fechaRespuesta),
+            campo_detallar: seguimientoData.campoDetallar || '',
+            fecha_plan_accion: nullIfEmptyString(seguimientoData.fechaPlanAccion),
+            respuesta: seguimientoData.respuesta || '',
+            fecha_seguimiento: nullIfEmptyString(seguimientoData.fechaSeguimiento),
+            analisis: seguimientoData.analisis || ''
+        };
+        const { error } = await supabase.from('seguimientos').insert([payload]);
+        if (error) {
+            console.error('Error adding seguimiento:', error);
+            throw error;
+        }
+        await fetchData(true);
     }, [fetchData]);
 
     const cambiarEstado = useCallback(async (id, cambio) => {

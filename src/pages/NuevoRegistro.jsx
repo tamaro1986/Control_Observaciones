@@ -13,10 +13,11 @@ const EMPTY_TARJETA = {
     nota: '',
     responsable: '',
     fechaPlanAccion: '',
-    // Cycle finishing fields
     fechaRespuesta: '',
     respuestaEntidad: '',
     comentarioAuditor: '',
+    // Optional Tracking for historical data
+    seguimiento: null,
 };
 
 export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidades = [], correlativos = [] }) {
@@ -59,6 +60,21 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
 
     const updateTarjeta = (index, field, value) => {
         setTarjetas(prev => prev.map((t, i) => i === index ? { ...t, [field]: value } : t));
+    };
+
+    const updateSeguimiento = (index, field, value) => {
+        setTarjetas(prev => prev.map((t, i) => {
+            if (i !== index) return t;
+            if (!t.seguimiento) t.seguimiento = {};
+            return { ...t, seguimiento: { ...t.seguimiento, [field]: value } };
+        }));
+    };
+
+    const toggleSeguimiento = (index) => {
+        setTarjetas(prev => prev.map((t, i) => {
+            if (i !== index) return t;
+            return { ...t, seguimiento: t.seguimiento ? null : {} };
+        }));
     };
 
     const validate = () => {
@@ -588,6 +604,85 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                                                 </span>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* 05. Seguimiento Histórico Inicial */}
+                                    <div className="space-y-4 pt-4 border-t border-slate-100 lg:col-span-4 rounded-b-3xl">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center text-[10px] text-white font-black">5</div>
+                                                <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest leading-none pt-0.5">Seguimiento (Opcional)</h4>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleSeguimiento(index)}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none cursor-pointer ${tarjeta.seguimiento ? 'bg-emerald-500 shadow-inner' : 'bg-slate-200'}`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${tarjeta.seguimiento ? 'translate-x-6' : 'translate-x-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {tarjeta.seguimiento !== null && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-5 bg-emerald-50/50 border border-emerald-100 rounded-3xl animate-in fade-in slide-in-from-top-4 duration-500">
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Respuesta (Entidad)</label>
+                                                    <input
+                                                        type="date"
+                                                        value={tarjeta.seguimiento.fechaRespuesta || ''}
+                                                        onChange={e => updateSeguimiento(index, 'fechaRespuesta', e.target.value)}
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Plan Acción</label>
+                                                    <input
+                                                        type="date"
+                                                        value={tarjeta.seguimiento.fechaPlanAccion || ''}
+                                                        onChange={e => updateSeguimiento(index, 'fechaPlanAccion', e.target.value)}
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha de este Seguimiento</label>
+                                                    <input
+                                                        type="date"
+                                                        value={tarjeta.seguimiento.fechaSeguimiento || ''}
+                                                        onChange={e => updateSeguimiento(index, 'fechaSeguimiento', e.target.value)}
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                                    />
+                                                </div>
+                                                <div className="lg:col-span-3">
+                                                    <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Campo para Detallar (Extracto / Componente)</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Especifique el componente evaluado..."
+                                                        value={tarjeta.seguimiento.campoDetallar || ''}
+                                                        onChange={e => updateSeguimiento(index, 'campoDetallar', e.target.value)}
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                                                    />
+                                                </div>
+                                                <div className="lg:col-span-3">
+                                                    <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Respuesta (Entidad frente al plan)</label>
+                                                    <textarea
+                                                        placeholder="Comentarios de la entidad..."
+                                                        value={tarjeta.seguimiento.respuesta || ''}
+                                                        onChange={e => updateSeguimiento(index, 'respuesta', e.target.value)}
+                                                        rows={2}
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-white text-xs font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all resize-none shadow-sm shadow-emerald-50"
+                                                    />
+                                                </div>
+                                                <div className="lg:col-span-3">
+                                                    <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Análisis (Auditor/Especialista)</label>
+                                                    <textarea
+                                                        placeholder="Conclusiones del análisis del seguimiento..."
+                                                        value={tarjeta.seguimiento.analisis || ''}
+                                                        onChange={e => updateSeguimiento(index, 'analisis', e.target.value)}
+                                                        rows={3}
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-white text-xs font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all resize-none shadow-sm shadow-emerald-50"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -30,8 +30,20 @@ export default function Dashboard({ observaciones, getEstadisticas, onNavigate, 
     }).filter(e => e.total > 0);
 
     const alertas = observaciones
-        .filter(o => !o.anulado && o.estado !== 'Subsanada' && o.fechaPlanAccion)
-        .map(o => ({ ...o, diasRestantes: daysUntil(o.fechaPlanAccion) }))
+        .filter(o => !o.anulado && o.estado !== 'Subsanada')
+        .map(o => {
+            // Priority: newest seguimiento fecha_plan_accion, otherwise base fechaPlanAccion
+            let targetDate = o.fechaPlanAccion;
+            if (o.seguimientos && o.seguimientos.length > 0) {
+                // sort descending by id or creado_at to get the latest
+                const sortedSeguimientos = [...o.seguimientos].sort((a, b) => b.id - a.id);
+                const latestValidDate = sortedSeguimientos.find(s => s.fecha_plan_accion)?.fecha_plan_accion;
+                if (latestValidDate) {
+                    targetDate = latestValidDate;
+                }
+            }
+            return { ...o, diasRestantes: targetDate ? daysUntil(targetDate) : null };
+        })
         .filter(a => a.diasRestantes !== null && a.diasRestantes <= 30)
         .sort((a, b) => a.diasRestantes - b.diasRestantes)
         .slice(0, 6);
