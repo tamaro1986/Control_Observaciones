@@ -471,7 +471,8 @@ export default function useObservaciones() {
             fecha_plan_accion: nullIfEmptyString(cambio.fechaPlanAccion),
             respuesta: cambio.respuestaEntidad || '',
             fecha_seguimiento: new Date().toISOString().split('T')[0],
-            analisis: cambio.analisisAuditor || ''
+            analisis: cambio.analisisAuditor || '',
+            nro_informe: cambio.nroInforme || obs.nroInforme
         };
 
         const updateData = mapToDB({

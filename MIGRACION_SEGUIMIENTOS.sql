@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS seguimientos (
     respuesta TEXT,                -- Respuesta
     fecha_seguimiento DATE,        -- Fecha del seguimiento
     analisis TEXT,                 -- Análisis respectivo
+    nro_informe TEXT,              -- Nuevo: Número de informe del seguimiento
     
     creado_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- Enable Row Level Security (optional but recommended depending on your setup)
--- ALTER TABLE seguimientos ENABLE ROW LEVEL SECURITY;
+-- Migración para tabla existente
+ALTER TABLE seguimientos ADD COLUMN IF NOT EXISTS nro_informe TEXT;

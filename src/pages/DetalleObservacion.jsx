@@ -424,7 +424,18 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                             }
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <FieldLabel>Expediente / Informe</FieldLabel>
+                                <input
+                                    type="text"
+                                    placeholder="Nro. Informe"
+                                    value={nroInforme}
+                                    onChange={e => setNroInforme(e.target.value)}
+                                    className={inputCls()}
+                                />
+                            </div>
+
                             <div>
                                 <FieldLabel>Fecha de Respuesta</FieldLabel>
                                 <input
@@ -634,9 +645,12 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                     <div key={s.id} className="p-4 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col gap-2 border-l-4 border-l-emerald-500">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{formatDate(s.fecha_seguimiento)}</span>
-                                            {s.fecha_plan_accion && (
-                                                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">Vence: {formatDate(s.fecha_plan_accion)}</span>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                {s.nro_informe && <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded italic">REF: {s.nro_informe}</span>}
+                                                {s.fecha_plan_accion && (
+                                                    <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">Vence: {formatDate(s.fecha_plan_accion)}</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <h4 className="text-xs font-black text-slate-800 leading-tight">{s.campo_detallar || 'Seguimiento general'}</h4>
                                         {s.analisis && (
