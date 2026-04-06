@@ -20,7 +20,7 @@ const EMPTY_TARJETA = {
     seguimiento: null,
 };
 
-export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidades = [], correlativos = [] }) {
+export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidades = [], correlativos = [], initialEntityId = null }) {
     const confirm = useConfirm();
     
     // Función para obtener la tarjeta inicial dinámica según el catálogo de estados
@@ -29,7 +29,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
         estado: catalogos?.estados?.[0] || 'Pendiente'
     });
     // Header Data States
-    const [entidadId, setEntidadId] = useState('');
+    const [entidadId, setEntidadId] = useState(initialEntityId || '');
     const [tipoVisita, setTipoVisita] = useState('Focalizada');
     const [nroInforme, setNroInforme] = useState('');
     const [esInformeManual, setEsInformeManual] = useState(false);

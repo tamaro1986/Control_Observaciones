@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { EstadoBadge, Avatar, Pagination, EmptyState, Card } from '../components/ui/SharedComponents';
-import { Search, Filter, Calendar, Briefcase, FileText, Trash2, Edit2, ChevronDown, Check, X } from 'lucide-react';
+import { Search, Filter, Calendar, Briefcase, FileText, Trash2, Edit2, ChevronDown, Check, X, PlusCircle } from 'lucide-react';
 import { ESTADOS } from '../data';
 
 const ITEMS_PER_PAGE = 8;
@@ -63,7 +63,7 @@ function CustomSelect({ label, options, selected, onChange, placeholder = "Todos
     );
 }
 
-export default function SeguimientoList({ observaciones, onSelectObservacion, eliminarObservacion, editarObservacion, filtrar, catalogos, entidades }) {
+export default function SeguimientoList({ observaciones, onSelectObservacion, onNuevoWithEntity, eliminarObservacion, editarObservacion, filtrar, catalogos, entidades }) {
     const [keyword, setKeyword] = useState('');
     const [entidad, setEntidad] = useState(null);
     const [fechaDesde, setFechaDesde] = useState('');
@@ -134,6 +134,13 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                     <p className="text-sm text-slate-400 font-medium">Gestione y documente las acciones de subsanación</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => onNuevoWithEntity(entidad?.id)}
+                        className="px-5 py-2.5 bg-slate-900 text-white rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-0.5 transition-all text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"
+                    >
+                        <PlusCircle className="w-4 h-4 text-emerald-400 group-hover:rotate-90 transition-transform duration-500" />
+                        Agregar Observación
+                    </button>
                     <div className="px-4 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -292,9 +299,19 @@ export default function SeguimientoList({ observaciones, onSelectObservacion, el
                                     <EstadoBadge estado={obs.estado} />
                                 </div>
 
-                                {/* Col 5: Chevron */}
-                                <div className="shrink-0 hidden xl:flex items-center justify-end w-6">
-                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'}`} />
+                                {/* Col 5: Actions */}
+                                <div className="shrink-0 flex items-center justify-end gap-2 w-16">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(e, obs.id);
+                                        }}
+                                        className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
+                                        title="Eliminar observación"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-indigo-600 font-bold' : 'text-slate-400 group-hover:text-indigo-600'}`} />
                                 </div>
 
                                 {/* Mobile Chevron (positioned absolutely) */}

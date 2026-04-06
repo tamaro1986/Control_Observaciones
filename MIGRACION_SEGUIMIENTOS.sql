@@ -6,15 +6,17 @@ CREATE TABLE IF NOT EXISTS seguimientos (
     observacion_id BIGINT REFERENCES observaciones(id) ON DELETE CASCADE,
     
     fecha_respuesta DATE,          -- Fecha de respuesta de la entidad
-    campo_detallar TEXT,           -- Campo para detallar
+    campo_detallar TEXT,           -- Campo para detallar (Objeto de Seguimiento)
     fecha_plan_accion DATE,        -- Fecha plan de acción
-    respuesta TEXT,                -- Respuesta
+    respuesta TEXT,                -- Respuesta de la Entidad
     fecha_seguimiento DATE,        -- Fecha del seguimiento
     analisis TEXT,                 -- Análisis respectivo
-    nro_informe TEXT,              -- Nuevo: Número de informe del seguimiento
+    nro_informe TEXT,              -- Número de informe del seguimiento
+    responsable TEXT,              -- Responsable del análisis
     
     creado_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
 -- Migración para tabla existente
 ALTER TABLE seguimientos ADD COLUMN IF NOT EXISTS nro_informe TEXT;
+ALTER TABLE seguimientos ADD COLUMN IF NOT EXISTS responsable TEXT;

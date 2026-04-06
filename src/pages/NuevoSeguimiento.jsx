@@ -66,6 +66,7 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
             analisisAuditor: s.analisis,
             respuestaEntidad: s.respuesta,
             fechaRespuesta: s.fecha_respuesta,
+            responsable: s.responsable,
             estadoNuevo: null, // Relational doesn't always store new state
             isRelational: true,
             id: s.id
@@ -213,7 +214,15 @@ export default function NuevoSeguimiento({ observacion, cambiarEstado, onBack, c
                                             <div className="flex-1 space-y-4">
                                                 {h.analisisAuditor && (
                                                     <div>
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5">Análisis del Auditor</span>
+                                                        <div className="flex items-center justify-between mb-1.5 ">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Análisis del Auditor</span>
+                                                            {h.responsable && (
+                                                                <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
+                                                                    <User className="w-2.5 h-2.5" />
+                                                                    {h.responsable}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <p className="text-sm font-medium text-slate-700 leading-relaxed">{h.analisisAuditor}</p>
                                                     </div>
                                                 )}

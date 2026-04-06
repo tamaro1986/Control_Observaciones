@@ -386,6 +386,7 @@ export default function useObservaciones() {
                     analisisAuditor: t.comentarioAuditor || 'Hallazgo registrado.',
                     planAccion: '',
                     fechaPlanAccion: t.fechaPlanAccion || '',
+                    responsable: t.responsable || '',
                 },
             ],
         }));
@@ -408,7 +409,8 @@ export default function useObservaciones() {
                     fecha_plan_accion: nullIfEmptyString(t.seguimiento.fechaPlanAccion),
                     respuesta: t.seguimiento.respuesta || '',
                     fecha_seguimiento: nullIfEmptyString(t.seguimiento.fechaSeguimiento),
-                    analisis: t.seguimiento.analisis || ''
+                    analisis: t.seguimiento.analisis || '',
+                    responsable: t.responsable || ''
                 });
             }
         });
@@ -459,6 +461,7 @@ export default function useObservaciones() {
             analisisAuditor: cambio.analisisAuditor || '',
             planAccion: cambio.planAccion || '',
             fechaPlanAccion: cambio.fechaPlanAccion || '',
+            responsable: cambio.responsable || obs.responsable, // Capture snapshot of current auditor
             criterioAdministrativo: cambio.criterioAdministrativo || obs.criterioAdministrativo,
             criterioLegal: cambio.criterioLegal || obs.criterioLegal,
         };
@@ -472,7 +475,8 @@ export default function useObservaciones() {
             respuesta: cambio.respuestaEntidad || '',
             fecha_seguimiento: new Date().toISOString().split('T')[0],
             analisis: cambio.analisisAuditor || '',
-            nro_informe: cambio.nroInforme || obs.nroInforme
+            nro_informe: cambio.nroInforme || obs.nroInforme,
+            responsable: cambio.responsable || obs.responsable
         };
 
         const updateData = mapToDB({
@@ -509,7 +513,7 @@ export default function useObservaciones() {
     }, [fetchData]);
 
     const eliminarObservacion = useCallback(async (id) => {
-        if (!(await confirm('¿Está seguro de eliminar esta observación? Esta acción no se puede deshacer.', 'Eliminar Observación'))) return;
+        if (!(await confirm('¿Está seguro de que desea eliminar esta observación y todo su historial de seguimientos? Esta acción no se puede deshacer.', 'Eliminar Observación'))) return;
         const { error } = await supabase.from('observaciones')
             .delete()
             .eq('id', id);

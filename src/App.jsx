@@ -26,6 +26,7 @@ export default function App() {
     const confirm = useConfirm();
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedObsId, setSelectedObsId] = useState(null);
+    const [initialEntityId, setInitialEntityId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // Hook logic - Unified state
@@ -124,7 +125,13 @@ export default function App() {
 
     const handleNavigate = useCallback((view) => {
         setSelectedObsId(null);
+        setInitialEntityId(null);
         setActiveView(view);
+    }, []);
+
+    const handleNuevoWithEntity = useCallback((entityId) => {
+        setInitialEntityId(entityId);
+        setActiveView('nuevo');
     }, []);
 
     // Handlers for Correlativos
@@ -204,6 +211,7 @@ export default function App() {
                         catalogos={sortedCatalogos} 
                         correlativos={sortedCorrelativos} 
                         entidades={sortedEntidades}
+                        initialEntityId={initialEntityId}
                         onUpdateCatalog={handleUpdateCatalog}
                     />
                 );
@@ -212,6 +220,7 @@ export default function App() {
                     <SeguimientoList
                         observaciones={observaciones}
                         onSelectObservacion={handleSelectObservacion}
+                        onNuevoWithEntity={handleNuevoWithEntity}
                         eliminarObservacion={eliminarObservacion}
                         editarObservacion={editarObservacion}
                         filtrar={filtrar}
