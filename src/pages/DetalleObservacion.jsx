@@ -92,6 +92,20 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     const [showToast, setShowToast] = useState(false);
 
     const handleGuardarCiclo = () => {
+        // Validar contra el catálogo de estados
+        const estadosValidos = catalogos?.estados || [];
+        const normalizedNuevo = String(nuevoEstado || '').trim().toLowerCase();
+        
+        const esEstadoValido = estadosValidos.some(e => {
+            const val = typeof e === 'object' ? (e.value || e.nombre) : e;
+            return String(val || '').trim().toLowerCase() === normalizedNuevo;
+        });
+
+        if (!nuevoEstado || !esEstadoValido) {
+            alert(`El estado seleccionado "${nuevoEstado || 'Vacío'}" no es válido. Por favor seleccione un estado del catálogo.`);
+            return;
+        }
+
         if (nuevoEstado === 'Subsanada') {
             if (!criterioAdministrativo.trim() || !criterioLegal.trim()) {
                 alert('Debe completar los criterios administrativo y legal para cerrar la observación.');
@@ -452,8 +466,8 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                     placeholder="Detalle la respuesta brindada por la entidad..."
                                     value={respuestaEntidad}
                                     onChange={e => setRespuestaEntidad(e.target.value)}
-                                    rows={1}
-                                    className={`${inputCls()} resize-none`}
+                                    rows={6}
+                                    className={`${inputCls()} min-h-30`}
                                 />
                             </div>
 
@@ -493,9 +507,10 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                         className={`${inputCls()} font-bold uppercase cursor-pointer border-violet-200 bg-violet-50/30 text-violet-900 focus:ring-violet-500/20 focus:border-violet-500`}
                                     >
                                         <option value="" disabled>— Seleccionar —</option>
-                                        {catalogos?.estados?.map(e => (
-                                            <option key={e.id} value={e.nombre}>{e.nombre}</option>
-                                        )) || estados.map(e => (
+                                        {catalogos?.estados?.map((e, idx) => {
+                                            const val = typeof e === 'object' ? (e.nombre || e.value) : e;
+                                            return <option key={idx} value={val}>{val}</option>;
+                                        }) || estados.map(e => (
                                             <option key={e} value={e}>{e}</option>
                                         ))}
                                     </select>

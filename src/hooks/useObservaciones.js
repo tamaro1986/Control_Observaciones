@@ -587,33 +587,53 @@ export default function useObservaciones() {
     const filtrar = useCallback((filtros = {}) => {
         let resultado = [...observaciones];
 
+        // Normalizador robusto para comparaciones
+        const normalize = (val) => String(val || '').trim().toLowerCase();
+
         if (filtros.entidadIds && filtros.entidadIds.length > 0) {
             resultado = resultado.filter(o => filtros.entidadIds.includes(o.entidadId));
         }
+        
         if (filtros.fondoInversionId) {
             resultado = resultado.filter(o => 
-                o.esVehiculoInversion && (o.fondoInversion === filtros.fondoInversionId || o.fondoTitularizacion === filtros.fondoInversionId)
+                o.esVehiculoInversion && (
+                    normalize(o.fondoInversion) === normalize(filtros.fondoInversionId) || 
+                    normalize(o.fondoTitularizacion) === normalize(filtros.fondoInversionId)
+                )
             );
         }
+
         if (filtros.nivelRiesgo && filtros.nivelRiesgo.length > 0) {
-            resultado = resultado.filter(o => filtros.nivelRiesgo.includes(o.nivelRiesgo));
+            const normalizedRiesgos = filtros.nivelRiesgo.map(normalize);
+            resultado = resultado.filter(o => normalizedRiesgos.includes(normalize(o.nivelRiesgo)));
         }
+
         if (filtros.estados && filtros.estados.length > 0) {
-            resultado = resultado.filter(o => filtros.estados.includes(o.estado));
+            // Soportar tanto strings como objetos de catálogo
+            const normalizedEstados = filtros.estados.map(f => {
+                if (typeof f === 'object' && f !== null) return normalize(f.value || f.nombre || f.label);
+                return normalize(f);
+            }).filter(Boolean);
+
+            if (normalizedEstados.length > 0) {
+                resultado = resultado.filter(o => normalizedEstados.includes(normalize(o.estado)));
+            }
         }
+
         if (filtros.keyword) {
-            const kw = filtros.keyword.toLowerCase();
+            const kw = normalize(filtros.keyword);
             resultado = resultado.filter(o =>
                 String(o.id).includes(kw) ||
-                (o.titulo || '').toLowerCase().includes(kw) ||
-                (o.descripcion || '').toLowerCase().includes(kw) ||
-                (o.responsable || '').toLowerCase().includes(kw) ||
-                (o.normativa || '').toLowerCase().includes(kw) ||
-                (o.fondoInversion || '').toLowerCase().includes(kw) ||
-                (o.fondoTitularizacion || '').toLowerCase().includes(kw)
+                normalize(o.titulo).includes(kw) ||
+                normalize(o.descripcion).includes(kw) ||
+                normalize(o.responsable).includes(kw) ||
+                normalize(o.normativa).includes(kw) ||
+                normalize(o.fondoInversion).includes(kw) ||
+                normalize(o.fondoTitularizacion).includes(kw) ||
+                normalize(o.nroInforme).includes(kw)
             );
         }
-        // ... continue processing dates, etc.
+
         if (filtros.fechaInicio) {
             resultado = resultado.filter(o => {
                 const date = o.fechaApertura || o.fechaInicio;
