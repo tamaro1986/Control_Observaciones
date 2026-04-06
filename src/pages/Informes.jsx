@@ -111,8 +111,8 @@ export default function Informes({ observaciones = [], filtrar, getEstadisticas,
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-text-primary tracking-tight">Generador de Informes</h2>
-                            <p className="text-sm font-medium text-text-muted">Análisis consolidado de hallazgos y cumplimiento</p>
+                            <h2 className="text-xl font-black text-text-primary tracking-tight">Detalle de Observaciones</h2>
+                            <p className="text-sm font-medium text-text-muted">Análisis detallado de observaciones y cumplimiento</p>
                         </div>
                     </div>
                 </div>

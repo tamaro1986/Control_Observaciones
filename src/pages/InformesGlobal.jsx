@@ -354,7 +354,7 @@ function PeriodFilters({ period, setPeriod, values, setValues, availableYears, f
 
 // ─── Tab Components ───────────────────────────────────────────────────────
 
-function TabResumen({ observaciones, correlativos, notas, period, values, years }) {
+function TabResumen({ observaciones, correlativos, notas, period, values }) {
     const [isReady, setIsReady] = useState(false);
     useEffect(() => {
         const timer = setTimeout(() => setIsReady(true), 500);
@@ -366,6 +366,10 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
     const notasFiltered = useMemo(() => filterByPeriod(notas.filter(n => !n.anulado), 'fecha', period, values), [notas, period, values]);
 
     const total = obsFiltered.length + corrFiltered.length + notasFiltered.length;
+    
+    const obsCriticas = obsFiltered.filter(o => o.nivelRiesgo === 'Crítico').length;
+    const obsSubsanadas = obsFiltered.filter(o => o.estado === 'Subsanada').length;
+    const tasaSubsanacion = obsFiltered.length > 0 ? Math.round((obsSubsanadas / obsFiltered.length) * 100) : 0;
 
     const barData = useMemo(() => [
         { name: 'Observaciones', value: obsFiltered.length },
@@ -382,130 +386,86 @@ function TabResumen({ observaciones, correlativos, notas, period, values, years 
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <KPI label="Observaciones" value={obsFiltered.length} icon={AlertCircle} colorClass="bg-indigo-600" />
-                <KPI label="Informes" value={corrFiltered.length} icon={FileText} colorClass="bg-slate-900" />
-                <KPI label="Notas" value={notasFiltered.length} icon={Download} colorClass="bg-amber-600" />
-                <KPI label="Consolidado Total" value={total} icon={Activity} colorClass="bg-emerald-600" />
+                <KPI label="Total Consolidado" value={total} icon={Activity} colorClass="bg-emerald-600" />
+                <KPI label="Informes Emitidos" value={corrFiltered.length} icon={FileText} colorClass="bg-slate-900" />
+                <KPI label="Hallazgos Críticos" value={obsCriticas} icon={AlertCircle} colorClass="bg-red-600" subText={`${obsFiltered.length} hallazgos en total`} />
+                <KPI label="Tasa de Subsanación" value={`${tasaSubsanacion}%`} icon={CheckCircle} colorClass="bg-indigo-600" subText={`${obsSubsanadas} subsanadas`} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Distribución por Módulo" subtitle="Saturación de registros">
-                    <SmartChart data={pieData} palette={PALETTES.clasif} isReady={isReady} height={250} />
+                <ChartCard title="Distribución por Módulo" subtitle="Saturación de registros" height={220}>
+                    <SmartChart data={pieData} palette={PALETTES.clasif} isReady={isReady} height={220} />
                 </ChartCard>
 
-                <ChartCard title="Carga por Categoría" subtitle="Resumen volumétrico">
-                    <SmartChart data={barData} barColor="#6366f1" isReady={isReady} height={250} />
+                <ChartCard title="Carga por Categoría" subtitle="Resumen volumétrico" height={220}>
+                    <SmartChart data={barData} barColor="#6366f1" isReady={isReady} height={220} />
                 </ChartCard>
             </div>
         </div>
     );
 }
 
-function TabCorrelativos({ correlativos, notas = [], period, values }) {
+function TabCorrelativos({ correlativos, period, values }) {
     const [isReady, setIsReady] = useState(false);
     useEffect(() => {
         const timer = setTimeout(() => setIsReady(true), 500);
         return () => clearTimeout(timer);
     }, []);
 
-    const corrFiltered = useMemo(() => filterByPeriod(correlativos.filter(c => !c.anulado), 'fecha', period, values), [correlativos, period, values]);
-    const notasFiltered = useMemo(() => filterByPeriod(notas.filter(n => !n.anulado), 'fecha', period, values), [notas, period, values]);
-
-    const data = useMemo(() => {
-        // Marcamos las notas con un tipo genérico si no lo tienen para que aparezcan en el gráfico de tipos
-        const normalizedNotas = notasFiltered.map(n => ({
-            ...n,
-            tipoInforme: n.tipoInforme || 'Nota / Carta'
-        }));
-        return [...corrFiltered, ...normalizedNotas];
-    }, [corrFiltered, notasFiltered]);
+    const data = useMemo(() => filterByPeriod(correlativos.filter(c => !c.anulado), 'fecha', period, values), [correlativos, period, values]);
 
     const stats = useMemo(() => {
         const uds = data.reduce((a, c) => a + (Number(c.cantidadUnidades) || 1), 0);
         const inSitu = data.filter(c => c.accionSupervision === 'In Situ').length;
         const extraSitio = data.filter(c => c.accionSupervision === 'Extra Sitio').length;
-        const descript = data.filter(c => !!c.descripcionAccion).length;
 
         return {
             total: data.length,
             unidades: uds,
             visitas: inSitu,
             remoto: extraSitio,
-            conDesc: descript,
             tipoData: toChartData(countBy(data, 'tipoInforme')),
             clasifData: toChartData(countBy(data, 'clasificacion')),
             industriaData: toChartData(countBy(data, 'industria')),
-            accionData: toChartData(countBy(data, 'accionSupervision')),
-            tipoCorrData: toChartData(countBy(data, 'tipoCorrespondencia')),
             respData: toChartData(countBy(data, 'responsable')).slice(0, 8),
             normaData: toChartData(countByMulti(data, 'normas', 'codigoNorma')).slice(0, 10),
             entidadData: toChartData(countBy(data, 'entidad')).slice(0, 8),
-            descripcionData: (() => {
-                const filtered = data.filter(c => !!c.descripcionAccion);
-                const counts = filtered.reduce((acc, curr) => {
-                    const desc = curr.descripcionAccion;
-                    acc[desc] = (acc[desc] || 0) + 1;
-                    return acc;
-                }, {});
-                return toChartData(counts).slice(0, 5);
-            })()
         };
     }, [data]);
 
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                <KPI label="Total Correlativos" value={stats.total} icon={FileText} colorClass="bg-slate-900" />
-                <KPI label="Total Unidades" value={stats.unidades} icon={Award} colorClass="bg-indigo-600" />
-                <KPI label="In Situ" value={stats.visitas} icon={Globe} colorClass="bg-blue-600" />
-                <KPI label="Extra Sitio" value={stats.remoto} icon={Activity} colorClass="bg-violet-600" />
+                <KPI label="Total Informes" value={stats.total} icon={FileText} colorClass="bg-slate-900" />
+                <KPI label="Unidades Evaluadas" value={stats.unidades} icon={Award} colorClass="bg-indigo-600" />
+                <KPI label="Misiones In Situ" value={stats.visitas} icon={Globe} colorClass="bg-blue-600" />
+                <KPI label="Revisiones Extra Sitio" value={stats.remoto} icon={Activity} colorClass="bg-violet-600" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Tipo de Informe" subtitle="Tipología predominante">
-                    <SmartChart data={stats.tipoData} palette={PALETTES.tipo} isReady={isReady} height={260} />
+                <ChartCard title="Tipo de Informe" subtitle="Distribución por tipo" height={220}>
+                    <SmartChart data={stats.tipoData} palette={PALETTES.tipo} isReady={isReady} height={220} />
                 </ChartCard>
-
-                <ChartCard title="Por Clasificación" subtitle="Ejes temáticos">
-                    <SmartChart data={stats.clasifData} palette={PALETTES.clasif} isReady={isReady} height={260} />
-                </ChartCard>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-                <ChartCard title="Por Industria" subtitle="Sector supervisado" height={360}>
-                    <SmartChart data={stats.industriaData} palette={PALETTES.indust} isReady={isReady} height={360} />
+                <ChartCard title="Por Clasificación" subtitle="Ejes temáticos" height={220}>
+                    <SmartChart data={stats.clasifData} palette={PALETTES.clasif} isReady={isReady} height={220} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Normativas Aplicadas" subtitle="Base legal (Top 10)" height={350}>
-                    <SmartChart data={stats.normaData} barColor="#8b5cf6" isReady={isReady} height={350} />
+                <ChartCard title="Distribución por Industria" subtitle="Sectores supervisados" height={220}>
+                    <SmartChart data={stats.industriaData} palette={PALETTES.indust} isReady={isReady} height={220} />
                 </ChartCard>
-
-                <ChartCard title="Sujetos Supervisados" subtitle="Entidades frecuentes" height={350}>
-                    <SmartChart data={stats.entidadData} barColor="#0ea5e9" isReady={isReady} height={350} />
+                <ChartCard title="Responsables" subtitle="Carga de informes" height={220}>
+                    <SmartChart data={stats.respData} barColor="#f59e0b" isReady={isReady} height={220} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Carga por Responsable" subtitle="Correlativos/Notas emitidos" height={350}>
-                    <SmartChart data={stats.respData} barColor="#f59e0b" isReady={isReady} height={350} />
+                <ChartCard title="Sujetos Supervisados" subtitle="Entidades frecuentes" height={220}>
+                    <SmartChart data={stats.entidadData} barColor="#0ea5e9" isReady={isReady} height={220} />
                 </ChartCard>
-
-                <div className="grid grid-cols-1 gap-6">
-                    <ChartCard title="Acción de Supervisión" subtitle="Metodología aplicada" height={250}>
-                        <SmartChart data={stats.accionData} barColor="#4f46e5" isReady={isReady} height={250} />
-                    </ChartCard>
-
-                    <ChartCard title="Flujo Documental" subtitle="Tipo correspondencia" height={250}>
-                        <SmartChart data={stats.tipoCorrData} barColor="#06b6d4" isReady={isReady} height={250} />
-                    </ChartCard>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-                <ChartCard title="Descripciones de Acción" subtitle="Top 5 metodologías" height={320}>
-                    <SmartChart data={stats.descripcionData} barColor="#ec4899" isReady={isReady} height={320} />
+                <ChartCard title="Normativas" subtitle="Marco legal aplicado" height={220}>
+                    <SmartChart data={stats.normaData} barColor="#8b5cf6" isReady={isReady} height={220} />
                 </ChartCard>
             </div>
         </div>
@@ -520,32 +480,117 @@ function TabSeguimiento({ observaciones, period, values }) {
     }, []);
     const data = useMemo(() => filterByPeriod(observaciones.filter(o => !o.anulado), 'fechaInicio', period, values), [observaciones, period, values]);
 
-    const stats = useMemo(() => ({
-        total: data.length,
-        criticas: data.filter(o => o.nivelRiesgo === 'Crítico').length,
-        pendientes: data.filter(o => o.estado === 'Pendiente' || o.estado?.toLowerCase() === 'no subsanada').length,
-        subsanadas: data.filter(o => o.estado === 'Subsanada').length,
-        nivelData: toChartData(countBy(data, 'nivelRiesgo')),
-        estadoData: toChartData(countBy(data, 'estado')),
-        responsableData: toChartData(countBy(data, 'responsable')).slice(0, 8),
-    }), [data]);
+    const stats = useMemo(() => {
+        const criticas = data.filter(o => o.nivelRiesgo === 'Crítico').length;
+        const total = data.length;
+        const ratioRiesgo = total > 0 ? Math.round((criticas / total) * 100) : 0;
+        
+        return {
+            total,
+            criticas,
+            pendientes: data.filter(o => o.estado === 'Pendiente' || o.estado?.toLowerCase() === 'no subsanada').length,
+            subsanadas: data.filter(o => o.estado === 'Subsanada').length,
+            ratioRiesgo,
+            nivelData: toChartData(countBy(data, 'nivelRiesgo')),
+            estadoData: toChartData(countBy(data, 'estado')),
+            responsableData: toChartData(countBy(data, 'responsable')).slice(0, 8),
+        };
+    }, [data]);
 
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPI label="Total Hallazgos" value={stats.total} icon={Shield} colorClass="bg-indigo-600" />
-                <KPI label="Críticos" value={stats.criticas} icon={AlertCircle} colorClass="bg-red-600" />
-                <KPI label="Pendientes" value={stats.pendientes} icon={Calendar} colorClass="bg-amber-600" />
-                <KPI label="Subsanadas" value={stats.subsanadas} icon={CheckCircle} colorClass="bg-emerald-600" />
+                <KPI label="SLA Riesgo Crítico" value={`${stats.ratioRiesgo}%`} icon={AlertCircle} colorClass="bg-red-600" subText={`${stats.criticas} críticos`} />
+                <KPI label="Pendientes Agrupadas" value={stats.pendientes} icon={Calendar} colorClass="bg-amber-600" />
+                <KPI label="Total Subsanadas" value={stats.subsanadas} icon={CheckCircle} colorClass="bg-emerald-600" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <ChartCard title="Matriz de Riesgos" subtitle="Niveles de criticidad" height={220}>
+                    <SmartChart data={stats.nivelData} palette={PALETTES.riesgo} isReady={isReady} height={220} />
+                </ChartCard>
+                <ChartCard title="Estado Actual" subtitle="Distribución del ciclo" height={220}>
+                    <SmartChart data={stats.estadoData} palette={PALETTES.estado} isReady={isReady} height={220} />
+                </ChartCard>
+                <ChartCard title="Responsables" subtitle="Asignación directa" height={220}>
+                    <SmartChart data={stats.responsableData} barColor="#0284c7" isReady={isReady} height={220} />
+                </ChartCard>
+            </div>
+        </div>
+    );
+}
+
+function TabCorrespondencia({ notas, period, values }) {
+    const [isReady, setIsReady] = useState(false);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsReady(true), 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const data = useMemo(() => filterByPeriod(notas.filter(n => !n.anulado), 'fecha', period, values), [notas, period, values]);
+
+    const stats = useMemo(() => {
+        const deInforme = data.filter(n => n.vieneDeInforme === 'SÍ').length;
+        const independientes = data.length - deInforme;
+
+        return {
+            total: data.length,
+            deInforme,
+            independientes,
+            documentalData: toChartData(countBy(data, 'tipoCorrespondencia')),
+            origenData: [
+                { name: 'Derivada de Informe', value: deInforme },
+                { name: 'Oficio Independiente', value: independientes }
+            ].sort((a,b)=>b.value-a.value),
+            accionData: toChartData(countBy(data, 'accionSupervision')),
+            respData: toChartData(countBy(data, 'responsable')).slice(0, 8),
+            entidadData: toChartData(countBy(data, 'entidad')).slice(0, 8),
+            descData: (() => {
+                const counts = data.reduce((acc, curr) => {
+                    const desc = curr.descripcion || curr.descripcionAccion;
+                    if (desc) {
+                        acc[desc] = (acc[desc] || 0) + 1;
+                    }
+                    return acc;
+                }, {});
+                return toChartData(counts).slice(0, 5);
+            })()
+        };
+    }, [data]);
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                <KPI label="Total Notas / Actas" value={stats.total} icon={Download} colorClass="bg-amber-600" />
+                <KPI label="Derivadas de Informes" value={stats.deInforme} icon={FileText} colorClass="bg-indigo-600" />
+                <KPI label="Oficios Independientes" value={stats.independientes} icon={Globe} colorClass="bg-teal-600" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard title="Riesgo vs Estado" subtitle="Niveles de criticidad">
-                    <SmartChart data={stats.nivelData} palette={PALETTES.riesgo} isReady={isReady} height={250} />
+                <ChartCard title="Origen de la Nota" subtitle="Integración documental" height={220}>
+                    <SmartChart data={stats.origenData} palette={PALETTES.accion} isReady={isReady} height={220} />
                 </ChartCard>
+                <ChartCard title="Tipo de Flujo" subtitle="Desgloce de correspondencia" height={220}>
+                    <SmartChart data={stats.documentalData} palette={PALETTES.clasif} isReady={isReady} height={220} />
+                </ChartCard>
+            </div>
 
-                <ChartCard title="Carga por Responsable" subtitle="Seguimiento de hallazgos">
-                    <SmartChart data={stats.responsableData} palette={PALETTES.clasif} isReady={isReady} height={250} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <ChartCard title="Acción Predictiva" subtitle="Naturaleza del esfuerzo" height={220}>
+                    <SmartChart data={stats.accionData} palette={PALETTES.tipo} isReady={isReady} height={220} />
+                </ChartCard>
+                <ChartCard title="Responsables" subtitle="Quién firma la nota" height={220}>
+                    <SmartChart data={stats.respData} barColor="#f59e0b" isReady={isReady} height={220} />
+                </ChartCard>
+                <ChartCard title="Sujetos Notificados" subtitle="Top entidades" height={220}>
+                    <SmartChart data={stats.entidadData} barColor="#0ea5e9" isReady={isReady} height={220} />
+                </ChartCard>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+                <ChartCard title="Extracciones Semánticas" subtitle="Motivos y acciones" height={220}>
+                    <SmartChart data={stats.descData} barColor="#ec4899" isReady={isReady} height={220} />
                 </ChartCard>
             </div>
         </div>
@@ -558,7 +603,7 @@ const TABS = [
     { id: 'correlativos', label: 'Correlativos Informes', icon: <FileText className="w-4 h-4" /> },
     { id: 'hallazgos', label: 'Analítica de Seguimiento', icon: <Shield className="w-4 h-4" /> },
     { id: 'correspondencia', label: 'Correspondencia', icon: <Download className="w-4 h-4" /> },
-    { id: 'informes', label: 'Generador', icon: <Award className="w-4 h-4" /> },
+    { id: 'informes', label: 'Detalle de Observaciones', icon: <Award className="w-4 h-4" /> },
 ];
 
 export default function InformesGlobal({ observaciones = [], correlativos = [], notas = [], filtrar, getEstadisticas, onSelectObservacion, eliminarObservacion, editarObservacion, catalogos, entidades = [] }) {
@@ -653,17 +698,13 @@ export default function InformesGlobal({ observaciones = [], correlativos = [], 
                     <TabResumen observaciones={obsData} correlativos={corrData} notas={notasData} period="all" values={{}} years={[]} />
                 )}
                 {activeTab === 'correlativos' && (
-                    <TabCorrelativos correlativos={corrData} notas={notasData} period="all" values={{}} />
+                    <TabCorrelativos correlativos={corrData} period="all" values={{}} />
                 )}
                 {activeTab === 'hallazgos' && (
                     <TabSeguimiento observaciones={obsData} period="all" values={{}} />
                 )}
                 {activeTab === 'correspondencia' && (
-                    <div className="py-20 text-center bg-white rounded-4xl border border-slate-100 shadow-sm">
-                        <Download className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Analítica de Correspondencia</p>
-                        <p className="text-xs text-slate-300 mt-2 font-medium">Próximamente métricas de flujo documental</p>
-                    </div>
+                    <TabCorrespondencia notas={notasData} period="all" values={{}} />
                 )}
                 {activeTab === 'informes' && (
                     <Informes
