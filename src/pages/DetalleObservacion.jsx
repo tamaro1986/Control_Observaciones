@@ -33,7 +33,7 @@ function inputCls() {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function DetalleObservacion({ observacion, cambiarEstado, eliminarObservacion, editarObservacion, agregarSeguimiento, onBack, catalogos }) {
+export default function DetalleObservacion({ observacion, cambiarEstado, eliminarObservacion, editarObservacion, onBack, catalogos }) {
     const entidades = catalogos?.entidades || [];
     const ent = entidades.find(e => Number(e.id) === Number(observacion.entidadId));
 
@@ -76,17 +76,16 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     // Section 3 – Respuesta de la Entidad
     const [fechaRespuesta, setFechaRespuesta] = useState('');
     const [respuestaEntidad, setRespuestaEntidad] = useState('');
+    const [objetoSeguimiento, setObjetoSeguimiento] = useState('');
 
     // Section 4 – Situación Actual
     const [nuevoEstado, setNuevoEstado] = useState(observacion.estado);
     const [comentarioAuditor, setComentarioAuditor] = useState('');
+    const [fechaPlanAccion, setFechaPlanAccion] = useState('');
 
     // Legacy fields kept so the data shape stays compatible
     const [nroInforme, setNroInforme] = useState(observacion.nroInforme);
     const [nota, setNota] = useState('');
-    const [analisisAuditor, setAnalisisAuditor] = useState('');
-    const [planAccion, setPlanAccion] = useState('');
-    const [fechaPlanAccion, setFechaPlanAccion] = useState('');
     const [criterioAdministrativo, setCriterioAdministrativo] = useState(observacion.criterioAdministrativo || '');
     const [criterioLegal, setCriterioLegal] = useState(observacion.criterioLegal || '');
 
@@ -106,40 +105,20 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
             nota,
             respuestaEntidad,
             fechaRespuesta,
-            analisisAuditor: comentarioAuditor || analisisAuditor,
-            planAccion,
+            objetoSeguimiento,
+            analisisAuditor: comentarioAuditor,
             fechaPlanAccion,
             criterioAdministrativo,
             criterioLegal,
         });
-        // Reset section-3 fields
+
+        // Reset fields
         setFechaRespuesta('');
         setRespuestaEntidad('');
-        // Reset section-4 fields (state stays as new value)
+        setObjetoSeguimiento('');
         setComentarioAuditor('');
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 4000);
-    };
-
-    // Seguimientos Form State
-    const [isAddingSeguimiento, setIsAddingSeguimiento] = useState(false);
-    const [newSeg, setNewSeg] = useState({
-        fechaRespuesta: '',
-        fechaPlanAccion: '',
-        fechaSeguimiento: '',
-        campoDetallar: '',
-        respuesta: '',
-        analisis: ''
-    });
-
-    const handleGuardarSeguimiento = async () => {
-        if (!newSeg.fechaSeguimiento) {
-            alert('La fecha de seguimiento es obligatoria.');
-            return;
-        }
-        await agregarSeguimiento(observacion.id, newSeg);
-        setNewSeg({ fechaRespuesta: '', fechaPlanAccion: '', fechaSeguimiento: '', campoDetallar: '', respuesta: '', analisis: ''});
-        setIsAddingSeguimiento(false);
+        setFechaPlanAccion('');
+        
         setShowToast(true);
         setTimeout(() => setShowToast(false), 4000);
     };
@@ -149,7 +128,6 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
     const tiposVisita = catalogos?.tiposVisita || TIPOS_VISITA;
     const nivelesRiesgo = catalogos?.nivelesRiesgo || NIVELES_RIESGO.map(n => n.value);
     const tiposRiesgo = catalogos?.tiposRiesgo || TIPOS_RIESGO;
-    const normas = catalogos?.normas || [];
     const secciones = catalogos?.secciones || [];
 
     return (
@@ -430,8 +408,10 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                 <div className="lg:col-span-2 space-y-4">
 
                     {/* ╔═══════════════════════════════════════════════════════╗ */}
-                    {/* ║  SECCIÓN 3 – Respuesta de la Entidad                 ║ */}
+                    {/* ║  REGISTRO DE CICLO DE GESTIÓN                        ║ */}
                     {/* ╚═══════════════════════════════════════════════════════╝ */}
+                    
+                    {/* SECCIÓN 3 – Respuesta de la Entidad */}
                     <Card className="p-5! shadow-xl border-0 ring-1 ring-blue-100">
                         <SectionHeader
                             number="3"
@@ -445,7 +425,6 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Date field – 1 col */}
                             <div>
                                 <FieldLabel>Fecha de Respuesta</FieldLabel>
                                 <input
@@ -456,28 +435,36 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                 />
                             </div>
 
-                            {/* Response text – 2 cols */}
                             <div className="md:col-span-2">
-                                <FieldLabel>Contenido de la Respuesta</FieldLabel>
+                                <FieldLabel>Respuesta / Contenido</FieldLabel>
                                 <textarea
-                                    placeholder="Describa lo que respondió la entidad a la observación planteada..."
+                                    placeholder="Detalle la respuesta brindada por la entidad..."
                                     value={respuestaEntidad}
                                     onChange={e => setRespuestaEntidad(e.target.value)}
-                                    rows={3}
+                                    rows={1}
                                     className={`${inputCls()} resize-none`}
+                                />
+                            </div>
+
+                            <div className="md:col-span-3">
+                                <FieldLabel>Objeto del Seguimiento</FieldLabel>
+                                <textarea
+                                    placeholder="Título o resumen breve del seguimiento actual..."
+                                    value={objetoSeguimiento}
+                                    onChange={e => setObjetoSeguimiento(e.target.value)}
+                                    rows={1}
+                                    className={`${inputCls()} resize-none bg-blue-50/50 border-blue-200`}
                                 />
                             </div>
                         </div>
                     </Card>
 
-                    {/* ╔═══════════════════════════════════════════════════════╗ */}
-                    {/* ║  SECCIÓN 4 – Situación Actual                        ║ */}
-                    {/* ╚═══════════════════════════════════════════════════════╝ */}
+                    {/* SECCIÓN 4 – Situación Actual / Análisis */}
                     <Card className="p-5! shadow-xl border-0 ring-1 ring-violet-100">
                         <SectionHeader
                             number="4"
                             color="violet"
-                            label="Situación Actual"
+                            label="Situación Actual y Análisis"
                             icon={
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -486,16 +473,15 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Estado – 1 col */}
                             <div className="space-y-3">
                                 <div>
-                                    <FieldLabel>Estado de Gestión Final</FieldLabel>
+                                    <FieldLabel>Nuevo Estado</FieldLabel>
                                     <select
                                         value={nuevoEstado}
                                         onChange={e => setNuevoEstado(e.target.value)}
                                         className={`${inputCls()} font-bold uppercase cursor-pointer border-violet-200 bg-violet-50/30 text-violet-900 focus:ring-violet-500/20 focus:border-violet-500`}
                                     >
-                                        <option value="" disabled>— Seleccionar Estado —</option>
+                                        <option value="" disabled>— Seleccionar —</option>
                                         {catalogos?.estados?.map(e => (
                                             <option key={e.id} value={e.nombre}>{e.nombre}</option>
                                         )) || estados.map(e => (
@@ -503,30 +489,30 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                         ))}
                                     </select>
                                 </div>
-
-                                {/* Estado pill visual */}
-                                <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 rounded-xl border border-violet-100">
-                                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse shrink-0" />
-                                    <span className="text-[10px] font-black text-violet-700 uppercase tracking-widest leading-none">
-                                        Transición a: {nuevoEstado || '...'}
-                                    </span>
+                                <div>
+                                    <FieldLabel>Fecha Plan de Acción</FieldLabel>
+                                    <input
+                                        type="date"
+                                        value={fechaPlanAccion}
+                                        onChange={e => setFechaPlanAccion(e.target.value)}
+                                        className={inputCls()}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Comentario del auditor – 2 cols */}
                             <div className="md:col-span-2">
-                                <FieldLabel>Comentario del Auditor</FieldLabel>
+                                <FieldLabel>Análisis Técnico del Auditor</FieldLabel>
                                 <textarea
-                                    placeholder="Registre el análisis o comentario del auditor respecto a la situación actual de la observación..."
+                                    placeholder="Registre su análisis técnico respecto a los avances o situación actual..."
                                     value={comentarioAuditor}
                                     onChange={e => setComentarioAuditor(e.target.value)}
-                                    rows={4}
+                                    rows={5}
                                     className={`${inputCls()} resize-none`}
                                 />
                             </div>
                         </div>
 
-                        {/* Criterios de Cierre (Solo si es Subsanada) */}
+                        {/* Criterios de Cierre */}
                         {nuevoEstado === 'Subsanada' && (
                             <div className="mt-6 pt-6 border-t border-slate-100 space-y-5">
                                 <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-2xl p-5 space-y-4">
@@ -536,20 +522,18 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                         </svg>
                                         <div className="flex-1 space-y-4">
                                             <div>
-                                                <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Administrativo de Cierre <span className="text-rose-500">*</span></label>
+                                                <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Administrativo <span className="text-rose-500">*</span></label>
                                                 <textarea
-                                                    rows={2}
-                                                    placeholder="Describa el criterio administrativo para cerrar esta observación..."
+                                                    rows={1}
                                                     value={criterioAdministrativo}
                                                     onChange={e => setCriterioAdministrativo(e.target.value)}
                                                     className={`w-full p-4 rounded-2xl border border-emerald-200 bg-white text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm resize-none`}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Legal de Cierre <span className="text-rose-500">*</span></label>
+                                                <label className="block text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Criterio Legal <span className="text-rose-500">*</span></label>
                                                 <textarea
-                                                    rows={2}
-                                                    placeholder="Describa el fundamento legal para el cierre..."
+                                                    rows={1}
                                                     value={criterioLegal}
                                                     onChange={e => setCriterioLegal(e.target.value)}
                                                     className={`w-full p-4 rounded-2xl border border-emerald-200 bg-white text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-sm resize-none`}
@@ -561,14 +545,13 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                             </div>
                         )}
 
-                        {/* Action bar */}
                         <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
-                            <p className="text-[10px] text-amber-600 font-bold italic max-w-sm">
-                                * Al registrar se completará el ciclo de gestión y se actualizará la bitácora histórica.
+                            <p className="text-[10px] text-amber-600 font-bold italic">
+                                * Al registrar se actualizará la bitácora y la tabla de seguimientos.
                             </p>
                             <button
                                 onClick={handleGuardarCiclo}
-                                className="px-6 py-2.5 rounded-xl bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
+                                className="px-6 py-2.5 rounded-xl bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2 cursor-pointer"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -578,20 +561,20 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         </div>
                     </Card>
 
-                    {/* ── Timeline History ─────────────────────────────────── */}
-                    <section className="space-y-3">
+                    {/* TRAZA DE AUDITORÍA (Historial de Estados y Seguimiento) */}
+                    <section className="space-y-4">
                         <div className="flex items-center justify-between px-1">
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-slate-900 shadow-[0_0_8px_rgba(0,0,0,0.1)]" />
+                                <div className="w-2 h-2 rounded-full bg-slate-900" />
                                 <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">Traza de Auditoría</h3>
                             </div>
-                            <span className="text-[10px] font-bold text-text-muted italic">{observacion.historialEstados.length} EVENTOS REGISTRADOS</span>
+                            <span className="text-[10px] font-bold text-text-muted italic">Eventos Cronológicos</span>
                         </div>
 
                         <div className="relative pl-6 space-y-4">
                             <div className="absolute left-0.75 top-4 bottom-4 w-0.5 bg-slate-100" />
 
-                            {[...observacion.historialEstados].reverse().map((h, i) => (
+                            {[...(observacion.historialEstados || [])].reverse().map((h, i) => (
                                 <div key={i} className="relative animate-fade-in group">
                                     <div className="absolute -left-7.5 top-1.5 w-3 h-3 rounded-full bg-white border-2 border-slate-900 group-hover:scale-125 transition-transform z-10" />
 
@@ -601,101 +584,30 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                                                 <div className="px-3 py-1 bg-slate-100 rounded-lg">
                                                     <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">{formatDate(h.fecha)}</span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    {h.estadoAnterior && (
-                                                        <>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase line-through">{h.estadoAnterior}</span>
-                                                            <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                                            </svg>
-                                                        </>
-                                                    )}
-                                                    <EstadoBadge estado={h.estadoNuevo} />
-                                                </div>
+                                                <EstadoBadge estado={h.estadoNuevo} />
                                             </div>
-                                            {h.nroInforme && (
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">REF:</span>
-                                                        <span className="text-[11px] font-black text-text-primary leading-none">{h.nroInforme} {h.nota && `• ${h.nota}`}</span>
-                                                    </div>
+                                            {h.objetoSeguimiento && (
+                                                <div className="line-clamp-1 text-[11px] font-black text-slate-500 uppercase italic">
+                                                    {h.objetoSeguimiento}
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                            {/* Sección 3 en historial: Respuesta de la Entidad */}
-                                            {(h.respuestaEntidad || h.fechaRespuesta) && (
-                                                <div className="space-y-2 md:col-span-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center shrink-0">
-                                                            <span className="text-[9px] font-black text-blue-700">3</span>
-                                                        </div>
-                                                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Respuesta de la Entidad</span>
-                                                        {h.fechaRespuesta && (
-                                                            <span className="ml-auto text-[9px] font-bold text-blue-500 px-2 py-0.5 bg-blue-100 rounded-lg">{formatDate(h.fechaRespuesta)}</span>
-                                                        )}
-                                                    </div>
-                                                    {h.respuestaEntidad && (
-                                                        <p className="text-[13px] font-medium text-blue-900 leading-relaxed italic">"{h.respuestaEntidad}"</p>
-                                                    )}
+                                        {h.analisisAuditor && (
+                                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 mb-3">
+                                                <p className="text-xs font-medium text-slate-600 leading-relaxed italic">"{h.analisisAuditor}"</p>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                            {h.fechaPlanAccion && (
+                                                <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded">
+                                                    PLAN ACCIÓN: {formatDate(h.fechaPlanAccion)}
                                                 </div>
                                             )}
-
-                                            {/* Sección 4 en historial: Situación Actual / Comentario Auditor */}
-                                            {h.analisisAuditor && (
-                                                <div className="space-y-2 md:col-span-2 p-4 bg-violet-50 rounded-2xl border border-violet-100">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center shrink-0">
-                                                            <span className="text-[9px] font-black text-violet-700">4</span>
-                                                        </div>
-                                                        <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Situación Actual — Comentario del Auditor</span>
-                                                    </div>
-                                                    <p className="text-[13px] font-medium text-violet-900 leading-relaxed">{h.analisisAuditor}</p>
-                                                </div>
-                                            )}
-
-                                            {/* Criterios de Cierre en historial */}
-                                            {(h.criterioAdministrativo || h.criterioLegal) && (
-                                                <div className="space-y-4 md:col-span-2 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center shrink-0">
-                                                            <svg className="w-3 h-3 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                        </div>
-                                                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Criterios de Cierre (Subsanada)</span>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        {h.criterioAdministrativo && (
-                                                            <div>
-                                                                <span className="text-[8px] font-black text-emerald-700 uppercase tracking-widest block mb-1">Administrativo</span>
-                                                                <p className="text-[12px] font-medium text-emerald-900 leading-tight italic">"{h.criterioAdministrativo}"</p>
-                                                            </div>
-                                                        )}
-                                                        {h.criterioLegal && (
-                                                            <div>
-                                                                <span className="text-[8px] font-black text-emerald-700 uppercase tracking-widest block mb-1">Legal</span>
-                                                                <p className="text-[12px] font-medium text-emerald-900 leading-tight italic">"{h.criterioLegal}"</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Plan de acción (legacy) */}
-                                            {h.planAccion && (
-                                                <div className="space-y-2">
-                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Plan de Rectificación:</span>
-                                                    <p className="text-[13px] font-medium text-text-secondary leading-relaxed">{h.planAccion}</p>
-                                                    {h.fechaPlanAccion && (
-                                                        <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 rounded-xl border border-amber-100">
-                                                            <svg className="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                            </svg>
-                                                            <span className="text-[10px] font-black text-amber-700">Compromiso: {formatDate(h.fechaPlanAccion)}</span>
-                                                        </div>
-                                                    )}
+                                            {h.fechaRespuesta && (
+                                                <div className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded">
+                                                    RESPUESTA: {formatDate(h.fechaRespuesta)}
                                                 </div>
                                             )}
                                         </div>
@@ -705,138 +617,30 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
                         </div>
                     </section>
 
-                    {/* ── Seguimientos Históricos y Opcionales ─────────────────────────────────── */}
+                    {/* BITÁCORA RELACIONAL */}
                     <section className="space-y-4 pt-6 border-t border-slate-100">
-                        <div className="flex items-center justify-between px-1">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">Seguimientos Realizados</h3>
-                            </div>
-                            <button
-                                onClick={() => setIsAddingSeguimiento(!isAddingSeguimiento)}
-                                className="px-5 py-2.5 rounded-2xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2 cursor-pointer"
-                            >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={isAddingSeguimiento ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />
-                                </svg>
-                                {isAddingSeguimiento ? 'Cancelar Seguimiento' : 'Añadir Seguimiento'}
-                            </button>
+                         <div className="flex items-center gap-2 px-1">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                            <h3 className="text-[11px] font-black text-text-primary uppercase tracking-[0.2em]">Bitácora Relacional (Seguimientos)</h3>
                         </div>
 
-                        {/* Formulario de Nuevo Seguimiento */}
-                        {isAddingSeguimiento && (
-                            <div className="p-6 bg-emerald-50/40 rounded-3xl border border-emerald-100/60 animate-in fade-in slide-in-from-top-4 duration-300">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                                    <div>
-                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Respuesta (Entidad)</label>
-                                        <input
-                                            type="date"
-                                            value={newSeg.fechaRespuesta}
-                                            onChange={e => setNewSeg({...newSeg, fechaRespuesta: e.target.value})}
-                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Plan Acción</label>
-                                        <input
-                                            type="date"
-                                            value={newSeg.fechaPlanAccion}
-                                            onChange={e => setNewSeg({...newSeg, fechaPlanAccion: e.target.value})}
-                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Fecha Seguimiento <span className="text-rose-500">*</span></label>
-                                        <input
-                                            type="date"
-                                            value={newSeg.fechaSeguimiento}
-                                            onChange={e => setNewSeg({...newSeg, fechaSeguimiento: e.target.value})}
-                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-3">
-                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Campo para Detallar</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Detalle o extracto del componente evaluado..."
-                                            value={newSeg.campoDetallar}
-                                            onChange={e => setNewSeg({...newSeg, campoDetallar: e.target.value})}
-                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-bold text-text-primary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-3">
-                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Respuesta (En relación al plan)</label>
-                                        <textarea
-                                            value={newSeg.respuesta}
-                                            onChange={e => setNewSeg({...newSeg, respuesta: e.target.value})}
-                                            rows={2}
-                                            placeholder="Agregue comentarios de la entidad frente al avance..."
-                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all resize-none shadow-sm shadow-emerald-50"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-3">
-                                        <label className="block text-[9px] font-black text-emerald-600/80 uppercase tracking-widest mb-2 px-1">Análisis (Auditor)</label>
-                                        <textarea
-                                            value={newSeg.analisis}
-                                            onChange={e => setNewSeg({...newSeg, analisis: e.target.value})}
-                                            rows={3}
-                                            placeholder="Conclusión analítica actual..."
-                                            className="w-full px-4 py-3 rounded-2xl border border-emerald-100 bg-white text-xs font-medium text-text-secondary focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all resize-none shadow-sm shadow-emerald-50"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={handleGuardarSeguimiento}
-                                        className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
-                                    >
-                                        Añadir Seguimiento al Expediente
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Listado de Seguimientos */}
                         {(!observacion.seguimientos || observacion.seguimientos.length === 0) ? (
-                            <div className="py-6 flex flex-col items-center justify-center text-center opacity-70">
-                                <svg className="w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sin seguimientos registrados</span>
+                            <div className="bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-8 text-center">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin registros de seguimiento relacional persistidos</span>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[...observacion.seguimientos].sort((a, b) => b.id - a.id).map(s => (
-                                    <div key={s.id} className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col gap-3 group hover:border-emerald-100 hover:shadow-md transition-all">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Fecha de Seguimiento</span>
-                                                <span className="text-sm font-black text-emerald-600">{formatDate(s.fecha_seguimiento || s.creado_at)}</span>
-                                            </div>
+                                    <div key={s.id} className="p-4 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col gap-2 border-l-4 border-l-emerald-500">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{formatDate(s.fecha_seguimiento)}</span>
                                             {s.fecha_plan_accion && (
-                                                <div className="text-right">
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Plan Acción</span>
-                                                    <span className="text-[11px] font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">{formatDate(s.fecha_plan_accion)}</span>
-                                                </div>
+                                                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">Vence: {formatDate(s.fecha_plan_accion)}</span>
                                             )}
                                         </div>
-                                        {s.campo_detallar && (
-                                            <div>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Extracto Evidenciado</span>
-                                                <p className="text-xs font-bold text-text-primary leading-tight">{s.campo_detallar}</p>
-                                            </div>
-                                        )}
-                                        {s.respuesta && (
-                                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Respuesta Entidad {s.fecha_respuesta && `(${formatDate(s.fecha_respuesta)})`}</span>
-                                                <p className="text-[11px] font-medium text-slate-600 italic">"{s.respuesta}"</p>
-                                            </div>
-                                        )}
+                                        <h4 className="text-xs font-black text-slate-800 leading-tight">{s.campo_detallar || 'Seguimiento general'}</h4>
                                         {s.analisis && (
-                                            <div>
-                                                <span className="text-[9px] font-black text-emerald-500/70 uppercase tracking-widest block mb-1">Análisis Técnico</span>
-                                                <p className="text-xs font-medium text-text-secondary leading-relaxed">{s.analisis}</p>
-                                            </div>
+                                            <p className="text-[11px] font-medium text-slate-600 line-clamp-2 italic">"{s.analisis}"</p>
                                         )}
                                     </div>
                                 ))}
@@ -848,7 +652,7 @@ export default function DetalleObservacion({ observacion, cambiarEstado, elimina
 
             {showToast && (
                 <SuccessToast
-                    message={isEditing ? "Los datos de la observación han sido actualizados." : "Ciclo de gestión registrado exitosamente."}
+                    message={isEditing ? "Gestión actualizada." : "Ciclo registrado con éxito."}
                     onClose={() => setShowToast(false)}
                 />
             )}

@@ -446,6 +446,7 @@ export default function useObservaciones() {
         const obs = observaciones.find(o => o.id === id);
         if (!obs) return;
 
+        // 1. Prepare history event for JSON column
         const nuevoHistorial = {
             fecha: new Date().toISOString().split('T')[0],
             estadoAnterior: obs.estado,
@@ -454,11 +455,23 @@ export default function useObservaciones() {
             nota: cambio.nota || '',
             respuestaEntidad: cambio.respuestaEntidad || '',
             fechaRespuesta: cambio.fechaRespuesta || '',
+            objetoSeguimiento: cambio.objetoSeguimiento || '',
             analisisAuditor: cambio.analisisAuditor || '',
             planAccion: cambio.planAccion || '',
             fechaPlanAccion: cambio.fechaPlanAccion || '',
             criterioAdministrativo: cambio.criterioAdministrativo || obs.criterioAdministrativo,
             criterioLegal: cambio.criterioLegal || obs.criterioLegal,
+        };
+
+        // 2. Prepare relational Seguimiento record
+        const seguimientoPayload = {
+            observacion_id: id,
+            fecha_respuesta: nullIfEmptyString(cambio.fechaRespuesta),
+            campo_detallar: cambio.objetoSeguimiento || 'Seguimiento de ciclo',
+            fecha_plan_accion: nullIfEmptyString(cambio.fechaPlanAccion),
+            respuesta: cambio.respuestaEntidad || '',
+            fecha_seguimiento: new Date().toISOString().split('T')[0],
+            analisis: cambio.analisisAuditor || ''
         };
 
         const updateData = mapToDB({
@@ -471,15 +484,16 @@ export default function useObservaciones() {
             historialEstados: [...(obs.historialEstados || []), nuevoHistorial],
         });
 
-        const { error } = await supabase.from('observaciones')
-            .update(updateData)
-            .eq('id', id);
+        // 3. Persist everything
+        const [obsUpdate, segInsert] = await Promise.all([
+            supabase.from('observaciones').update(updateData).eq('id', id),
+            supabase.from('seguimientos').insert([seguimientoPayload])
+        ]);
         
-        if (error) {
-            console.error('Error updating state:', error);
-        } else {
-            await fetchData(true);
-        }
+        if (obsUpdate.error) console.error('Error updating observation:', obsUpdate.error);
+        if (segInsert.error) console.error('Error inserting relational follow-up:', segInsert.error);
+
+        await fetchData(true);
     }, [observaciones, fetchData]);
 
     const editarObservacion = useCallback(async (id, data) => {
