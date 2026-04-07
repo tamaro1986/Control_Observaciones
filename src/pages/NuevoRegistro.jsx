@@ -110,16 +110,7 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                 tarjetas,
             });
 
-            // Reset only on success
-            setEntidadId('');
-            setNroInforme('');
-            setEsInformeManual(false);
-            setFechaApertura('');
-            setFechaCierre('');
-            setFechaEvalFinal('');
-            setEsVehiculoInversion(false);
-            setFondoInversion('');
-            setFondoTitularizacion('');
+            // Reset only finding cards, PRESERVE header context for continuous entry
             setTarjetas([getInitialTarjeta()]);
             setErrors({});
             setShowToast(true);
@@ -740,10 +731,10 @@ export default function NuevoRegistro({ crearAuditoria, catalogos = {}, entidade
                             onClick={handleSubmit}
                             className="px-12 py-4 rounded-2xl bg-slate-900 text-white text-[12px] font-black uppercase tracking-[0.25em] shadow-2xl shadow-slate-300 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-[0.98] transition-all flex items-center gap-3 cursor-pointer group"
                         >
-                            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                            <svg className="w-4 h-4 group-hover:translate-y-1 transition-transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                             </svg>
-                            Finalizar Expediente
+                            Registrar Hallazgos
                         </button>
                     </div>
                 </div>
